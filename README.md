@@ -1,6 +1,6 @@
-# Self-hosted AI starter kit (Стартовый набор для self-hosted ИИ)
+# N8N Self-hosted AI starter kit (N8N Стартовый набор для self-hosted ИИ)
 
-**Self-hosted AI Starter Kit** — это шаблон Docker Compose с открытым исходным кодом, предназначенный для быстрого развертывания комплексной локальной среды для разработки ИИ и low-code.
+**N8N Self-hosted AI Starter Kit** — это шаблон Docker Compose с открытым исходным кодом, предназначенный для быстрого развертывания комплексной локальной среды для разработки ИИ и low-code.
 
 Созданный <https://github.com/n8n-io>, он объединяет self-hosted платформу n8n
 с тщательно подобранным списком совместимых ИИ-продуктов и компонентов,
@@ -109,7 +109,7 @@ x-n8n: &service-n8n
 
 Кроме того, после того как вы увидите "Editor is now accessible via: <http://localhost:5678/>":
 
-1.  Перейдите по адресу <http://localhost:5678/credentials> (или `https://n8n.ваш-домен.top/credentials`, если настроен Traefik)
+1.  Перейдите по адресу <http://localhost:5678/credentials> (или `https://n8n.ваш-домен.com/credentials`, если настроен Traefik)
 2.  Нажмите на "Local Ollama service"
 3.  Измените базовый URL на "http://host.docker.internal:11434/"
 
@@ -124,9 +124,9 @@ docker compose --profile cpu up -d --build
 Ядром Self-hosted AI Starter Kit является файл Docker Compose, предварительно настроенный с сетевыми параметрами и хранилищами, что минимизирует необходимость в дополнительных установках.
 После выполнения шагов по установке, просто следуйте приведенным ниже шагам, чтобы начать.
 
-1.  Откройте `http://localhost:5678/` (или `https://n8n.ваш-домен.top/`, если настроен Traefik с вашим доменом) в вашем браузере, чтобы настроить n8n. Это нужно будет сделать только один раз.
+1.  Откройте `http://localhost:5678/` (или `https://n8n.ваш-домен.com/`, если настроен Traefik с вашим доменом) в вашем браузере, чтобы настроить n8n. Это нужно будет сделать только один раз.
 2.  Откройте включенный воркфлоу:
-    `http://localhost:5678/workflow/srOnR8PAY3u4RSwb` (или `https://n8n.ваш-домен.top/workflow/srOnR8PAY3u4RSwb`)
+    `http://localhost:5678/workflow/srOnR8PAY3u4RSwb` (или `https://n8n.ваш-домен.com/workflow/srOnR8PAY3u4RSwb`)
 3.  Нажмите кнопку **Chat** в нижней части холста, чтобы запустить воркфлоу.
 4.  Если вы запускаете воркфлоу впервые, возможно, потребуется подождать,
     пока Ollama завершит загрузку Llama3.2. Вы можете проверить логи Docker
