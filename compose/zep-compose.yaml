@@ -1,0 +1,130 @@
+name: zep-ce
+
+services:
+  zep:
+    image: zepai/zep:latest
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../config/zep.yaml:/app/zep.yaml
+    env_file:
+      - ../.env
+    environment:
+      - ZEP_CONFIG_FILE=zep.yaml
+    networks:
+      - zep-network
+      - backend
+    depends_on:
+      graphiti:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.zep.rule=Host(`${ZEP_DOMAIN}`)"
+      - "traefik.http.routers.zep.entrypoints=websecure"
+      - "traefik.http.routers.zep.tls.certresolver=myresolver"
+      - "traefik.http.services.zep.loadbalancer.server.port=8000"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  db:
+    image: ankane/pgvector:v0.5.1
+    container_name: zep-ce-postgres
+    restart: unless-stopped
+    shm_size: "128mb"
+    environment:
+      - POSTGRES_USER=${ZEP_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${ZEP_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${ZEP_POSTGRES_DB}
+    volumes:
+      - zep-db:/var/lib/postgresql/data
+    networks:
+      - zep-network
+      - database
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ZEP_POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  graphiti:
+    image: zepai/graphiti:0.3
+    container_name: graphiti
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    networks:
+      - zep-network
+      - backend
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.graphiti.rule=Host(`${GRAPHITI_DOMAIN}`)"
+      - "traefik.http.routers.graphiti.entrypoints=websecure"
+      - "traefik.http.routers.graphiti.tls.certresolver=myresolver"
+      - "traefik.http.services.graphiti.loadbalancer.server.port=8003"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  neo4j:
+    image: neo4j:5.22.0
+    container_name: neo4j-zep
+    restart: unless-stopped
+    volumes:
+      - neo4j_data:/data
+    environment:
+      - NEO4J_AUTH=neo4j/zepzepzep
+    networks:
+      - zep-network
+      - database
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+volumes:
+  neo4j_data:
+  zep-db:
+
+networks:
+  zep-network:
+    driver: bridge
+  backend:
+    external: true
+    name: backend-network
+  database:
+    external: true
+    name: database-network
