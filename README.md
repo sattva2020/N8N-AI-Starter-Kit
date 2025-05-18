@@ -63,31 +63,44 @@
 # Установка
 
 ## Установка необходимых пакетов
+```bash
 sudo apt update
 sudo apt install -y ca-certificates curl git gnupg
-
+```
 ## Добавление официального GPG-ключа Docker
+```bash
 sudo install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 sudo chmod a+r /etc/apt/keyrings/docker.gpg
+```
 
 ## Настройка репозитория Docker
+```bash
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list
+```
 
 ## Установка Docker
+```bash
 sudo apt update
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
 
 ## Добавление текущего пользователя в группу 'docker', чтобы избежать использования 'sudo' с командами docker
+```bash
+newgrp docker
 sudo usermod -aG docker $USER
+```
+
 ** Активация изменений членства в группе 'docker' для текущей сессии терминала.
 ** Это позволяет сразу выполнять команды docker без sudo в этой сессии.
 ** Для применения изменений во всех новых сессиях может потребоваться перезапуск терминала или полный выход/вход в систему.
-newgrp docker
+
 
 ## Проверка установки
+```bash
 docker --version
 docker compose version
+```
 
 ### Клонирование репозитория
 
