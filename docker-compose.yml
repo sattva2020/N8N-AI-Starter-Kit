@@ -9,7 +9,6 @@ volumes:
   pgadmin_data:
   jupyter_data:
   traefik_letsencrypt:
-  zep_data: # [!code ++]
 
 networks:
   app-n8n:
@@ -274,7 +273,7 @@ services:
       - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
 
   jupyterlab:
-    image: jupyter/datascience-notebook:latest
+    image: jupyter/scipy-notebook:latest
     hostname: jupyterlab
     container_name: jupyterlab
     networks: ['app-n8n']
@@ -290,29 +289,10 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.jupyterlab.rule=Host(`jupyter.ai-sattva.top`)" # [!code focus]
+      - "traefik.http.routers.jupyterlab.rule=Host(`${JUPYTER_DOMAIN:-jupyter.localhost}`)"
       - "traefik.http.routers.jupyterlab.entrypoints=websecure"
       - "traefik.http.routers.jupyterlab.tls.certresolver=myresolver"
       - "traefik.http.services.jupyterlab.loadbalancer.server.port=8888"
-
-  zep: # [!code ++]
-    image: getzep/zep-postgres:latest # Образ Zep, включающий PostgreSQL # [!code ++]
-    hostname: zep # [!code ++]
-    container_name: zep # [!code ++]
-    networks: ['app-n8n'] # [!code ++]
-    volumes: # [!code ++]
-      - zep_data:/data/zep_data # Том для сохранения данных Zep # [!code ++]
-    environment: # [!code ++]
-      # ZEP_OPENAI_API_KEY: ${ZEP_OPENAI_API_KEY:-} # Необязательно: если вы хотите, чтобы Zep использовал OpenAI для эмбеддингов/суммаризации # [!code ++]
-      # Zep по умолчанию будет использовать встроенные модели Sentence Transformers для эмбеддингов, если ключ OpenAI не указан. # [!code ++]
-      ZEP_LOG_LEVEL: info # [!code ++]
-    restart: unless-stopped # [!code ++]
-    labels: # [!code ++]
-      - "traefik.enable=true" # [!code ++]
-      - "traefik.http.routers.zep.rule=Host(`zep.ai-sattva.top`)" # [!code ++]
-      - "traefik.http.routers.zep.entrypoints=websecure" # [!code ++]
-      - "traefik.http.routers.zep.tls.certresolver=myresolver" # [!code ++]
-      - "traefik.http.services.zep.loadbalancer.server.port=8000" # API Zep работает на порту 8000 # [!code ++]
 
   traefik:
     image: traefik:latest
@@ -345,3 +325,6 @@ services:
       - "traefik.http.routers.traefik-dashboard.middlewares=traefik-auth"
       - "traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_USERNAME}:${TRAEFIK_PASSWORD_HASHED}"
     restart: unless-stopped
+
+include:
+  - path: ./zep-compose.yaml

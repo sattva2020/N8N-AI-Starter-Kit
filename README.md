@@ -45,6 +45,31 @@
 
 ## Установка
 
+# Установка необходимых пакетов
+sudo apt update
+sudo apt install -y ca-certificates curl git gnupg
+
+# Добавление официального GPG-ключа Docker
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+# Настройка репозитория Docker
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list
+
+# Установка Docker
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Добавление текущего пользователя в группу 'docker', чтобы избежать использования 'sudo' с командами docker
+sudo usermod -aG docker $USER
+# Активация изменений в группе 'docker' для текущей сессии без необходимости выхода из системы и повторного входа
+newgrp docker
+
+# Проверка установки
+docker --version
+docker compose version
+
 ### Клонирование репозитория
 
 ```bash
