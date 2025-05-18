@@ -26,13 +26,13 @@ x-n8n: &service-n8n
     - N8N_ENCRYPTION_KEY
     - N8N_USER_MANAGEMENT_JWT_SECRET
     - OLLAMA_HOST=ollama:11434
-    - WEBHOOK_URL=https://n8n.ai-sattva.top/ # [!code focus]
-    - N8N_EDITOR_BASE_URL=https://n8n.ai-sattva.top/ # [!code focus]
+    - WEBHOOK_URL=https://n8n.sattva-ai.top/ # [!code focus]
+    - N8N_EDITOR_BASE_URL=https://n8n.sattva-ai.top/ # [!code focus]
   env_file:
     - .env
   labels:
     - "traefik.enable=true"
-    - "traefik.http.routers.n8n.rule=Host(`n8n.ai-sattva.top`)" # [!code focus]
+    - "traefik.http.routers.n8n.rule=Host(`n8n.sattva-ai.top`)" # [!code focus]
     - "traefik.http.routers.n8n.entrypoints=websecure"
     - "traefik.http.routers.n8n.tls.certresolver=myresolver"
     - "traefik.http.services.n8n.loadbalancer.server.port=5678"
@@ -48,7 +48,7 @@ x-ollama: &service-ollama
     - ollama_storage:/root/.ollama
   labels:
     - "traefik.enable=true"
-    - "traefik.http.routers.ollama.rule=Host(`ollama.ai-sattva.top`)" # [!code focus]
+    - "traefik.http.routers.ollama.rule=Host(`ollama.sattva-ai.top`)" # [!code focus]
     - "traefik.http.routers.ollama.entrypoints=websecure"
     - "traefik.http.routers.ollama.tls.certresolver=myresolver"
     - "traefik.http.services.ollama.loadbalancer.server.port=11434"
@@ -125,15 +125,21 @@ services:
       - qdrant_storage:/qdrant/storage
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.qdrant.rule=Host(`qdrant.ai-sattva.top`)" # [!code focus]
+      # Роутер и сервис для REST API Qdrant (порт 6333)
+      - "traefik.http.routers.qdrant.rule=Host(`qdrant.sattva-ai.top`)"
       - "traefik.http.routers.qdrant.entrypoints=websecure"
       - "traefik.http.routers.qdrant.tls.certresolver=myresolver"
-      - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
-      - "traefik.http.routers.qdrant-grpc.rule=Host(`qdrant-grpc.ai-sattva.top`)" # [!code focus]
+      - "traefik.http.routers.qdrant.service=qdrant-rest-svc"  # Явно указываем имя сервиса для REST
+      - "traefik.http.services.qdrant-rest-svc.loadbalancer.server.port=6333" 
+      - "traefik.http.services.qdrant-rest-svc.loadbalancer.server.scheme=http" 
+
+      # Роутер и сервис для gRPC Qdrant (порт 6334)
+      - "traefik.http.routers.qdrant-grpc.rule=Host(`qdrant-grpc.sattva-ai.top`)"
       - "traefik.http.routers.qdrant-grpc.entrypoints=websecure"
       - "traefik.http.routers.qdrant-grpc.tls.certresolver=myresolver"
-      - "traefik.http.services.qdrant-grpc.loadbalancer.server.port=6334"
-      - "traefik.http.services.qdrant-grpc.scheme=h2c"
+      - "traefik.http.routers.qdrant-grpc.service=qdrant-grpc-svc" # Явно указываем имя сервиса для gRPC
+      - "traefik.http.services.qdrant-grpc-svc.loadbalancer.server.port=6334"
+      - "traefik.http.services.qdrant-grpc-svc.loadbalancer.server.scheme=h2c"
 
 
   ollama-cpu:
@@ -191,7 +197,7 @@ services:
     container_name: supabase
     networks: ['app-n8n']
     environment:
-      - SUPABASE_URL=https://api.supabase.ai-sattva.top # [!code focus]
+      - SUPABASE_URL=https://api.supabase.sattva-ai.top # [!code focus]
       - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - STUDIO_PORT=54321
@@ -200,9 +206,9 @@ services:
       - POSTGRES_USER=supabase_admin
       - POSTGRES_DB=postgres
       - JWT_SECRET=${SUPABASE_JWT_SECRET}
-      - API_EXTERNAL_URL=https://api.supabase.ai-sattva.top # [!code focus]
-      - SUPABASE_PUBLIC_URL=https://api.supabase.ai-sattva.top # [!code focus]
-      - GOTRUE_SITE_URL=https://supabase.ai-sattva.top # [!code focus]
+      - API_EXTERNAL_URL=https://api.supabase.sattva-ai.top # [!code focus]
+      - SUPABASE_PUBLIC_URL=https://api.supabase.sattva-ai.top # [!code focus]
+      - GOTRUE_SITE_URL=https://supabase.sattva-ai.top # [!code focus]
       - GOTRUE_URI_SCHEME=https
     volumes:
       - supabase_data:/var/lib/postgresql/data
@@ -212,11 +218,11 @@ services:
       - .env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.supabase-studio.rule=Host(`supabase.ai-sattva.top`)" # [!code focus]
+      - "traefik.http.routers.supabase-studio.rule=Host(`supabase.sattva-ai.top`)" # [!code focus]
       - "traefik.http.routers.supabase-studio.entrypoints=websecure"
       - "traefik.http.routers.supabase-studio.tls.certresolver=myresolver"
       - "traefik.http.services.supabase-studio.loadbalancer.server.port=54321"
-      - "traefik.http.routers.supabase-kong.rule=Host(`api.supabase.ai-sattva.top`)" # [!code focus]
+      - "traefik.http.routers.supabase-kong.rule=Host(`api.supabase.sattva-ai.top`)" # [!code focus]
       - "traefik.http.routers.supabase-kong.entrypoints=websecure"
       - "traefik.http.routers.supabase-kong.tls.certresolver=myresolver"
       - "traefik.http.services.supabase-kong.loadbalancer.server.port=54322"
@@ -229,8 +235,8 @@ services:
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
-      - MINIO_SERVER_URL=https://minio.ai-sattva.top # [!code focus]
-      - MINIO_BROWSER_REDIRECT_URL=https://minio-console.ai-sattva.top # [!code focus]
+      - MINIO_SERVER_URL=https://minio.sattva-ai.top # [!code focus]
+      - MINIO_BROWSER_REDIRECT_URL=https://minio-console.sattva-ai.top # [!code focus]
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
@@ -239,14 +245,19 @@ services:
       - .env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.minio.rule=Host(`minio.ai-sattva.top`)" # [!code focus]
-      - "traefik.http.routers.minio.entrypoints=websecure"
-      - "traefik.http.routers.minio.tls.certresolver=myresolver"
-      - "traefik.http.services.minio.loadbalancer.server.port=9000"
-      - "traefik.http.routers.minio-console.rule=Host(`minio-console.ai-sattva.top`)" # [!code focus]
+      # Роутер и сервис для MinIO API (порт 9000)
+      - "traefik.http.routers.minio-api.rule=Host(`${MINIO_API_DOMAIN:-minio.localhost}`)"
+      - "traefik.http.routers.minio-api.entrypoints=websecure"
+      - "traefik.http.routers.minio-api.tls.certresolver=myresolver"
+      - "traefik.http.routers.minio-api.service=minio-api-svc" # Уникальное имя сервиса для API
+      - "traefik.http.services.minio-api-svc.loadbalancer.server.port=9000" # Порт API MinIO
+
+      # Роутер и сервис для MinIO Console (порт 9001 или какой у вас настроен для консоли)
+      - "traefik.http.routers.minio-console.rule=Host(`${MINIO_CONSOLE_DOMAIN:-minio-console.localhost}`)"
       - "traefik.http.routers.minio-console.entrypoints=websecure"
       - "traefik.http.routers.minio-console.tls.certresolver=myresolver"
-      - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
+      - "traefik.http.routers.minio-console.service=minio-console-svc" # Уникальное имя сервиса для консоли
+      - "traefik.http.services.minio-console-svc.loadbalancer.server.port=9001" # Порт консоли MinIO (убедитесь, что это правильный порт)
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -267,7 +278,7 @@ services:
       - .env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.ai-sattva.top`)" # [!code focus]
+      - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.sattva-ai.top`)" # [!code focus]
       - "traefik.http.routers.pgadmin.entrypoints=websecure"
       - "traefik.http.routers.pgadmin.tls.certresolver=myresolver"
       - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
@@ -318,7 +329,7 @@ services:
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.ai-sattva.top`)" # [!code focus]
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.sattva-ai.top`)" # [!code focus]
       - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
       - "traefik.http.routers.traefik-dashboard.tls.certresolver=myresolver"
       - "traefik.http.routers.traefik-dashboard.service=api@internal"
