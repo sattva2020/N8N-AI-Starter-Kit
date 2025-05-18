@@ -85,7 +85,7 @@ sudo apt update
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
-## Добавление текущего пользователя в группу 'docker', чтобы избежать использования 'sudo' с командами docker
+** Добавление текущего пользователя в группу 'docker', чтобы избежать использования 'sudo' с командами docker
 ```bash
 newgrp docker
 sudo usermod -aG docker $USER
