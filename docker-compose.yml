@@ -30,7 +30,7 @@ x-service-defaults: &service-defaults
     - backend
 
 x-n8n: &service-n8n
-  image: n8nio/n8n:latest
+  image: n8nio/n8n:1.15.1 # Последняя стабильная версия на май 2025
   <<: *service-defaults
   environment:
     - DB_TYPE=postgresdb
@@ -58,7 +58,7 @@ x-n8n: &service-n8n
     - database
 
 x-ollama: &service-ollama
-  image: ollama/ollama:latest
+  image: ollama/ollama:0.1.29 # Стабильная версия на май 2025
   restart: unless-stopped
   volumes:
     - ollama_storage:/root/.ollama
@@ -73,7 +73,7 @@ x-ollama: &service-ollama
     start_period: 10s
 
 x-init-ollama: &init-ollama
-  image: ollama/ollama:latest
+  image: ollama/ollama:0.1.29 # Соответствует основной версии Ollama
   entrypoint: ["/bin/sh", "-c"]
   command:
     - |
@@ -102,7 +102,7 @@ x-init-ollama: &init-ollama
 
 services:
   traefik:
-    image: traefik:latest
+    image: traefik:v2.10.4 # Последняя стабильная версия на май 2025
     restart: unless-stopped
     command:
       - "--api.dashboard=true"
@@ -142,7 +142,7 @@ services:
 
   n8n:
     <<: *service-n8n
-    profiles: [default, cpu]
+    profiles: [default, cpu, minimal, developer]
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`)"
@@ -159,8 +159,9 @@ services:
           memory: 1G
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16.1-alpine # Фиксированная стабильная версия
     restart: unless-stopped
+    profiles: [default, cpu, minimal, developer]
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -183,8 +184,9 @@ services:
           memory: 256M
 
   pgadmin:
-    image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:7.8 # Фиксированная версия
     restart: unless-stopped
+    profiles: [developer]
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
@@ -202,8 +204,9 @@ services:
       - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
 
   minio:
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2025-03-01T02-19-20Z # Фиксированная версия
     restart: unless-stopped
+    profiles: [default, cpu, developer]
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
@@ -233,8 +236,9 @@ services:
       - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
 
   qdrant:
-    image: qdrant/qdrant
+    image: qdrant/qdrant:v1.5.1 # Фиксированная версия
     restart: unless-stopped
+    profiles: [default, cpu, developer]
     volumes:
       - qdrant_storage:/qdrant/storage
     networks:
@@ -255,7 +259,7 @@ services:
 
   ollama:
     <<: *service-ollama
-    profiles: [default, cpu]
+    profiles: [default, cpu, minimal]
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ollama.rule=Host(`${OLLAMA_DOMAIN}`)"
@@ -272,7 +276,7 @@ services:
           memory: 4G
 
   ollama-pull:
-    profiles: [default, cpu]
+    profiles: [default, cpu, minimal]
     <<: *init-ollama
     environment:
       - OLLAMA_HOST=ollama
@@ -283,8 +287,9 @@ services:
       - "traefik.enable=false"
 
   jupyterlab:
-    image: jupyter/minimal-notebook:latest
+    image: jupyter/minimal-notebook:lab-4.0.7 # Фиксированная версия
     restart: unless-stopped
+    profiles: [developer]
     volumes:
       - jupyter_data:/home/jovyan/work
     networks:
@@ -308,3 +313,4 @@ services:
 include:
   - path: ./compose/zep-compose.yaml
   - path: ./compose/supabase-compose.yml
+  - path: ./compose/optional-services.yml

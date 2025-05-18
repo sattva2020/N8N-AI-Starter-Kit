@@ -1,0 +1,214 @@
+version: '3.8'
+
+# Общие конфигурации для мониторинга и аналитики
+x-monitoring-defaults: &monitoring-defaults
+  restart: unless-stopped
+  networks:
+    - frontend
+    - backend
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+  elasticsearch_data:
+  kibana_data:
+
+networks:
+  frontend:
+    external: true
+    name: frontend-network
+  backend:
+    external: true
+    name: backend-network
+
+services:
+  # =========================================
+  # МОНИТОРИНГ СИСТЕМЫ
+  # =========================================
+
+  # Prometheus - сбор и хранение метрик
+  prometheus:
+    <<: *monitoring-defaults
+    image: prom/prometheus:latest
+    volumes:
+      - prometheus_data:/prometheus
+      - ./config/prometheus:/etc/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+      - "traefik.http.routers.prometheus.tls.certresolver=myresolver"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+      - "traefik.http.routers.prometheus.middlewares=auth"
+
+  # Grafana - визуализация метрик
+  grafana:
+    <<: *monitoring-defaults
+    image: grafana/grafana:latest
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=myresolver"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
+  # cAdvisor - мониторинг контейнеров
+  cadvisor:
+    <<: *monitoring-defaults
+    image: gcr.io/cadvisor/cadvisor:latest
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    privileged: true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cadvisor.rule=Host(`cadvisor.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.cadvisor.entrypoints=websecure"
+      - "traefik.http.routers.cadvisor.tls.certresolver=myresolver"
+      - "traefik.http.services.cadvisor.loadbalancer.server.port=8080"
+      - "traefik.http.routers.cadvisor.middlewares=auth"
+
+  # Loki - система сбора и анализа логов
+  loki:
+    <<: *monitoring-defaults
+    image: grafana/loki:latest
+    volumes:
+      - loki_data:/loki
+      - ./config/loki:/etc/loki
+    command: -config.file=/etc/loki/loki-config.yml
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.loki.rule=Host(`loki.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.loki.entrypoints=websecure"
+      - "traefik.http.routers.loki.tls.certresolver=myresolver"
+      - "traefik.http.services.loki.loadbalancer.server.port=3100"
+      - "traefik.http.routers.loki.middlewares=auth"
+
+  # Promtail - агент для отправки логов в Loki
+  promtail:
+    <<: *monitoring-defaults
+    image: grafana/promtail:latest
+    volumes:
+      - /var/log:/var/log
+      - ./config/promtail:/etc/promtail
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/promtail-config.yml
+    depends_on:
+      - loki
+
+  # =========================================
+  # АНАЛИТИКА ДАННЫХ
+  # =========================================
+
+  # Elasticsearch - поисковый движок и база данных для аналитики
+  elasticsearch:
+    <<: *monitoring-defaults
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # Kibana - визуализация данных из Elasticsearch
+  kibana:
+    <<: *monitoring-defaults
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    volumes:
+      - ./config/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kibana.rule=Host(`kibana.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.kibana.entrypoints=websecure"
+      - "traefik.http.routers.kibana.tls.certresolver=myresolver"
+      - "traefik.http.services.kibana.loadbalancer.server.port=5601"
+
+  # Jupyter Data Science Notebook - расширенная версия с библиотеками для ML/анализа данных
+  jupyter-ds:
+    image: jupyter/datascience-notebook:latest
+    volumes:
+      - ./jupyter_notebooks:/home/jovyan/work
+    environment:
+      - JUPYTER_TOKEN=${JUPYTER_DS_TOKEN:-jupyter}
+    networks:
+      - frontend
+      - backend
+      - database
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jupyter-ds.rule=Host(`jupyter-ds.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.jupyter-ds.entrypoints=websecure"
+      - "traefik.http.routers.jupyter-ds.tls.certresolver=myresolver"
+      - "traefik.http.services.jupyter-ds.loadbalancer.server.port=8888"
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+
+  # =========================================
+  # МОНИТОРИНГ LLM/AI СЕРВИСОВ
+  # =========================================
+
+  # LangSmith - мониторинг для LangChain приложений
+  langsmith:
+    image: langchain/langsmith-backend:latest
+    environment:
+      - PORT=3001
+      - LANGCHAIN_ENV=local_docker
+      - LOG_LEVEL=info
+    networks:
+      - frontend
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.langsmith.rule=Host(`langsmith.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.langsmith.entrypoints=websecure"
+      - "traefik.http.routers.langsmith.tls.certresolver=myresolver"
+      - "traefik.http.services.langsmith.loadbalancer.server.port=3001"
+
+  # Weights & Biases - мониторинг моделей машинного обучения
+  wandb:
+    image: wandb/local:latest
+    volumes:
+      - ./data/wandb:/vol
+    environment:
+      - WANDB_LOCAL_PORT=8080
+    networks:
+      - frontend
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.wandb.rule=Host(`wandb.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.wandb.entrypoints=websecure"
+      - "traefik.http.routers.wandb.tls.certresolver=myresolver"
+      - "traefik.http.services.wandb.loadbalancer.server.port=8080"

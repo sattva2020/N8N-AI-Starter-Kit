@@ -20,6 +20,26 @@ docker compose pull
 # Перезапуск контейнеров с новыми образами
 echo "Перезапуск сервисов с новыми образами..."
 docker compose down
-docker compose --profile cpu up -d
+
+# Определение профиля
+if [ -n "$1" ]; then
+  PROFILE="$1"
+  echo "Используется указанный профиль: $PROFILE"
+else
+  PROFILE="cpu"  # Профиль по умолчанию
+  echo "Профиль не указан, используется профиль по умолчанию: $PROFILE"
+fi
+
+# Запуск с указанным профилем
+docker compose --profile $PROFILE up -d
 
 echo "Обновление успешно завершено!"
+echo ""
+echo "Доступные профили:"
+echo "- minimal    : Минимальный набор сервисов (n8n, postgres, ollama)"
+echo "- cpu        : Стандартный набор на CPU (по умолчанию)"
+echo "- developer  : Расширенный набор инструментов для разработки с pgAdmin, JupyterLab и др."
+echo "- gpu-nvidia : Стандартный набор с поддержкой NVIDIA GPU"
+echo "- gpu-amd    : Стандартный набор с поддержкой AMD GPU"
+echo ""
+echo "Пример запуска: ./scripts/update.sh developer"

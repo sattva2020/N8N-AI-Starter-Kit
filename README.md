@@ -68,54 +68,48 @@
 
 # Установка
 
-## Установка необходимых пакетов
+#### Установка необходимых пакетов
 ```bash
 sudo apt update
 sudo apt install -y ca-certificates curl git gnupg
 ```
-## Добавление официального GPG-ключа Docker
+#### Добавление официального GPG-ключа Docker
 ```bash
 sudo install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 sudo chmod a+r /etc/apt/keyrings/docker.gpg
 ```
 
-## Настройка репозитория Docker
+#### Настройка репозитория Docker
 ```bash
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list
 ```
 
-## Установка Docker
+#### Установка Docker
 ```bash
 sudo apt update
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-```
 
-** Добавление текущего пользователя в группу 'docker', чтобы избежать использования 'sudo' с командами docker
+# Добавление текущего пользователя в группу 'docker', чтобы избежать использования 'sudo' с командами docker
 ```bash
-newgrp docker
 sudo usermod -aG docker $USER
+newgrp docker
 ```
 
-** Активация изменений членства в группе 'docker' для текущей сессии терминала.
-** Это позволяет сразу выполнять команды docker без sudo в этой сессии.
-** Для применения изменений во всех новых сессиях может потребоваться перезапуск терминала или полный выход/вход в систему.
 
-
-## Проверка установки
-```bash
+# Проверка установки
 docker --version
 docker compose version
 ```
 
-### Клонирование репозитория
+#### Клонирование репозитория
 
 ```bash
 git clone https://github.com/sattva2020/N8N-AI-Starter-Kit.git
 cd N8N-AI-Starter-Kit
 ```
 
-### Настройка файла `.env`
+#### Настройка файла `.env`
 
 Перед запуском убедитесь, что вы скопировали `.env.example` в `.env` и заполнили все необходимые переменные, такие как пароли, ключи API и ваш email для Let's Encrypt.
 
@@ -157,46 +151,23 @@ docker compose --profile gpu-amd up -d --build
 docker compose up -d --build
 ```
 
-##### Для пользователей Mac, запускающих OLLAMA локально (НЕ в Docker)
-
-Если вы запускаете OLLAMA локально на вашем Mac (не в Docker-контейнере этого проекта), вам необходимо изменить переменную окружения `OLLAMA_HOST`
-в конфигурации сервиса n8n. Обновите секцию `x-n8n` в вашем файле Docker Compose следующим образом:
-
-```yaml
-x-n8n: &service-n8n
-  # ... другие конфигурации ...
-  environment:
-    # ... другие переменные окружения ...
-    - OLLAMA_HOST=host.docker.internal:11434 # Позволяет контейнеру n8n обращаться к Ollama на хосте Mac
-```
-
-Кроме того, после того как вы увидите "Editor is now accessible via: <http://localhost:5678/>":
-
-1.  Перейдите по адресу <http://localhost:5678/credentials> (или `https://n8n.ваш-домен.com/credentials`, если настроен Traefik)
-2.  Нажмите на "Local Ollama service"
-3.  Измените базовый URL на `http://host.docker.internal:11434/`
-
-##### Для стандартной конфигурации (OLLAMA в Docker, включая профили CPU, GPU Nvidia, GPU AMD)
-
-В стандартной конфигурации, когда Ollama запускается как Docker-контейнер в рамках этого проекта, сервис n8n уже настроен для подключения к Ollama по адресу `http://ollama:11434`.
-Переменная окружения `OLLAMA_HOST` в `docker-compose.yml` для `x-n8n` должна выглядеть так (это значение по умолчанию в `.env.example` и используется, если не переопределено для сценария с Mac):
-
-```yaml
-# Пример из docker-compose.yml (через .env файл)
-# OLLAMA_HOST=ollama:11434
-```
-
-Убедитесь, что в ваших учетных данных "Local Ollama service" в n8n (доступных по адресу <http://localhost:5678/credentials> или `https://n8n.ваш-домен.com/credentials`) базовый URL установлен на:
-
-`http://ollama:11434`
-
-Если вы импортировали демонстрационные данные, эти учетные данные уже должны быть настроены правильно для этого сценария.
-
 #### Для всех остальных (CPU)
 
 ```bash
 docker compose --profile cpu up -d --build
 ```
+
+### Запуск только необходимых сервисов (минимальная конфигурация)
+Если вам нужны только основные сервисы без дополнительных инструментов:
+```bash
+docker compose --profile minimal up -d
+```
+### Запуск с инструментами для разработчика (максимальная конфигурация)
+Для запуска с полным набором инструментов, включая JupyterLab и pgAdmin:
+```bash
+docker compose --profile developer up -d
+```
+
 
 ## ⚡️ Быстрый старт и использование
 
@@ -228,6 +199,14 @@ docker compose --profile cpu up -d --build
 > проверки концепции (proof-of-concept). Вы можете настроить его под свои конкретные нужды.
 
 ## Обновление
+
+* ### Для обновления системы вы можете использовать встроенный скрипт:
+```
+./scripts/update.sh [профиль]
+```
+Где [профиль] может быть: cpu (по умолчанию), gpu-nvidia, gpu-amd, minimal или developer.
+
+* ### Или использовать ручное обновление через Docker Compose:
 
 *   ### Для конфигураций с GPU Nvidia:
 
@@ -387,13 +366,19 @@ Self-hosted AI starter kit создаст общую папку (по умолч
 Решение 1: Использование cron на хост-системе
 Это самый простой способ, если у вас есть доступ к настройке cron-задач на хост-машине
 # Откройте редактор crontab
+```bash
 crontab -e
+```
 
 # Добавьте строку для ежедневного резервного копирования в 2:00 ночи
+```bash
 0 2 * * * cd /путь/к/n8n-ai-starter-kit && ./scripts/backup.sh >> /путь/к/n8n-ai-starter-kit/logs/backup.log 2>&1
+```
 
 # Для еженедельного резервного копирования по воскресеньям в 3:00 ночи
+```bash
 0 3 * * 0 cd /путь/к/n8n-ai-starter-kit && ./scripts/backup.sh >> /путь/к/n8n-ai-starter-kit/logs/backup.log 2>&1
+```
 
 Решение 2: Создание workflow в n8n для автоматического резервного копирования
 Это элегантное решение, использующее возможности уже имеющегося в вашей системе n8n:
