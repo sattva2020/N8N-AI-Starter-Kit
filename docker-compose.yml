@@ -1,0 +1,347 @@
+volumes:
+  n8n_storage:
+  postgres_storage:
+  ollama_storage:
+  qdrant_storage:
+  supabase_data:
+  supabase_db:
+  minio_data:
+  pgadmin_data:
+  jupyter_data:
+  traefik_letsencrypt:
+  zep_data: # [!code ++]
+
+networks:
+  app-n8n:
+
+x-n8n: &service-n8n
+  image: n8nio/n8n:latest
+  networks: ['app-n8n']
+  environment:
+    - DB_TYPE=postgresdb
+    - DB_POSTGRESDB_HOST=postgres
+    - DB_POSTGRESDB_USER=${POSTGRES_USER}
+    - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+    - N8N_DIAGNOSTICS_ENABLED=false
+    - N8N_PERSONALIZATION_ENABLED=false
+    - N8N_ENCRYPTION_KEY
+    - N8N_USER_MANAGEMENT_JWT_SECRET
+    - OLLAMA_HOST=ollama:11434
+    - WEBHOOK_URL=https://n8n.ai-sattva.top/ # [!code focus]
+    - N8N_EDITOR_BASE_URL=https://n8n.ai-sattva.top/ # [!code focus]
+  env_file:
+    - .env
+  labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.n8n.rule=Host(`n8n.ai-sattva.top`)" # [!code focus]
+    - "traefik.http.routers.n8n.entrypoints=websecure"
+    - "traefik.http.routers.n8n.tls.certresolver=myresolver"
+    - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+
+x-ollama: &service-ollama
+  image: ollama/ollama:latest
+  container_name: ollama
+  networks: ['app-n8n']
+  restart: unless-stopped
+  ports:
+    - 11434:11434 # Оставляем для прямого доступа, если нужно, но Traefik будет основным
+  volumes:
+    - ollama_storage:/root/.ollama
+  labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.ollama.rule=Host(`ollama.ai-sattva.top`)" # [!code focus]
+    - "traefik.http.routers.ollama.entrypoints=websecure"
+    - "traefik.http.routers.ollama.tls.certresolver=myresolver"
+    - "traefik.http.services.ollama.loadbalancer.server.port=11434"
+
+x-init-ollama: &init-ollama
+  image: ollama/ollama:latest
+  networks: ['app-n8n']
+  container_name: ollama-pull-llama
+  volumes:
+    - ollama_storage:/root/.ollama
+  entrypoint: /bin/sh
+  environment:
+    - OLLAMA_HOST=ollama:11434
+  command:
+    - "-c"
+    - "sleep 3; ollama pull llama3.2"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    hostname: postgres
+    networks: ['app-n8n']
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    volumes:
+      - postgres_storage:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  n8n-import:
+    <<: *service-n8n
+    hostname: n8n-import
+    container_name: n8n-import
+    entrypoint: /bin/sh
+    command:
+      - "-c"
+      - "n8n import:credentials --separate --input=/demo-data/credentials && n8n import:workflow --separate --input=/demo-data/workflows"
+    volumes:
+      - ./n8n/demo-data:/demo-data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=false"
+
+  n8n:
+    <<: *service-n8n
+    hostname: n8n
+    container_name: n8n
+    restart: unless-stopped
+    volumes:
+      - n8n_storage:/home/node/.n8n
+      - ./n8n/demo-data:/demo-data
+      - ./shared:/data/shared
+    depends_on:
+      postgres:
+        condition: service_healthy
+      n8n-import:
+        condition: service_completed_successfully
+
+  qdrant:
+    image: qdrant/qdrant
+    hostname: qdrant
+    container_name: qdrant
+    networks: ['app-n8n']
+    restart: unless-stopped
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.qdrant.rule=Host(`qdrant.ai-sattva.top`)" # [!code focus]
+      - "traefik.http.routers.qdrant.entrypoints=websecure"
+      - "traefik.http.routers.qdrant.tls.certresolver=myresolver"
+      - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
+      - "traefik.http.routers.qdrant-grpc.rule=Host(`qdrant-grpc.ai-sattva.top`)" # [!code focus]
+      - "traefik.http.routers.qdrant-grpc.entrypoints=websecure"
+      - "traefik.http.routers.qdrant-grpc.tls.certresolver=myresolver"
+      - "traefik.http.services.qdrant-grpc.loadbalancer.server.port=6334"
+      - "traefik.http.services.qdrant-grpc.scheme=h2c"
+
+
+  ollama-cpu:
+    profiles: ["cpu"]
+    <<: *service-ollama
+
+  ollama-gpu:
+    profiles: ["gpu-nvidia"]
+    <<: *service-ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  ollama-gpu-amd:
+    profiles: ["gpu-amd"]
+    <<: *service-ollama
+    image: ollama/ollama:rocm
+    devices:
+      - "/dev/kfd"
+      - "/dev/dri"
+
+  ollama-pull-llama-cpu:
+    profiles: ["cpu"]
+    <<: *init-ollama
+    depends_on:
+      - ollama-cpu
+    labels:
+      - "traefik.enable=false"
+
+
+  ollama-pull-llama-gpu:
+    profiles: ["gpu-nvidia"]
+    <<: *init-ollama
+    depends_on:
+      - ollama-gpu
+    labels:
+      - "traefik.enable=false"
+
+  ollama-pull-llama-gpu-amd:
+    profiles: [gpu-amd]
+    <<: *init-ollama
+    image: ollama/ollama:rocm
+    depends_on:
+     - ollama-gpu-amd
+    labels:
+      - "traefik.enable=false"
+
+  supabase:
+    image: supabase/studio:latest
+    hostname: supabase
+    container_name: supabase
+    networks: ['app-n8n']
+    environment:
+      - SUPABASE_URL=https://api.supabase.ai-sattva.top # [!code focus]
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - STUDIO_PORT=54321
+      - POSTGRES_HOST=localhost
+      - POSTGRES_PASSWORD=${SUPABASE_POSTGRES_PASSWORD}
+      - POSTGRES_USER=supabase_admin
+      - POSTGRES_DB=postgres
+      - JWT_SECRET=${SUPABASE_JWT_SECRET}
+      - API_EXTERNAL_URL=https://api.supabase.ai-sattva.top # [!code focus]
+      - SUPABASE_PUBLIC_URL=https://api.supabase.ai-sattva.top # [!code focus]
+      - GOTRUE_SITE_URL=https://supabase.ai-sattva.top # [!code focus]
+      - GOTRUE_URI_SCHEME=https
+    volumes:
+      - supabase_data:/var/lib/postgresql/data
+      - supabase_db:/etc/supabase
+    restart: unless-stopped
+    env_file:
+      - .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.supabase-studio.rule=Host(`supabase.ai-sattva.top`)" # [!code focus]
+      - "traefik.http.routers.supabase-studio.entrypoints=websecure"
+      - "traefik.http.routers.supabase-studio.tls.certresolver=myresolver"
+      - "traefik.http.services.supabase-studio.loadbalancer.server.port=54321"
+      - "traefik.http.routers.supabase-kong.rule=Host(`api.supabase.ai-sattva.top`)" # [!code focus]
+      - "traefik.http.routers.supabase-kong.entrypoints=websecure"
+      - "traefik.http.routers.supabase-kong.tls.certresolver=myresolver"
+      - "traefik.http.services.supabase-kong.loadbalancer.server.port=54322"
+
+  minio:
+    image: minio/minio:latest
+    hostname: minio
+    container_name: minio
+    networks: ['app-n8n']
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_SERVER_URL=https://minio.ai-sattva.top # [!code focus]
+      - MINIO_BROWSER_REDIRECT_URL=https://minio-console.ai-sattva.top # [!code focus]
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    env_file:
+      - .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio.rule=Host(`minio.ai-sattva.top`)" # [!code focus]
+      - "traefik.http.routers.minio.entrypoints=websecure"
+      - "traefik.http.routers.minio.tls.certresolver=myresolver"
+      - "traefik.http.services.minio.loadbalancer.server.port=9000"
+      - "traefik.http.routers.minio-console.rule=Host(`minio-console.ai-sattva.top`)" # [!code focus]
+      - "traefik.http.routers.minio-console.entrypoints=websecure"
+      - "traefik.http.routers.minio-console.tls.certresolver=myresolver"
+      - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    hostname: pgadmin
+    container_name: pgadmin
+    networks: ['app-n8n']
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      - PGADMIN_LISTEN_PORT=80
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.ai-sattva.top`)" # [!code focus]
+      - "traefik.http.routers.pgadmin.entrypoints=websecure"
+      - "traefik.http.routers.pgadmin.tls.certresolver=myresolver"
+      - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
+
+  jupyterlab:
+    image: jupyter/datascience-notebook:latest
+    hostname: jupyterlab
+    container_name: jupyterlab
+    networks: ['app-n8n']
+    volumes:
+      - jupyter_data:/home/jovyan/work
+      - ./shared:/home/jovyan/work/shared
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - NB_USER=jovyan
+      - NB_UID=1000
+      - NB_GID=100
+      - JUPYTER_CONFIG_DIR=/home/jovyan/.jupyter
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jupyterlab.rule=Host(`jupyter.ai-sattva.top`)" # [!code focus]
+      - "traefik.http.routers.jupyterlab.entrypoints=websecure"
+      - "traefik.http.routers.jupyterlab.tls.certresolver=myresolver"
+      - "traefik.http.services.jupyterlab.loadbalancer.server.port=8888"
+
+  zep: # [!code ++]
+    image: getzep/zep-postgres:latest # Образ Zep, включающий PostgreSQL # [!code ++]
+    hostname: zep # [!code ++]
+    container_name: zep # [!code ++]
+    networks: ['app-n8n'] # [!code ++]
+    volumes: # [!code ++]
+      - zep_data:/data/zep_data # Том для сохранения данных Zep # [!code ++]
+    environment: # [!code ++]
+      # ZEP_OPENAI_API_KEY: ${ZEP_OPENAI_API_KEY:-} # Необязательно: если вы хотите, чтобы Zep использовал OpenAI для эмбеддингов/суммаризации # [!code ++]
+      # Zep по умолчанию будет использовать встроенные модели Sentence Transformers для эмбеддингов, если ключ OpenAI не указан. # [!code ++]
+      ZEP_LOG_LEVEL: info # [!code ++]
+    restart: unless-stopped # [!code ++]
+    labels: # [!code ++]
+      - "traefik.enable=true" # [!code ++]
+      - "traefik.http.routers.zep.rule=Host(`zep.ai-sattva.top`)" # [!code ++]
+      - "traefik.http.routers.zep.entrypoints=websecure" # [!code ++]
+      - "traefik.http.routers.zep.tls.certresolver=myresolver" # [!code ++]
+      - "traefik.http.services.zep.loadbalancer.server.port=8000" # API Zep работает на порту 8000 # [!code ++]
+
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    networks: ['app-n8n']
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "traefik_letsencrypt:/letsencrypt"
+    command:
+      - "--api.dashboard=true"
+      - "--log.level=INFO"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.ai-sattva.top`)" # [!code focus]
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=myresolver"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.middlewares=traefik-auth"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_USERNAME}:${TRAEFIK_PASSWORD_HASHED}"
+    restart: unless-stopped

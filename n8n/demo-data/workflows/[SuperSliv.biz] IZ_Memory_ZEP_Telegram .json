@@ -1,0 +1,485 @@
+{
+  "name": "IZ_Memory_ZEP_Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -860,
+        -20
+      ],
+      "id": "dc817372-dc25-4e88-9ec0-5e6f0d74fb50",
+      "name": "Telegram2",
+      "webhookId": "8cd99b7a-3eca-4fd9-9b9a-168ea002f4b1",
+      "credentials": {
+        "telegramApi": {
+          "id": "XUm07jZTU6o7G7Zz",
+          "name": "Telegram account 3 (Главный AI Помощник)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9d8e573-3830-4e93-9f74-4838b5ff49b5",
+              "name": "text",
+              "value": "={{ $('Telegram Trigger1').item.json.message.text }} {{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -40,
+        -40
+      ],
+      "id": "6e25d967-aa12-4160-b5ff-9f632db3908d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Telegram Trigger1').item.json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ca9cc06c-dcf8-457b-854b-4c03d3d15dcc",
+                    "leftValue": "={{ $('Telegram Trigger1').item.json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -640,
+        -20
+      ],
+      "id": "1d459dc1-2d2d-49c3-88df-deb164afbd5c",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -260,
+        240
+      ],
+      "id": "ed61a393-260a-4708-86dc-b5adea920509",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "T7XqlsJ9D3iey8AW",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Telegram Trigger1').item.json.message.voice.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -480,
+        240
+      ],
+      "id": "5c36b1b6-595d-4f3c-81d4-6cc1c77a2e87",
+      "name": "Telegram3",
+      "webhookId": "c66673cf-72f0-4233-82d8-70fe313d8765",
+      "credentials": {
+        "telegramApi": {
+          "id": "XUm07jZTU6o7G7Zz",
+          "name": "Telegram account 3 (Главный AI Помощник)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "f7771f9f-2907-49d3-b346-a58785fc52ec",
+      "name": "Telegram Trigger1",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1320,
+        0
+      ],
+      "webhookId": "2194a6b2-2302-4406-9c8c-207161b7eb22",
+      "credentials": {
+        "telegramApi": {
+          "id": "XUm07jZTU6o7G7Zz",
+          "name": "Telegram account 3 (Главный AI Помощник)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fef76fb8-7518-4bcd-8107-9ddca403149b",
+              "leftValue": "={{ $json.message.chat.username }}",
+              "rightValue": "=igorzuevich",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "1b133fa3-7358-4330-a46c-eaa454bf7e85",
+              "leftValue": "={{ $json.message.chat.username }}",
+              "rightValue": "igorbank",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1100,
+        0
+      ],
+      "id": "52a43243-97d3-4b9a-bd64-3b17b9f8638f",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger1').item.json.message.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        400,
+        0
+      ],
+      "id": "7c26342c-301a-4049-985d-69c57bf89656",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        200
+      ],
+      "id": "47ed6b02-30d5-4334-b3ce-ed387e5a0fc6",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "T7XqlsJ9D3iey8AW",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger1').item.json.message.from.username }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryZep",
+      "typeVersion": 1.3,
+      "position": [
+        520,
+        320
+      ],
+      "id": "69ae92fd-4966-49b9-8b0b-01e62e18fe72",
+      "name": "Zep",
+      "credentials": {
+        "zepApi": {
+          "id": "m1sCkymodecr5uW0",
+          "name": "Zep Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger1').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        900,
+        0
+      ],
+      "id": "a980e36d-6fb5-43cb-8fab-56a84829a796",
+      "name": "Telegram",
+      "webhookId": "991e313b-b60f-4509-96cf-c9487dd6bfe9",
+      "credentials": {
+        "telegramApi": {
+          "id": "XUm07jZTU6o7G7Zz",
+          "name": "Telegram account 3 (Главный AI Помощник)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 800,
+        "width": 2600,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1460,
+        -140
+      ],
+      "typeVersion": 1,
+      "id": "819b404c-e05d-406a-b1a0-e125ad183784",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Перейди по ссылке: [https://www.getzep.com/](https://www.getzep.com/)",
+        "height": 120,
+        "width": 600,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        260,
+        460
+      ],
+      "typeVersion": 1,
+      "id": "0a29dc1f-8ebe-4356-bd82-743f7ea0fcc8",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## @igorzuevich \n**Автор** на [YouTube](https://www.youtube.com/@igorzuevich)",
+        "height": 240,
+        "width": 280,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2460,
+        1280
+      ],
+      "typeVersion": 1,
+      "id": "6e85a37e-89e8-42f8-8c98-5b74c7468c7b",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram2": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram3": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Telegram2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zep": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1cd9a039-2be3-4c4b-9644-8cad73bf9e6d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+  },
+  "id": "uSqGY3QwzDEqr4Qh",
+  "tags": []
+}

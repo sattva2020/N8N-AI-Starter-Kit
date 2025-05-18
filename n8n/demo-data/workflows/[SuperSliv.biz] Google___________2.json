@@ -1,0 +1,518 @@
+{
+  "name": "Google Календарь 2",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -180,
+        0
+      ],
+      "id": "1a4eecf6-eaab-442a-9295-97388cac9a4d",
+      "name": "Telegram Trigger",
+      "webhookId": "512fa4aa-e773-4faf-af19-19dc58be6cbb",
+      "credentials": {
+        "telegramApi": {
+          "id": "PZ8G2FOFBcVzOqdk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9d8e573-3830-4e93-9f74-4838b5ff49b5",
+              "name": "text",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        300,
+        -120
+      ],
+      "id": "6d9babbc-ac9d-4abc-8fe5-ef225c4bad6f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        280,
+        140
+      ],
+      "id": "78851d57-8dfa-4b0e-87f9-81b138378085",
+      "name": "Telegram",
+      "webhookId": "c66673cf-72f0-4233-82d8-70fe313d8765",
+      "credentials": {
+        "telegramApi": {
+          "id": "PZ8G2FOFBcVzOqdk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        500,
+        140
+      ],
+      "id": "8df805f1-f8b4-4980-b0c5-d9403f960619",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "T7XqlsJ9D3iey8AW",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "=<Agentinstructions>\n  <Role>\n    <Name>EventManagerAgent</Name>\n    <Description>Агент для управления событиями в Google Календаре: получение, создание и обновление событий по запросу пользователя.</Description>\n    <currentDate>{{$now}}</currentDate>\n  </Role>\n  <Goal>\n    <Primary>Эффективное управление событиями в Google Календаре на основе запросов пользователя.</Primary>\n  </Goal>\n  <Instructions>\n\n    <!-- Блок управления датами и временем -->\n    <Instruction>\n      Для одиночного запроса даты (например, «Что у меня запланировано в понедельник?»):\n      <ul>\n        <li>Используйте StartDate как «YYYY-MM-DD 00:00:00»</li>\n        <li>Используйте EndDate как «YYYY-MM-DD 23:59:59»</li>\n      </ul>\n    </Instruction>\n    <Instruction>\n      Для диапазона дат (например, «С понедельника по среду»):\n      <ul>\n        <li>Используйте первый день диапазона с «00:00:00» как StartDate</li>\n        <li>Используйте последний день диапазона с «23:59:59» как EndDate</li>\n      </ul>\n    </Instruction>\n\n    <!-- Основной функционал агента -->\n    <Instruction>\n      Получайте события из Google Календаря по запросу пользователя, используя инструмент «Поиск в Google Календаре».\n    </Instruction>\n    <Instruction>\n      Создавайте новые события с указанными деталями (время, участники, тема) по запросу, используя инструмент «Создание события Google Календаря».\n    </Instruction>\n    <Instruction>\n      Обновляйте существующие события (время, детали) по запросу, используя инструмент «Обновление события Google Календаря».\n    </Instruction>\n    <Instruction>\n      Удаляй  события из Google Календаря по запросу пользователя, используя инструмент «Удалить в Google Календаре».\n     </Instruction>\n    <Instruction>\n      В случае конфликтов в расписании уведомляйте пользователя и предлагайте альтернативное время.\nПеред обновлением события в Google календаре, найди Event_ID этого события в календаре .\n    </Instruction>\n  </Instructions>\n</Agentinstructions>\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        720,
+        -60
+      ],
+      "id": "d95e2493-e5d8-40fa-bc4d-fc8bc40c8531",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        260
+      ],
+      "id": "0e222cab-667c-4b17-9690-f4ff9407c135",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "L72MI6qYBAu3BCux",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1080,
+        -60
+      ],
+      "id": "01c9d89f-7b07-46b4-bdf0-43e4d831147f",
+      "name": "Telegram1",
+      "webhookId": "71bef9fe-77cf-4fb9-ac5a-3060176cb65d",
+      "credentials": {
+        "telegramApi": {
+          "id": "PZ8G2FOFBcVzOqdk",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        860,
+        260
+      ],
+      "id": "9ee7be19-1371-4460-b34f-809559365a8f",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ca9cc06c-dcf8-457b-854b-4c03d3d15dcc",
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        40,
+        0
+      ],
+      "id": "a99f1c88-94dc-46ab-a710-aa5937151ecf",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Поиск событий в Google календаре",
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "63129f7f8a0ccde6960f48886dee716ef604d631a25f08205d6c7ba391ca4734@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Тестовый Календарь"
+        },
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', `старт время и день для создания события`, 'boolean') }}",
+        "timeMin": "={{ $fromAI('After', `конец время и день для создания события`, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', `the Start time and day of events being searched`, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1000,
+        440
+      ],
+      "id": "64c24234-8c34-4c06-be88-525915cddfb8",
+      "name": "Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "FmfdXK755Qes1QHO",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Создаёт события в календаре",
+        "calendar": {
+          "__rl": true,
+          "value": "63129f7f8a0ccde6960f48886dee716ef604d631a25f08205d6c7ba391ca4734@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Тестовый Календарь"
+        },
+        "start": "={{ $fromAI('Start', `старт время и день для создания события`, 'string') }}",
+        "end": "={{ $fromAI('End', `конец время и день для создания события`, 'string') }}",
+        "additionalFields": {
+          "description": "={{ $fromAI('Description', `Напиши дополнительные параметры и данные о создаваемом событии`, 'string') }}",
+          "summary": "={{ $fromAI('Summary', `Напиши название для создаваемого события из 3 слов`, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        260
+      ],
+      "id": "34a68cb0-cccd-44e5-a811-90be6f0a3300",
+      "name": "Google Calendar1",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "FmfdXK755Qes1QHO",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Редактирует события в календаре",
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "63129f7f8a0ccde6960f48886dee716ef604d631a25f08205d6c7ba391ca4734@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Тестовый Календарь"
+        },
+        "eventId": "={{ $fromAI('Event_ID', `необходимо обновить ID события`, 'string') }}",
+        "updateFields": {
+          "description": "={{ $fromAI('Description', `Новые заметки по событию`, 'string') }}",
+          "end": "={{ $fromAI('End', `Новое время окончания события`, 'string') }}",
+          "start": "={{ $fromAI('Start', `Новое время старта события`, 'string') }}",
+          "summary": "={{ $fromAI('Summary', `Новое описание события`, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1280,
+        300
+      ],
+      "id": "8bceb752-03ab-4f8d-9875-840861ff0fb4",
+      "name": "Google Calendar2",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "FmfdXK755Qes1QHO",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Удалить в Google Календаре",
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "63129f7f8a0ccde6960f48886dee716ef604d631a25f08205d6c7ba391ca4734@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Тестовый Календарь"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {
+          "sendUpdates": "all"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1380,
+        100
+      ],
+      "id": "b6a20049-2a77-4f88-90b3-f58169fc5040",
+      "name": "Google Calendar3",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "FmfdXK755Qes1QHO",
+          "name": "Google Calendar account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Calendar1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Calendar2": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Calendar3": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bb3a9817-56b1-4499-8cdb-954b3af3429f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+  },
+  "id": "LW7pIVh17iqfF3E0",
+  "tags": []
+}

@@ -1,0 +1,266 @@
+{
+  "name": "Динамическая модель ChatModel",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -160,
+        0
+      ],
+      "id": "946e6e9f-7306-41a5-9bef-6a6fd5b09f70",
+      "name": "When chat message received",
+      "webhookId": "b3e9cf67-509e-4c78-ba48-594110019ab6"
+    },
+    {
+      "parameters": {
+        "model": "openai/o3-mini-high",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        240,
+        260
+      ],
+      "id": "f33133f3-8047-42b6-9326-e5fdce3f91e0",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "ahlg6hfSuVoEk7Nv",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        260
+      ],
+      "id": "4a2e63c6-c283-4ad6-ae8a-ad07a3e8154c",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Ты — агент маршрутизации.\n\nТвоя задача — принимать запросы пользователей и решать, какая модель лучше всего подходит для каждого случая использования, который может возникнуть у пользователя. У тебя есть 3 модели, которые ты можешь выбрать для обработки запроса пользователя:\n\n1.) \"perplexity/sonar\"\n2.) \"openai/o3-mini-high\"\n3.) \"anthropic/claude-3.7-sonnet\"\n\nКаждая модель имеет свои сильные стороны и может дать лучшие ответы для определенных вопросов и команд пользователя. Давай разберемся в сильных сторонах каждой модели, чтобы ты мог выбрать ту, которая лучше всего подходит для запроса пользователя:\n\nМодель:\nperplexity/sonar\n\nСильные стороны:\n- Встроенный поиск по интернету.\n- Возможность использовать цитаты и настраивать источники.\n- Может искать данные в интернете в реальном времени.\n\nМодель:\nopenai/o3-mini-high\n\nСильные стороны:\n- o3-mini — это экономичная языковая модель, оптимизированная для сложных задач рассуждения.\n- Превосходит в науке и математике.\n- Эта модель лучше всего подходит для ситуаций, когда требуются тщательные, хорошо продуманные ответы на задачи с несколькими переменными или взаимосвязями.\n\nМодель:\nanthropic/claude-3.7-sonnet\n\nСильные стороны:\n- Claude 3.7 Sonnet — это усовершенствованная языковая модель с улучшенными возможностями рассуждения, кодирования и решения проблем.\n- Вводит гибридный подход к рассуждениям, позволяя пользователям выбирать между быстрыми ответами и расширенной обработкой шаг за шагом для сложных задач.\n- Модель демонстрирует заметные улучшения в кодировании, особенно в разработке фронтенда и обновлениях полного стека.\n- Превосходно работает в агентных рабочих процессах, где она может автономно навигировать по многошаговым процессам.\n- Claude 3.7 Sonnet сохраняет производительность на уровне предыдущей модели в стандартном режиме, но предлагает расширенный режим рассуждения для повышения точности в задачах по математике, кодированию и выполнению инструкций.\n\nТы должен передавать запрос пользователя и решать, какую модель использовать, используя структурированный JSON объект, как показано ниже:\n\nJSON структура объекта:\n{\n  \"userQuery\": \"запрос пользователя здесь\",\n  \"model\": \"выбранная модель здесь\"\n}\n\nJSON Object Structure:\n{\n\"uperQuery\": \"user query here\",\n\"model\": \"selected model here\"\n}\n\nПримеры:\nПример 1:\n{\n  \"userQuery\": \"Найли в интернете свежие новости по ИИ в маркетинге.\",\n  \"model\": \"perplexity/sonar\"\n}\n\nПример 2:\n{\n  \"userQuery\": \"Создать контент план для фитнес тренера на неделю, чтобы набрать больше подписчиков в Инстаграм.\",\n  \"model\": \"openai/o3-mini-high\"\n}\n\nПример 3:\n{\n  \"userQuery\": \"Напиши код для создания игры Тетрис на Python.\",\n  \"model\": \"anthropic/claude-3.7-sonnet\"\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        360,
+        20
+      ],
+      "id": "70a79dfc-0566-4019-a755-c4e118556a94",
+      "name": "AI Agent (выбирает модель для работы)"
+    },
+    {
+      "parameters": {
+        "content": "## Старт и запуск",
+        "height": 320,
+        "width": 420
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -300,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "ca2375ce-8d52-4944-9480-533695f721c2",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Умный Выбор Модели\n",
+        "height": 540,
+        "width": 620,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        160,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "80783f95-65ad-4953-bd61-7474ff8f28aa",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output.uperQuery }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1020,
+        0
+      ],
+      "id": "1ad6b6a9-9385-459f-b180-77df88577082",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "content": "## Рабочая модель (динамическая)\n\n",
+        "height": 540,
+        "width": 620,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        840,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "113c2307-410a-4e41-8294-428e3b54ea73",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "model": "={{ $json.output.model }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        960,
+        200
+      ],
+      "id": "956962a6-bdf0-4159-b0e3-b3a4e742f8cf",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "ahlg6hfSuVoEk7Nv",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\"uperQuery\": \"user query here\",\n\"model\": \"selected model here\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        580,
+        260
+      ],
+      "id": "b91debbe-35c2-42af-bf3f-25ba764db3e1",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('When chat message received').item.json.sessionId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        220
+      ],
+      "id": "bc283f9f-302a-4ee0-a8a9-81b644cf6813",
+      "name": "WBM"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent (выбирает модель для работы)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent (выбирает модель для работы)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent (выбирает модель для работы)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent (выбирает модель для работы)": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent (выбирает модель для работы)",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WBM": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f34a747f-b9bb-4b35-9956-20c951889651",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+  },
+  "id": "9JzjB8ItD82Beq0L",
+  "tags": []
+}
