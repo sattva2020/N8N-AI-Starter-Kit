@@ -1,25 +1,19 @@
 {
-  "name": "AI Продавец",
+  "name": "AI Sale",
   "nodes": [
     {
       "parameters": {
         "model": "gpt-4o",
         "options": {}
       },
-      "id": "6f5aa50e-da4c-4fd9-94ff-3cf53fea5ef1",
+      "id": "a27d3a51-f514-4e44-8b92-f77de3cbb65a",
       "name": "OpenAI Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1,
       "position": [
-        -340,
-        100
-      ],
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+        -1240,
+        560
+      ]
     },
     {
       "parameters": {
@@ -32,13 +26,13 @@
           "cachedResultName": "Отдел Календарь Гугл"
         }
       },
-      "id": "ee7b6eeb-b036-4f50-a2b1-9da107e866ee",
+      "id": "2c0819b8-e611-44b9-b481-c13fa87abb79",
       "name": "🤖Calendar_Agent",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 1.2,
       "position": [
-        40,
-        80
+        -860,
+        540
       ]
     },
     {
@@ -49,21 +43,15 @@
           "appendAttribution": false
         }
       },
-      "id": "a9a2c829-6fae-4c38-9b57-8cc5e0cabeb2",
+      "id": "75ce72ae-f6c7-4310-8ef7-2d1ac04fba86",
       "name": "Respond to Me",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        900,
-        -460
+        0,
+        0
       ],
-      "webhookId": "7d5bf84e-b2bb-4614-a34f-3d628c735b1a",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3"
-        }
-      }
+      "webhookId": "7d5bf84e-b2bb-4614-a34f-3d628c735b1a"
     },
     {
       "parameters": {
@@ -72,21 +60,15 @@
         ],
         "additionalFields": {}
       },
-      "id": "21e8b4e9-8720-4d3c-9cfa-3874876bca99",
+      "id": "396d7173-40f1-4fab-a247-c4392cdef176",
       "name": "Telegram Trigger",
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.1,
       "position": [
-        -1240,
-        -260
+        -2140,
+        200
       ],
-      "webhookId": "bf242a0e-eba4-43ea-9dc4-b8605e20e5ab",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3"
-        }
-      }
+      "webhookId": "bf242a0e-eba4-43ea-9dc4-b8605e20e5ab"
     },
     {
       "parameters": {
@@ -96,13 +78,13 @@
           "systemMessage": "=<Agentinstructions>\n    <Role>\n        <Name>Personal Assistant</Name>\n        <Description>Персональный AI-ассистент, предназначенный для управления контактами, электронной почтой, событиями календаря и проектами. Он помогает пользователю эффективно организовывать рабочие процессы.</Description>\n        <currentDate>{{$now}}</currentDate>\n    </Role>\n    <Goal>\n        <Primary>Обеспечить эффективное управление контактами, электронной почтой, календарем и проектами, используя доступные инструменты для выполнения запросов пользователя.</Primary>\n    </Goal>\n    <Instructions>\n        <Instruction>Для поиска информации о контакте (например, электронной почты) используй инструмент \"Contacts Data\" перед отправкой письма или получением писем.</Instruction>\n        \n        <Instruction>Для работы с электронной почтой (отправка сообщений, настройка ответов, пересылка) используй инструмент \"Email Agent\".</Instruction>\n\n        <Instruction>Для планирования, обновления или управления событиями в календаре используй инструмент \"Calendar Agent\". </Instruction>\n\n        <Instruction>Для отправки сообщений в Slack используй инструмент \"Send Slack Message\". Уточняй у пользователя, кому и какое сообщение отправить.</Instruction>\n\n        <Instruction>Для работы с проектами используй инструмент \"Projects_Agent\". Запрашивай или обновляй информацию по проектам в зависимости от запроса пользователя.</Instruction>\n\n        <Instruction>При выполнении задач анализируй, какой инструмент наиболее подходящий, передавай необходимые детали и выполняй действия для завершения запроса.</Instruction>\n\n<Instruction>\nЕсли у тебя спрашивают цены на наши услуги обращайся в Knowledge_Base для поиска инструкций. </Instruction>\n\n\n        <Instruction>Будь проактивным, точным и организованным, чтобы обеспечивать комфортное и эффективное взаимодействие с пользователем.</Instruction>\n    </Instructions>\n</Agentinstructions>"
         }
       },
-      "id": "f7708d33-ced1-4bdc-b965-d583ad1a158d",
+      "id": "e411623f-c83d-416c-9381-f4dab2445ca3",
       "name": "Personal Assistant",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.6,
       "position": [
-        120,
-        -360
+        -780,
+        100
       ],
       "retryOnFail": false
     },
@@ -123,10 +105,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -500,
-        -440
+        -1400,
+        20
       ],
-      "id": "15ddd03c-2058-45c1-838c-d85d8dc5ce2a",
+      "id": "2ef604d5-5555-41ae-a9ad-26e4646ecf4e",
       "name": "Edit Fields"
     },
     {
@@ -137,18 +119,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -700,
-        -140
+        -1600,
+        320
       ],
-      "id": "004e7ea6-13f7-47e0-afde-b0e666614a35",
+      "id": "4379cb3c-2afa-431a-bd76-7d3d84ccf1be",
       "name": "Telegram",
-      "webhookId": "c65d95e9-4313-4f4e-ac6b-08313836596c",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3"
-        }
-      }
+      "webhookId": "c65d95e9-4313-4f4e-ac6b-08313836596c"
     },
     {
       "parameters": {
@@ -159,17 +135,11 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        -400,
-        -160
+        -1300,
+        300
       ],
-      "id": "1508550b-b752-4cbf-96f0-5512cd94d8c2",
-      "name": "OpenAI",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "dc2e572a-0a64-4cde-a271-47827e8a4071",
+      "name": "OpenAI"
     },
     {
       "parameters": {
@@ -231,10 +201,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -1000,
-        -260
+        -1900,
+        200
       ],
-      "id": "e10e92a7-b22f-494a-b02e-0720b412463d",
+      "id": "e8498feb-e0cd-4412-8dad-c76dbceb4f1c",
       "name": "Switch"
     },
     {
@@ -245,10 +215,10 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        -180,
-        80
+        -1080,
+        540
       ],
-      "id": "fe1a9c2d-438f-4d1d-a59a-4abd68bb7852",
+      "id": "93f01355-c7bb-41c6-87e1-c67218998f8f",
       "name": "Window Buffer Memory"
     },
     {
@@ -262,13 +232,13 @@
           "cachedResultName": "Отдел Календарь Гугл"
         }
       },
-      "id": "bd1a35a1-6b58-40ad-85f1-eb44c4a99506",
+      "id": "afd93ccd-43d7-4c6c-9821-04b36f247fd2",
       "name": "🤖YouTube_Agent",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 1.2,
       "position": [
-        580,
-        100
+        -320,
+        560
       ],
       "disabled": true
     },
@@ -283,13 +253,13 @@
           "cachedResultName": "Отдел Календарь Гугл"
         }
       },
-      "id": "b8a96b4a-5c17-4489-993c-8ffaca1b8c46",
+      "id": "c2346b76-635a-410f-9b04-0fd1a3db22cd",
       "name": "🤖Instagram_Agent",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 1.2,
       "position": [
-        200,
-        80
+        -700,
+        540
       ],
       "disabled": true
     },
@@ -304,13 +274,13 @@
           "cachedResultName": "Отдел Календарь Гугл"
         }
       },
-      "id": "30f8ebaf-40d7-47c7-8482-120367b44f3d",
+      "id": "3f578b26-0813-43c8-9253-5653dcfabc44",
       "name": "🤖Threads_Agent",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 1.2,
       "position": [
-        380,
-        80
+        -520,
+        540
       ],
       "disabled": true
     },
@@ -325,13 +295,13 @@
           "cachedResultName": "Отдел Календарь Гугл"
         }
       },
-      "id": "67df0d21-bc87-4fc0-bb9c-3b8afb77a01e",
+      "id": "7b39543d-bf44-4798-bf63-e9c33a837065",
       "name": "🤖TikTok_Agent",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 1.2,
       "position": [
-        740,
-        100
+        -160,
+        560
       ],
       "disabled": true
     },
@@ -346,13 +316,13 @@
           "cachedResultName": "Отдел Календарь Гугл"
         }
       },
-      "id": "c78ea6ea-7f6e-44b6-aba7-2be333aa6590",
+      "id": "5ea44462-1290-40d7-8845-068db31a2c44",
       "name": "🤖Kontent_Agent1",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 1.2,
       "position": [
-        900,
-        100
+        0,
+        560
       ],
       "disabled": true
     },
@@ -367,13 +337,13 @@
           "cachedResultName": "Отдел Календарь Гугл"
         }
       },
-      "id": "7381a4cd-98dc-49c6-9413-9dac4868c0d8",
+      "id": "13addff4-fda0-4439-a772-5b265b4c8fd8",
       "name": "🤖Voice_Agent",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 1.2,
       "position": [
-        1080,
-        100
+        180,
+        560
       ],
       "disabled": true
     },
@@ -389,73 +359,55 @@
           "pineconeNamespace": "Test"
         }
       },
-      "id": "c4732d3f-83c7-439b-96ae-19344b0636b0",
+      "id": "e4bf46b6-57f0-4400-9b3f-fc29755d7c45",
       "name": "Pinecone Vector Store",
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "typeVersion": 1,
       "position": [
-        1300,
-        20
-      ],
-      "credentials": {
-        "pineconeApi": {
-          "id": "xHYJdGWUvOWZd8CK",
-          "name": "PineconeApi account"
-        }
-      }
+        400,
+        480
+      ]
     },
     {
       "parameters": {
         "model": "gpt-4o",
         "options": {}
       },
-      "id": "a9324d5f-f450-41b5-bee0-2cfbe1108d87",
+      "id": "f45fa55b-5a3c-4b5a-86d7-484cc9b2202f",
       "name": "OpenAI Chat Model1",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1,
       "position": [
-        1620,
-        60
-      ],
-      "credentials": {
-        "openAiApi": {
-          "id": "XLvdxNcexKfUmGhl",
-          "name": "OpenAi account 3"
-        }
-      }
+        720,
+        520
+      ]
     },
     {
       "parameters": {
         "model": "text-embedding-3-small",
         "options": {}
       },
-      "id": "7000d5a0-8a1b-43ac-8380-4d1997da0079",
+      "id": "ed1297dc-5d4e-4679-bb9f-56aa7ca96117",
       "name": "Embeddings OpenAI",
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
       "typeVersion": 1,
       "position": [
-        1380,
-        220
-      ],
-      "credentials": {
-        "openAiApi": {
-          "id": "XLvdxNcexKfUmGhl",
-          "name": "OpenAi account 3"
-        }
-      }
+        480,
+        680
+      ]
     },
     {
       "parameters": {
         "name": "Knowledge_Base",
         "description": "Call this tool to get information about the company."
       },
-      "id": "c1ad84fb-7981-4a5f-88f2-ed76fb03a9b4",
+      "id": "9992eec6-5d82-4e4f-aac8-77aa2680a6bf",
       "name": "Knowledge Base",
       "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
       "typeVersion": 1,
       "position": [
-        1340,
-        -200
+        440,
+        260
       ]
     }
   ],
@@ -682,18 +634,23 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "05fcbd1c-cba2-4d0e-a023-05ffd3dd16d5",
+  "versionId": "4e244855-bf72-4a72-8191-e3e5f7b8eed3",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "BdCOJEesGxMnEwAd",
+  "id": "x1xuT5XzFS97x4n6",
   "tags": [
     {
-      "createdAt": "2025-03-06T12:11:15.812Z",
-      "updatedAt": "2025-03-06T12:11:15.812Z",
-      "id": "XD9MpCzqMOq9rI8b",
+      "createdAt": "2025-05-18T14:35:04.758Z",
+      "updatedAt": "2025-05-18T14:35:04.758Z",
+      "id": "4Uwk4ULSvTYlwIPf",
       "name": "video"
+    },
+    {
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
     }
   ]
 }

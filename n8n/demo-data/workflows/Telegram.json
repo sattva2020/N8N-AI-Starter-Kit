@@ -1,5 +1,5 @@
 {
-  "name": "Динамическая модель с Telegram",
+  "name": "Telegram",
   "nodes": [
     {
       "parameters": {
@@ -8,10 +8,10 @@
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.1,
       "position": [
-        -560,
-        -320
+        -1020,
+        100
       ],
-      "id": "aa521491-8bd5-4482-bf9b-6af7fe8ec507",
+      "id": "3e27c688-7fc0-442a-8ff8-4489e24c47fa",
       "name": "When chat message received",
       "webhookId": "5b79c33c-df51-4e33-9b73-00d484c5844e",
       "disabled": true
@@ -24,10 +24,10 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        700,
-        140
+        240,
+        560
       ],
-      "id": "a91a92f2-e339-434b-a112-770da10f5581",
+      "id": "fa6f1f49-f5e9-4500-b9f3-fd31c94521e4",
       "name": "Window Buffer Memory"
     },
     {
@@ -38,17 +38,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        580,
-        80
+        120,
+        500
       ],
-      "id": "f9addf5f-52ca-413f-a070-ec765b995dcb",
-      "name": "03 mini Hight",
-      "credentials": {
-        "openRouterApi": {
-          "id": "ahlg6hfSuVoEk7Nv",
-          "name": "OpenRouter account"
-        }
-      }
+      "id": "b4f36da1-7644-4b58-8878-386e4693a1fb",
+      "name": "03 mini Hight"
     },
     {
       "parameters": {
@@ -62,10 +56,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        680,
-        -120
+        220,
+        300
       ],
-      "id": "2000e808-0788-4abe-a8b2-a63a04c8dbc0",
+      "id": "86cb2077-4871-4bd5-b920-031879c3637d",
       "name": "AI Agent (Выбирает модель)"
     },
     {
@@ -77,10 +71,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        1080,
-        -160
+        620,
+        260
       ],
-      "id": "23e4db20-0dff-4254-a9d1-2de2a2177430",
+      "id": "4696386e-f11f-4b1a-922a-3cfc56c3b2ab",
       "name": "AI Agent1 (конечный ответ)"
     },
     {
@@ -91,17 +85,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        1080,
-        140
+        620,
+        560
       ],
-      "id": "5868799a-4c9a-48e6-99ed-663c31db21a0",
-      "name": "OpenRouter Chat Model",
-      "credentials": {
-        "openRouterApi": {
-          "id": "ahlg6hfSuVoEk7Nv",
-          "name": "OpenRouter account"
-        }
-      }
+      "id": "ce703698-c14a-4eaf-9c35-089d164d02b3",
+      "name": "OpenRouter Chat Model"
     },
     {
       "parameters": {
@@ -111,10 +99,10 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        1200,
-        80
+        740,
+        500
       ],
-      "id": "7d9bde0b-e3d2-45f9-ad08-fc8191815710",
+      "id": "c3a0bb8d-28a7-46fb-9302-b7350be3e8a1",
       "name": "Window Buffer Memory1"
     },
     {
@@ -124,21 +112,15 @@
         ],
         "additionalFields": {}
       },
-      "id": "dcc68e2a-4414-41a8-8ee6-3be2c5d37df3",
+      "id": "02e33a29-4031-4b8e-95c1-af088863c81b",
       "name": "Telegram Trigger",
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.1,
       "position": [
-        -1100,
-        -40
+        -1560,
+        380
       ],
-      "webhookId": "2194a6b2-2302-4406-9c8c-207161b7eb22",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
+      "webhookId": "2194a6b2-2302-4406-9c8c-207161b7eb22"
     },
     {
       "parameters": {
@@ -157,10 +139,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -260,
-        -200
+        -720,
+        220
       ],
-      "id": "3f4f49b7-7bf2-4d7e-84ab-8b4b9594a9ec",
+      "id": "d5a906df-09a4-431b-bdb7-203f1b67444a",
       "name": "Edit Fields"
     },
     {
@@ -171,18 +153,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -360,
-        60
+        -820,
+        480
       ],
-      "id": "505bd9cf-6699-4019-bc88-d5f8a182c65b",
+      "id": "de8670c6-6039-4754-bb05-7df8c3da8959",
       "name": "Telegram",
-      "webhookId": "c66673cf-72f0-4233-82d8-70fe313d8765",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
+      "webhookId": "c66673cf-72f0-4233-82d8-70fe313d8765"
     },
     {
       "parameters": {
@@ -193,17 +169,11 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        -160,
-        60
+        -620,
+        480
       ],
-      "id": "ddce8b69-908c-4fb6-972d-1d5fd2e06c94",
-      "name": "OpenAI",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "48414417-9192-42d0-a7ca-4728a7a40a72",
+      "name": "OpenAI"
     },
     {
       "parameters": {
@@ -265,10 +235,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -640,
-        -40
+        -1100,
+        380
       ],
-      "id": "f1db8e64-23ab-4b58-b89a-a0971591a374",
+      "id": "75ce9088-a6e5-48a4-a7e8-0f7ea3d990dc",
       "name": "Switch"
     },
     {
@@ -279,18 +249,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -860,
-        -40
+        -1320,
+        380
       ],
-      "id": "4a5768cf-0ede-4fb4-b384-e1525d8576ea",
+      "id": "11135b40-5576-4279-b1ef-df0f23b4d3b9",
       "name": "Telegram2",
-      "webhookId": "8cd99b7a-3eca-4fd9-9b9a-168ea002f4b1",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
+      "webhookId": "8cd99b7a-3eca-4fd9-9b9a-168ea002f4b1"
     },
     {
       "parameters": {
@@ -300,11 +264,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1160,
-        -380
+        -1620,
+        40
       ],
       "typeVersion": 1,
-      "id": "e03d431d-1636-4791-b898-98f5132776c1",
+      "id": "e0930767-68d0-4d77-b672-604de7c70f5b",
       "name": "Sticky Note"
     },
     {
@@ -315,21 +279,15 @@
           "appendAttribution": false
         }
       },
-      "id": "e27da233-a9c4-47e5-8369-e17172ac27ea",
+      "id": "8920b14c-7be8-4e9f-9dee-6ef1a20c435f",
       "name": "Respond to Me",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1900,
-        -160
+        1440,
+        260
       ],
-      "webhookId": "cd45388a-451a-42a0-b4aa-94857c5cc9f2",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
+      "webhookId": "cd45388a-451a-42a0-b4aa-94857c5cc9f2"
     },
     {
       "parameters": {
@@ -338,10 +296,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        840,
-        200
+        380,
+        620
       ],
-      "id": "991f027d-8bab-40c2-95b4-bd168cc508ef",
+      "id": "c22e4cda-aa33-4743-a94d-d20d85296851",
       "name": "Structured Output Parser"
     },
     {
@@ -353,11 +311,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        460,
-        -420
+        0,
+        0
       ],
       "typeVersion": 1,
-      "id": "62512cf0-dd9c-48d7-a356-0994df325c12",
+      "id": "bd37819f-b35c-4fd2-b2dd-8b91866c41e4",
       "name": "Sticky Note1"
     }
   ],
@@ -529,24 +487,23 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "e879e2ac-fb89-4715-bda0-12850814b95d",
+  "versionId": "81bd0b32-3317-4102-96ae-9a4c650a0457",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "XeMsVatpIgIwHEbp",
+  "id": "74hvNZTZarWLQnbx",
   "tags": [
     {
-      "createdAt": "2025-03-06T12:11:15.812Z",
-      "updatedAt": "2025-03-06T12:11:15.812Z",
-      "id": "XD9MpCzqMOq9rI8b",
+      "createdAt": "2025-05-18T14:35:04.758Z",
+      "updatedAt": "2025-05-18T14:35:04.758Z",
+      "id": "4Uwk4ULSvTYlwIPf",
       "name": "video"
     },
     {
-      "createdAt": "2025-03-10T09:01:46.522Z",
-      "updatedAt": "2025-03-10T09:01:46.522Z",
-      "id": "PgAaq3WnBkCDSVrW",
-      "name": "Готовый сценарий"
+      "name": "Готовый сценарий",
+      "id": "jrGNi71NffgrxYxP",
+      "createdAt": "2025-05-18T15:09:02.551Z",
+      "updatedAt": "2025-05-18T15:09:02.551Z"
     }
   ]
 }

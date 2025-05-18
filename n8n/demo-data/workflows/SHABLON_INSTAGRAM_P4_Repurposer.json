@@ -1,5 +1,5 @@
 {
-  "name": "SHABLON_IZ_INSTAGRAM_P4_Repurposer",
+  "name": "SHABLON_INSTAGRAM_P4_Repurposer",
   "nodes": [
     {
       "parameters": {
@@ -16,7 +16,7 @@
         1120,
         420
       ],
-      "id": "a082900b-997f-40f2-b88f-c4ca951ac975",
+      "id": "42dae4b4-1e8b-4e19-a3d8-83e01ee7cc98",
       "name": "AI Agent"
     },
     {
@@ -35,7 +35,7 @@
         0,
         420
       ],
-      "id": "d8471851-251f-4865-9a95-097a6ccda8b4",
+      "id": "8b6cd8bc-be5b-4bfc-8b09-0ac84cc2ce0c",
       "name": "When Executed by Another Workflow"
     },
     {
@@ -144,14 +144,8 @@
         1200,
         800
       ],
-      "id": "f16e9cbd-9734-4845-a562-98e6e67ca260",
-      "name": "Create Script",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "6ae31ae2-a42b-4556-92b0-6f09ecd7994a",
+      "name": "Create Script"
     },
     {
       "parameters": {
@@ -165,7 +159,7 @@
         340
       ],
       "typeVersion": 1,
-      "id": "90f0d68b-f91d-4b6c-9db1-1734a3260ccd",
+      "id": "9eaf008c-2a54-4575-9a48-a91acad23b25",
       "name": "Sticky Note"
     },
     {
@@ -179,7 +173,7 @@
         500,
         420
       ],
-      "id": "8d3c68c6-f2ac-4fb1-b28e-dc0767558696",
+      "id": "d4449021-a1fe-44b6-b8e5-148789f173cc",
       "name": "Get Video"
     },
     {
@@ -194,7 +188,7 @@
         340
       ],
       "typeVersion": 1,
-      "id": "049a1b7c-6cae-416b-b14f-28f2ad6d616c",
+      "id": "84f1847c-4cf2-4c06-817f-f34213548498",
       "name": "Sticky Note1"
     },
     {
@@ -209,7 +203,7 @@
         340
       ],
       "typeVersion": 1,
-      "id": "aaedf153-9ff8-4fe2-8b88-4587952cd777",
+      "id": "49377650-0568-4390-bd83-d2a08c5175c8",
       "name": "Sticky Note2"
     },
     {
@@ -224,7 +218,7 @@
         720
       ],
       "typeVersion": 1,
-      "id": "751cfa52-84f4-47ec-92ca-da6299f7c2a1",
+      "id": "c51f1eb3-4aca-4be2-998b-a5f07732fe20",
       "name": "Sticky Note3"
     },
     {
@@ -239,14 +233,8 @@
         840,
         420
       ],
-      "id": "a6c8b870-f3f3-445b-993d-2f8057a90af2",
-      "name": "Whisper",
-      "credentials": {
-        "openAiApi": {
-          "id": "XLvdxNcexKfUmGhl",
-          "name": "OpenAi account 3"
-        }
-      }
+      "id": "451c6fd3-de0b-4c69-b224-8be276901ac1",
+      "name": "Whisper"
     },
     {
       "parameters": {
@@ -273,14 +261,8 @@
         220,
         420
       ],
-      "id": "90a470a0-486d-4685-a95e-9a0fdc7c478d",
-      "name": "Get Record ID",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "07021129-ada4-43d9-b5de-9b506763f1be",
+      "name": "Get Record ID"
     },
     {
       "parameters": {
@@ -292,7 +274,7 @@
         1600,
         740
       ],
-      "id": "14f1330d-7655-4a1c-8435-de721810749f",
+      "id": "7af19d28-708b-4086-b956-35974a8b3c60",
       "name": "Structured Output Parser"
     },
     {
@@ -307,7 +289,7 @@
         180
       ],
       "typeVersion": 1,
-      "id": "7f731531-50a9-49ca-bb53-e94ac863d6e7",
+      "id": "6d2ba637-c979-4590-aa40-4b430d112614",
       "name": "Sticky Note6"
     },
     {
@@ -322,7 +304,7 @@
         180
       ],
       "typeVersion": 1,
-      "id": "b8ec55bd-3cd6-4676-bcdf-314712b26293",
+      "id": "0ad30739-1146-4b1e-8c6b-7bcd1c782007",
       "name": "Sticky Note7"
     },
     {
@@ -337,7 +319,7 @@
         260
       ],
       "typeVersion": 1,
-      "id": "01b66d37-d29f-45db-8ee6-4b85416f30af",
+      "id": "6ddf6341-3624-42b6-9efc-ce05b72abd94",
       "name": "Sticky Note10"
     },
     {
@@ -350,7 +332,7 @@
         2200,
         400
       ],
-      "id": "8a2ad164-3271-4e29-9bd0-158e3588313f",
+      "id": "b1812e37-d058-4345-b832-45f295eab24c",
       "name": "Success"
     },
     {
@@ -365,7 +347,7 @@
         0
       ],
       "typeVersion": 1,
-      "id": "da8e17ce-0333-4081-8969-942ffd08114e",
+      "id": "7b4c28ea-5f71-495e-a13d-f53f7d444eb6",
       "name": "Sticky Note4"
     },
     {
@@ -383,14 +365,8 @@
         800,
         740
       ],
-      "id": "1c2e940c-fb53-4a17-bfa1-c71a0cb9a2f2",
-      "name": "OpenAI Chat Model",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "c33718df-96c4-4911-9620-51774dc2e004",
+      "name": "OpenAI Chat Model"
     },
     {
       "parameters": {
@@ -404,7 +380,7 @@
         560
       ],
       "typeVersion": 1,
-      "id": "0a85cb78-9e01-4507-81d1-b96b90d8da5b",
+      "id": "430eb248-9191-4939-a804-1c984861ec6d",
       "name": "Sticky Note5"
     },
     {
@@ -419,7 +395,7 @@
         640
       ],
       "typeVersion": 1,
-      "id": "b7fb63c6-9457-46b4-b226-84250be4b78b",
+      "id": "72756fe1-9199-435a-9f61-a7d076079316",
       "name": "Sticky Note11"
     },
     {
@@ -527,14 +503,8 @@
         1580,
         420
       ],
-      "id": "e69415bb-76a2-437e-870a-e5abf5d8a480",
-      "name": "Airtable",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "ab60d28b-523c-44ee-ae0a-1a317817befb",
+      "name": "Airtable"
     },
     {
       "parameters": {
@@ -651,14 +621,8 @@
         1880,
         420
       ],
-      "id": "451ef2f7-eda2-4745-97d3-edde049dedb8",
-      "name": "Airtable2",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "5d18c683-88fc-4c73-a73e-72a3829c1864",
+      "name": "Airtable2"
     }
   ],
   "pinData": {
@@ -786,11 +750,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "bb1dd674-d3a7-492c-a2bb-208a84487752",
+  "versionId": "19fd7647-b974-4fda-981f-b6223e6a19d0",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "1E35t8OG4ivQ3kP7",
-  "tags": []
+  "id": "LycX2azGYkqa1y3T",
+  "tags": [
+    {
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
+    }
+  ]
 }

@@ -1,5 +1,5 @@
 {
-  "name": "IZ_THINK",
+  "name": "THINK",
   "nodes": [
     {
       "parameters": {
@@ -11,9 +11,9 @@
       "typeVersion": 1.8,
       "position": [
         280,
-        760
+        200
       ],
-      "id": "91e3a356-1165-4831-a477-6b647a1f84ef",
+      "id": "d9eb60a8-b9f3-4d78-b66c-ca107626f849",
       "name": "Think Agent"
     },
     {
@@ -24,9 +24,9 @@
       "typeVersion": 1.1,
       "position": [
         40,
-        760
+        200
       ],
-      "id": "e03f8e81-765b-468d-93da-1774fde87901",
+      "id": "6dc1e16e-9774-45f4-80da-d4bc57523481",
       "name": "When chat message received",
       "webhookId": "65eff381-f609-4af4-9d78-66f83745eb26"
     },
@@ -38,9 +38,9 @@
       "typeVersion": 1,
       "position": [
         520,
-        1100
+        540
       ],
-      "id": "ca046cf1-91a9-4bf5-baea-589c894391f8",
+      "id": "77cb3fe2-9174-42fa-82d7-68126445e438",
       "name": "Think"
     },
     {
@@ -54,9 +54,9 @@
       "typeVersion": 1,
       "position": [
         420,
-        1020
+        460
       ],
-      "id": "b95ac4bc-864b-4783-8c7d-cf3214013898",
+      "id": "5df39f6b-0f3f-4bae-8877-ffa05b8ed232",
       "name": "Sticky Note"
     },
     {
@@ -70,9 +70,9 @@
       "typeVersion": 1,
       "position": [
         0,
-        660
+        100
       ],
-      "id": "5eff9e1e-e92e-40fd-9d35-96401e6acc72",
+      "id": "b9db8f46-5d71-4a5c-a539-020773a0e495",
       "name": "Sticky Note2"
     },
     {
@@ -89,16 +89,10 @@
       "typeVersion": 1.2,
       "position": [
         280,
-        1080
+        520
       ],
-      "id": "3645ebc2-d9ab-4be9-903a-902b13c04032",
-      "name": "GPT 4.1",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "6d9fa380-0533-46c1-96d7-00228ed3d63d",
+      "name": "GPT 4.1"
     },
     {
       "parameters": {
@@ -119,16 +113,10 @@
       "typeVersion": 1.1,
       "position": [
         2800,
-        920
+        360
       ],
-      "id": "a49c59ee-25c2-402c-861b-969baa3f64da",
-      "name": "knowlege_base",
-      "credentials": {
-        "pineconeApi": {
-          "id": "xHYJdGWUvOWZd8CK",
-          "name": "PineconeApi account"
-        }
-      }
+      "id": "a3bd7d9b-fa96-4cdf-8690-7a73ebd98fd2",
+      "name": "knowlege_base"
     },
     {
       "parameters": {
@@ -138,16 +126,10 @@
       "typeVersion": 1.2,
       "position": [
         2760,
-        1080
+        520
       ],
-      "id": "1fe2e7d5-fcd5-491c-8e60-e28ce57590e8",
-      "name": "Embeddings OpenAI",
-      "credentials": {
-        "openAiApi": {
-          "id": "XLvdxNcexKfUmGhl",
-          "name": "OpenAi account 3"
-        }
-      }
+      "id": "723571e6-3116-4038-83aa-131309b74eb1",
+      "name": "Embeddings OpenAI"
     },
     {
       "parameters": {
@@ -172,16 +154,10 @@
       "typeVersion": 2.1,
       "position": [
         3240,
-        920
+        360
       ],
-      "id": "1d53d7c1-cf7c-4364-9d21-197f6bec3f67",
-      "name": "Contacts",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "8c7d3eba-a5f2-463c-bc86-c86a7e4b2fab",
+      "name": "Contacts"
     },
     {
       "parameters": {
@@ -214,9 +190,9 @@
       "typeVersion": 1.1,
       "position": [
         3380,
-        920
+        360
       ],
-      "id": "0290128c-8f58-43b1-893e-da3157a71b0b",
+      "id": "1c8269ee-61e7-4d51-adcf-c37d4880a219",
       "name": "Web Search"
     },
     {
@@ -227,9 +203,9 @@
       "typeVersion": 1,
       "position": [
         2640,
-        900
+        340
       ],
-      "id": "eddd74eb-5305-456c-9725-7d21d26c8cd2",
+      "id": "395ec2e0-2f2b-4124-8e97-2afa4e11ce27",
       "name": "Think1"
     },
     {
@@ -244,9 +220,9 @@
       "typeVersion": 1.8,
       "position": [
         2660,
-        680
+        120
       ],
-      "id": "86bf8c8e-2252-4924-bcf4-23fa8e8bd996",
+      "id": "38d8a08c-172b-42e1-8ed8-c8ba1bbad142",
       "name": "Think Agent1"
     },
     {
@@ -263,16 +239,10 @@
       "typeVersion": 1.3,
       "position": [
         2480,
-        900
+        340
       ],
-      "id": "c0723bfe-f4c5-4862-b677-ec9b99455ed1",
-      "name": "Claude 3.5 Sonnet1",
-      "credentials": {
-        "anthropicApi": {
-          "id": "r4EaRI5Kvj3xpuKm",
-          "name": "n8n_1"
-        }
-      }
+      "id": "270f03ff-ecb7-431c-a039-871c32330385",
+      "name": "Claude 3.5 Sonnet1"
     },
     {
       "parameters": {
@@ -285,9 +255,9 @@
       "typeVersion": 1,
       "position": [
         780,
-        560
+        0
       ],
-      "id": "03005ee1-3637-4789-976e-cc4fe0d6261b",
+      "id": "37cc7d98-b54a-4cf0-990c-b067f131c8d4",
       "name": "Sticky Note3"
     },
     {
@@ -301,9 +271,9 @@
       "typeVersion": 1,
       "position": [
         0,
-        560
+        0
       ],
-      "id": "c5dcd309-7f2c-4565-a916-369bae2b0196",
+      "id": "7a6dbe20-77f4-4f17-b81b-ca1007b0e4ab",
       "name": "Sticky Note4"
     },
     {
@@ -329,9 +299,9 @@
       "typeVersion": 2.1,
       "position": [
         3160,
-        1080
+        520
       ],
-      "id": "cf3efd9e-1200-4b45-8e36-719b56a90109",
+      "id": "3c016fdb-d725-442f-abd7-0d04797fdb8e",
       "name": "quoter",
       "disabled": true
     },
@@ -358,9 +328,9 @@
       "typeVersion": 2.1,
       "position": [
         3300,
-        1080
+        520
       ],
-      "id": "ac2b4e39-cc77-4314-ad62-a7504aa83994",
+      "id": "0244761b-6725-4aa8-81ef-947695bc4039",
       "name": "availability",
       "disabled": true
     },
@@ -374,9 +344,9 @@
       "typeVersion": 1,
       "position": [
         600,
-        1300
+        740
       ],
-      "id": "787d277a-2f50-4a8f-8dc7-d8ac2aa95aa7",
+      "id": "43640fe5-da89-42d1-8d59-f446a1902300",
       "name": "Sticky Note12"
     },
     {
@@ -388,10 +358,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         1280,
-        1300
+        740
       ],
       "typeVersion": 1,
-      "id": "feffdad4-6a53-4483-ad9c-059496437168",
+      "id": "d41e18e3-4945-4bd9-8084-705e457f26e7",
       "name": "Sticky Note13"
     },
     {
@@ -403,10 +373,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         1760,
-        1300
+        740
       ],
       "typeVersion": 1,
-      "id": "2418c5fc-85c6-481d-ab4b-efc6bb92acb2",
+      "id": "1433ff1c-a44b-415d-b49b-a6ef8c38a08d",
       "name": "Sticky Note14"
     },
     {
@@ -418,10 +388,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         820,
-        1960
+        1400
       ],
       "typeVersion": 1,
-      "id": "c693941f-cf21-4740-b7a7-57d415a2da7c",
+      "id": "05418088-1a5a-47bc-ae7f-1670f88c850e",
       "name": "Sticky Note15"
     },
     {
@@ -436,17 +406,11 @@
       "typeVersion": 1.2,
       "position": [
         3100,
-        920
+        360
       ],
-      "id": "1bcf37de-ca4b-48e8-acf1-39c8479a41d8",
+      "id": "4d835634-23f6-4c02-bf70-5822d93abb68",
       "name": "Telegram",
-      "webhookId": "857135c4-66f4-4680-916e-4f7ca9ba393d",
-      "credentials": {
-        "telegramApi": {
-          "id": "PZ8G2FOFBcVzOqdk",
-          "name": "Telegram account (Бот помощник по Gmai)"
-        }
-      }
+      "webhookId": "857135c4-66f4-4680-916e-4f7ca9ba393d"
     },
     {
       "parameters": {
@@ -460,17 +424,11 @@
       "typeVersion": 1.2,
       "position": [
         3320,
-        680
+        120
       ],
-      "id": "a21efb54-08d2-4967-8dcd-9e3a67148b04",
+      "id": "1d234e6b-7b73-4ab2-b42f-9576518b37f2",
       "name": "Telegram1",
-      "webhookId": "e8c4c596-04e1-4ebd-ae83-5928d527c444",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
+      "webhookId": "e8c4c596-04e1-4ebd-ae83-5928d527c444"
     },
     {
       "parameters": {
@@ -483,17 +441,11 @@
       "typeVersion": 1.1,
       "position": [
         880,
-        720
+        160
       ],
-      "id": "71c6f101-db40-4aaa-9560-144c354a6734",
+      "id": "eb9ada07-218f-446c-9d91-aef6a931c40d",
       "name": "Telegram Trigger1",
-      "webhookId": "79408097-d284-4034-a6d7-65bb07b242ba",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
+      "webhookId": "79408097-d284-4034-a6d7-65bb07b242ba"
     },
     {
       "parameters": {
@@ -557,9 +509,9 @@
       "typeVersion": 3.2,
       "position": [
         1720,
-        700
+        140
       ],
-      "id": "9f766570-3650-4cc4-9df6-f0dbd8584253",
+      "id": "ee1fcda8-bf11-48e3-8b22-f97dd6de4aea",
       "name": "Switch1"
     },
     {
@@ -572,16 +524,10 @@
       "typeVersion": 1.8,
       "position": [
         2080,
-        960
+        400
       ],
-      "id": "243e9e43-2a85-4111-b3b3-b8d244e23b2b",
-      "name": "OpenAI1",
-      "credentials": {
-        "openAiApi": {
-          "id": "XLvdxNcexKfUmGhl",
-          "name": "OpenAi account 3"
-        }
-      }
+      "id": "0ba700fa-1330-48dc-ba26-c4ff8a07653d",
+      "name": "OpenAI1"
     },
     {
       "parameters": {
@@ -611,9 +557,9 @@
       "typeVersion": 2.2,
       "position": [
         1160,
-        720
+        160
       ],
-      "id": "8b8e465d-157c-48b7-87f1-5e801b87afde",
+      "id": "e0e65a12-b397-4e93-aaf5-394e5f838181",
       "name": "If1"
     },
     {
@@ -625,17 +571,11 @@
       "typeVersion": 1.2,
       "position": [
         1480,
-        700
+        140
       ],
-      "id": "9cdefaeb-d8dc-4d54-b10b-c1ff759b287e",
+      "id": "98f7671f-83b2-44ae-baab-9ecf32b784d0",
       "name": "Telegram2",
-      "webhookId": "4f938fd7-6e62-45f5-9f45-118ed704bc35",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
+      "webhookId": "4f938fd7-6e62-45f5-9f45-118ed704bc35"
     },
     {
       "parameters": {
@@ -655,9 +595,9 @@
       "typeVersion": 3.4,
       "position": [
         2340,
-        680
+        120
       ],
-      "id": "6252ecd5-70bf-4137-b4aa-6e8030fbd661",
+      "id": "c03efe0a-324a-4bbf-a7db-3961deaf53e0",
       "name": "Edit Fields1"
     },
     {
@@ -669,17 +609,11 @@
       "typeVersion": 1.2,
       "position": [
         1860,
-        960
+        400
       ],
-      "id": "7a06a19c-6241-4131-b3bc-55c4302415be",
+      "id": "5842f635-bda5-438c-a125-436e38f7f856",
       "name": "Telegram3",
-      "webhookId": "0142b70e-e116-4fe0-bce6-bfc0fb8db9db",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
+      "webhookId": "0142b70e-e116-4fe0-bce6-bfc0fb8db9db"
     },
     {
       "parameters": {
@@ -691,10 +625,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         860,
-        1120
+        560
       ],
       "typeVersion": 1,
-      "id": "04baf194-259d-4b7e-a19f-0666aff86b0e",
+      "id": "49732830-9f0a-4420-ac9e-be17ed98cb64",
       "name": "Sticky Note1"
     }
   ],
@@ -797,16 +731,6 @@
             "index": 0
           }
         ]
-      ]
-    },
-    "quoter": {
-      "ai_tool": [
-        []
-      ]
-    },
-    "availability": {
-      "ai_tool": [
-        []
       ]
     },
     "Telegram": {
@@ -920,11 +844,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "465ac918-9176-4f86-836f-6f4917faf11e",
+  "versionId": "8e4c8d39-f815-4471-9575-64fabcf1e35e",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "CbvlylqjHiLDK5QN",
-  "tags": []
+  "id": "tCdADjcJjUhcrwmR",
+  "tags": [
+    {
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
+    }
+  ]
 }

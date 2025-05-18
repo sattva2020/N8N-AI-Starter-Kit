@@ -1,5 +1,5 @@
 {
-  "name": "Shablon_AI AGENT_SYSTEM_NEWS_WRITER",
+  "name": "Shablon_AI_AGENT_SYSTEM_NEWS_WRITER",
   "nodes": [
     {
       "parameters": {
@@ -8,13 +8,13 @@
         "fieldsToInclude": "title, raw_content",
         "options": {}
       },
-      "id": "cd9fa5e1-0659-4541-9300-03a7dd2d0eae",
+      "id": "f9354c0b-31d3-45eb-ad89-b75d4653ac64",
       "name": "Aggregate",
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        760,
-        -420
+        2160,
+        100
       ]
     },
     {
@@ -22,13 +22,13 @@
         "fieldToSplitOut": "results",
         "options": {}
       },
-      "id": "ecf47ff9-7b23-4edc-9c49-6e70b041ccd3",
+      "id": "f8199300-b1b8-433e-86cb-767bd8e6f0f2",
       "name": "Split Out",
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        560,
-        -420
+        1960,
+        100
       ]
     },
     {
@@ -40,52 +40,40 @@
         "jsonBody": "={\n    \"api_key\": [ДОБАВИТЬ СВОЙ API],\n    \"query\": \"{{ $json.query.replace(/\"/g, '\\\\\"') }}\",\n    \"search_depth\": \"basic\",\n    \"include_answer\": true,\n    \"topic\": \"news\",\n    \"include_raw_content\": true,\n    \"max_results\": 3\n} ",
         "options": {}
       },
-      "id": "7e8d773e-b140-47c0-957f-9c7e546b1430",
+      "id": "58e02b72-a43b-4a3b-b604-c350cbb43f60",
       "name": "Search Internet",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        360,
-        -420
+        1760,
+        100
       ]
     },
     {
       "parameters": {
         "options": {}
       },
-      "id": "551a9863-075d-4907-80dd-519caebbb2f9",
+      "id": "de856824-2cdc-4acf-bf22-65253053983e",
       "name": "OpenAI Chat Model1",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1,
       "position": [
-        220,
-        80
-      ],
-      "credentials": {
-        "openAiApi": {
-          "id": "XLvdxNcexKfUmGhl",
-          "name": "OpenAi account 3"
-        }
-      }
+        1620,
+        600
+      ]
     },
     {
       "parameters": {
         "options": {}
       },
-      "id": "27c68795-2627-41c5-bd4a-e192423b9ffa",
+      "id": "28c4e3a3-3bc8-4ddf-8556-9c3e9bc0378f",
       "name": "OpenAI Chat Model2",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1,
       "position": [
-        560,
-        80
-      ],
-      "credentials": {
-        "openAiApi": {
-          "id": "XLvdxNcexKfUmGhl",
-          "name": "OpenAi account 3"
-        }
-      }
+        1960,
+        600
+      ]
     },
     {
       "parameters": {
@@ -194,39 +182,27 @@
         },
         "options": {}
       },
-      "id": "e51c37ba-5e53-4d4a-9211-c291cc6f30f1",
+      "id": "05c73283-c79b-4017-b0d0-21a5b1055814",
       "name": "Update Campaign",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        60,
-        480
-      ],
-      "credentials": {
-        "googleApi": {
-          "id": "zWdAGQsYe4ElFP3I",
-          "name": "Google Drive account"
-        }
-      }
+        1460,
+        1000
+      ]
     },
     {
       "parameters": {
         "options": {}
       },
-      "id": "d2413152-e37a-442c-9c44-bb165907164d",
+      "id": "a906116f-6010-4fbd-aabd-e9135569d280",
       "name": "OpenAI Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1,
       "position": [
-        -280,
-        80
-      ],
-      "credentials": {
-        "openAiApi": {
-          "id": "XLvdxNcexKfUmGhl",
-          "name": "OpenAi account 3"
-        }
-      }
+        1120,
+        600
+      ]
     },
     {
       "parameters": {
@@ -248,13 +224,13 @@
         },
         "options": {}
       },
-      "id": "4b848aff-07e9-4cfb-81d6-7fab453fa241",
+      "id": "1191fafd-a552-41fa-97a9-4cf110b3a500",
       "name": "Set Search Fields",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        180,
-        -420
+        1580,
+        100
       ]
     },
     {
@@ -279,17 +255,11 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        -160,
-        -420
+        1240,
+        100
       ],
-      "id": "ea33805d-228f-4fa7-9845-1e1b12c540c1",
-      "name": "Google Sheets",
-      "credentials": {
-        "googleApi": {
-          "id": "zWdAGQsYe4ElFP3I",
-          "name": "Google Drive account"
-        }
-      }
+      "id": "4b6c62e8-1f54-450c-998e-3c53284ea1ce",
+      "name": "Google Sheets"
     },
     {
       "parameters": {
@@ -298,10 +268,10 @@
       "type": "n8n-nodes-base.limit",
       "typeVersion": 1,
       "position": [
-        0,
-        -420
+        1400,
+        100
       ],
-      "id": "a05a325a-e6c3-4be4-b4a9-36bd1a49c347",
+      "id": "1fbc381c-c7fb-4d9c-9a0f-3112cf7f5c36",
       "name": "Limit"
     },
     {
@@ -398,17 +368,11 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        -320,
-        -420
+        1080,
+        100
       ],
-      "id": "d422567d-cbe4-458b-8324-f10953c8e8ea",
-      "name": "Google Sheets1",
-      "credentials": {
-        "googleApi": {
-          "id": "zWdAGQsYe4ElFP3I",
-          "name": "Google Drive account"
-        }
-      }
+      "id": "09894256-d64d-46d2-8e97-2191e44f9c0a",
+      "name": "Google Sheets1"
     },
     {
       "parameters": {
@@ -427,10 +391,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1740,
-        -180
+        -340,
+        340
       ],
-      "id": "81fd872e-5ed0-41af-a5c5-c76e8ff4ab42",
+      "id": "8bc8e8da-cca0-4d7a-b4c0-2c15aedb721f",
       "name": "Edit Fields"
     },
     {
@@ -445,17 +409,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        -1240,
-        -140
+        160,
+        380
       ],
-      "id": "80a3c934-028f-4df6-b5a4-4c0d7fdce935",
-      "name": "OpenAI Chat Model3",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "ea2de035-1425-4313-8177-374c275ea45a",
+      "name": "OpenAI Chat Model3"
     },
     {
       "parameters": {
@@ -469,17 +427,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        -1240,
-        240
+        160,
+        760
       ],
-      "id": "46b01553-bf55-4dfa-855c-0010c2735435",
-      "name": "OpenAI Chat Model4",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "eabce205-2123-478a-9aa3-716f3220d84a",
+      "name": "OpenAI Chat Model4"
     },
     {
       "parameters": {
@@ -493,17 +445,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        -1240,
-        620
+        160,
+        1140
       ],
-      "id": "b81008b3-405e-4b42-a610-d740cab57237",
-      "name": "OpenAI Chat Model5",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "9762f731-ef46-450a-9f19-5be8ece48222",
+      "name": "OpenAI Chat Model5"
     },
     {
       "parameters": {
@@ -516,10 +462,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        -1240,
-        0
+        160,
+        520
       ],
-      "id": "5b15ef1f-3205-4f62-8cad-41ac7705a46b",
+      "id": "e43d2376-0634-40d1-a435-f5b32771e495",
       "name": "AI Agent Генератор задачи"
     },
     {
@@ -533,10 +479,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        -1240,
-        400
+        160,
+        920
       ],
-      "id": "975cb9bf-8c22-430a-a6e1-f0b4ccbc32f5",
+      "id": "ece7059f-2471-4791-9dda-82a37c3dbfee",
       "name": "AI Agent Генератор Названия"
     },
     {
@@ -550,10 +496,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        -1240,
-        -360
+        160,
+        160
       ],
-      "id": "76f1620d-af44-4088-883f-0dc06f40c044",
+      "id": "5494257d-efa3-43e7-844b-ff1b9e288555",
       "name": "AI Agent по ЦА"
     },
     {
@@ -565,13 +511,13 @@
           "systemMessage": "=<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Agentinstructions>\n    <Role>\n        <Name>Эксперт по контенту для Telegram канала</Name>\n        <Description>Вы эксперт по созданию контента для Telegram канала, специализируетесь на преобразовании статей в высокововлекающие посты для определённой целевой аудитории.</Description>\n    </Role>\n    <Goal>\n        <Primary>Создать Telegram пост по предоставленной статье.</Primary>\n    </Goal>\n    <Instructions>\n        <Instruction>\n            <![CDATA[\nТехническое задание: используя предоставленную статью, составьте пост для Telegram канала, который:\n1. Написан в лаконичном, увлекательном тоне, оптимизированном для мобильных устройств.\n2. Адаптирован под интересы, потребности и профессиональные цели целевой аудитории.\n3. Представлен в виде простого текста с частыми переносами строк для удобочитаемости. Максимум 2-3 предложения в абзаце.\n4. Содержит 1-2 эмодзи для придания индивидуальности и привлекательности.\n5. Предоставляет ценную информацию и включает ясный призыв к действию.\n6. Содержит 3-5 релевантных хештегов.\n7. Выводит только текст поста — без дополнительного контента.\n\nКонтекст: Пост должен кратко передавать основное сообщение статьи и резонировать с ценностями аудитории. Он должен звучать естественно, разговорно и не превышать 2200 символов, но при этом не быть меньше 1500 символов.\n\nНапоминания:\n- Контент должен соответствовать интересам и вызовам целевой аудитории.\n- Обязательно использовать 1-2 эмодзи и призыв к действию.\n- Выводите только текст поста.\n- Ответ должен быть на русском языке.\n            ]]>\n        </Instruction>\n    </Instructions>\n</Agentinstructions>\n\n"
         }
       },
-      "id": "bce2bdc0-e53c-481c-9c8a-a9d2553553d5",
+      "id": "ef815c3f-8be5-4bd4-a9d4-9d2fd7297462",
       "name": "Telegram пост",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        -300,
-        -100
+        1100,
+        420
       ]
     },
     {
@@ -583,13 +529,13 @@
           "systemMessage": "=<Agentinstructions>\n    <Role>\n        <Name>Эксперт по контенту для Threads</Name>\n        <Description>Вы эксперт в создании контента для Threads, специализируетесь на преобразовании статей в увлекательные и краткие твиты для конкретной целевой аудитории.</Description>\n    </Role>\n    <Goal>\n        <Primary>Создать твит по предоставленной статье.</Primary>\n    </Goal>\n    <Instructions>\n        <Instruction>\n            <![CDATA[\nТехническое задание: используя предоставленную статью, составьте твит, который:\n1. Краток, лаконичен и оптимизирован для лимита Threads (390 символов).\n2. Соответствует интересам, потребностям и целям целевой аудитории.\n3. Содержит 1-2 эмодзи для усиления индивидуальности и привлекательности.\n4. Предоставляет ценное сообщение или инсайт и включает явный призыв к действию.\n5. Содержит 1 релевантный хештега.\n6. Выводит только текст твита — без дополнительного контента.\n\nКонтекст: Твит должен кратко передавать суть статьи, привлекать внимание, предлагать немедленную ценность и стимулировать вовлеченность (лайки, ответы, клики).\n\nНапоминания:\n- Тон должен быть доступным и увлекательным.\n- Используйте эмодзи экономно для акцента.\n- Убедитесь, что твит не превышает 390 символов и адаптирован под аудиторию.\n- Выводите только текст твита.\n- Ответ должен быть на русском языке.\n            ]]>\n        </Instruction>\n    </Instructions>\n</Agentinstructions>\n"
         }
       },
-      "id": "6897a48f-0e1a-4a8e-9a9b-999ff48085e2",
+      "id": "1706ebf0-17dd-40cb-b397-8df7031c69cf",
       "name": "Threads",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        200,
-        -100
+        1600,
+        420
       ]
     },
     {
@@ -606,13 +552,13 @@
         },
         "options": {}
       },
-      "id": "9842342a-225c-4758-9c97-060c298050a0",
+      "id": "5eaf8588-052c-4b26-a3ec-486394c6f121",
       "name": "Success",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        400,
-        480
+        1800,
+        1000
       ]
     },
     {
@@ -624,13 +570,13 @@
           "systemMessage": "=<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Agentinstructions>\n    <Role>\n        <Name>Эксперт копирайтер. </Name>\n        <Description>Вы опытный и креативный блогер, способный создавать увлекательные, лаконичные и хорошо структурированные статьи для Instagram на основе предоставленного контента.</Description>\n    </Role>\n    <Goal>\n        <Primary>Создать пост для Instagram до 2000 символов на основе предоставленного контента.</Primary>\n    </Goal>\n    <Instructions>\n        <Instruction>\n            <![CDATA[\nТехническое задание: напишите пост для Instagram до 2000 символов используя предоставленный контент. Пост должна быть связной, увлекательной и информативной, ориентированной на широкую аудиторию. Обеспечьте профессиональный, но дружелюбный тон и логичное структурирование от введения до заключения.\n\nКонтекст: данная задача необходима для быстрого создания качественных полезных постов, которые привлекают внимание читателей, точно передают основное сообщение и помогают брендам или отдельным лицам устанавливать лидерство в мнениях и эффективно взаимодействовать с аудиторией.\n\nНапоминания:\n- Сохраняйте ясность и логическую последовательность между абзацами.\n- Обеспечьте увлекательный, дружеский, но профессиональный тон.\n- Пост должна быть лаконичной и соответствовать предоставленному контенту.\n- Дели текст на абзацы через каждые 2-3 предложения.\n- Пост должен быть для Instagram до 2000 символов, но не менее 1400 символов.\n- Ответ должен быть на русском языке.\n            ]]>\n        </Instruction>\n    </Instructions>\n</Agentinstructions>\n"
         }
       },
-      "id": "4b2fb42a-b1ba-4885-b8f9-439ae1f40660",
+      "id": "8146b0ee-7a98-47fb-ac85-dbc2c3fec48d",
       "name": "InstagramWriter",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        540,
-        -120
+        1940,
+        400
       ]
     },
     {
@@ -649,10 +595,10 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
       "position": [
-        -1940,
-        -160
+        -540,
+        360
       ],
-      "id": "44276696-b753-4a99-a412-a20ae81f51d4",
+      "id": "fe39dd05-21bd-4243-a0bc-4378dc57f6ef",
       "name": "When Executed by Another Workflow"
     },
     {
@@ -664,11 +610,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1400,
-        -520
+        0,
+        0
       ],
       "typeVersion": 1,
-      "id": "3c71ebfc-c90d-4396-8664-92a6925295b5",
+      "id": "05b5ecde-52df-4fc9-9856-f80acc77a022",
       "name": "Sticky Note1"
     },
     {
@@ -679,11 +625,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -2100,
-        -320
+        -700,
+        200
       ],
       "typeVersion": 1,
-      "id": "546c03b8-d6ba-4b45-b5ca-8dfb86c76d37",
+      "id": "602317d8-1ece-4d4a-b827-b596c34ae53a",
       "name": "Sticky Note"
     },
     {
@@ -695,11 +641,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -360,
-        -500
+        1040,
+        20
       ],
       "typeVersion": 1,
-      "id": "e380a80c-eb7d-4a54-a9d7-a7991807898d",
+      "id": "da9705a8-d35b-4151-95aa-27de8b6bb723",
       "name": "Sticky Note2"
     },
     {
@@ -711,11 +657,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -360,
-        -180
+        1040,
+        340
       ],
       "typeVersion": 1,
-      "id": "4e0eb370-deef-41fa-9818-fc8235a7923e",
+      "id": "d1049a83-31c4-4f84-82fa-704e0a67acc5",
       "name": "Sticky Note3"
     },
     {
@@ -727,11 +673,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -220,
-        360
+        1180,
+        880
       ],
       "typeVersion": 1,
-      "id": "d0a53a9e-a71a-47fe-8821-c6299f4713ed",
+      "id": "2f5055c7-891d-425f-af13-6e4ca0b10842",
       "name": "Sticky Note4"
     }
   ],
@@ -995,11 +941,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "a7295544-9601-486d-bd38-2226987eb284",
+  "versionId": "f3f6098b-f8cf-4224-9876-ac00a0f83df0",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "2d8c4EZUMLPTVMDH",
-  "tags": []
+  "id": "ZePV5hV2B6pWAgwf",
+  "tags": [
+    {
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
+    }
+  ]
 }

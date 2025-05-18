@@ -1,5 +1,5 @@
 {
-  "name": "SHABLON_IZ_INSTAGRAM_P2_COMPETITORS",
+  "name": "SHABLON_INSTAGRAM_P2_COMPETITORS",
   "nodes": [
     {
       "parameters": {
@@ -41,7 +41,7 @@
         1320,
         80
       ],
-      "id": "da489e0f-7132-4365-b29e-c58b64b9de74",
+      "id": "30074b45-8cd8-4c41-8fc1-e876f945255a",
       "name": "Filter Low Followers"
     },
     {
@@ -174,14 +174,8 @@
         1840,
         80
       ],
-      "id": "2b3e1772-a41b-4d96-ba9c-d62cd0f78c6d",
-      "name": "Send to Airtable",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "6c7ca33b-011e-4040-9a2a-7937ccef3a71",
+      "name": "Send to Airtable"
     },
     {
       "parameters": {
@@ -199,7 +193,7 @@
         -100,
         260
       ],
-      "id": "62b2f5ae-9f9c-4e7a-b160-18240531e697",
+      "id": "900f8740-6856-4041-a381-de930ddf1bde",
       "name": "When Executed by Another Workflow"
     },
     {
@@ -212,7 +206,7 @@
         1600,
         80
       ],
-      "id": "cf5df6ff-a6e9-42c4-b920-ef615c966016",
+      "id": "532c5192-c6de-4a30-ad20-152049d88657",
       "name": "Create URLs"
     },
     {
@@ -227,7 +221,7 @@
         520
       ],
       "typeVersion": 1,
-      "id": "930906a3-7358-46e4-91a8-e3bbe6437c37",
+      "id": "4d27197d-5860-43cc-8156-32bc19e9f511",
       "name": "Sticky Note5"
     },
     {
@@ -240,7 +234,7 @@
         2320,
         80
       ],
-      "id": "f980f4a3-e78c-436f-b45f-83411fc97067",
+      "id": "2ed1d8b6-67e5-4d1e-b0a7-6fc89855c2ea",
       "name": "Success"
     },
     {
@@ -280,7 +274,7 @@
         120,
         260
       ],
-      "id": "9d9f8881-7ae7-4b09-b4b0-5b4ff873d4c1",
+      "id": "53b32a99-52c2-4022-ac17-8a5670070821",
       "name": "Get Competitors"
     },
     {
@@ -316,7 +310,7 @@
         1060,
         260
       ],
-      "id": "7812b2db-06f1-4707-84a5-76d54b9bf635",
+      "id": "f9db3f50-1126-4a40-838f-810b46169446",
       "name": "Get Data"
     },
     {
@@ -329,7 +323,7 @@
         780,
         260
       ],
-      "id": "3e1be8e7-d5e7-49e9-bd19-18b2a399a5ef",
+      "id": "457f3ed5-7fa0-4f78-8256-7a63550ff156",
       "name": "Loop Over Items"
     },
     {
@@ -342,7 +336,7 @@
         1320,
         260
       ],
-      "id": "d00e1b28-0d3c-4533-8adb-99d214679b72",
+      "id": "1b615b0a-3d67-4703-a674-c988fd74f606",
       "name": "Wait 0.25",
       "webhookId": "c0ed01df-61e5-4972-a35c-f9a00cb90579"
     },
@@ -390,7 +384,7 @@
         1060,
         80
       ],
-      "id": "cf09c8b3-d88d-4fac-88a2-5a0d79b80851",
+      "id": "13f8a4f4-ce97-443c-99b5-520bbabf3546",
       "name": "Get Specifics"
     },
     {
@@ -404,7 +398,7 @@
         340,
         260
       ],
-      "id": "41f2c4c6-5f3f-4b46-9c18-520415899fa1",
+      "id": "afbb517c-0fd4-4b64-a305-e2df9e662b90",
       "name": "Split Data"
     },
     {
@@ -427,7 +421,7 @@
         560,
         260
       ],
-      "id": "c0376ff1-07fe-4884-ba1c-5fbeac6e897c",
+      "id": "e3860dc9-43ef-47f9-8568-00551d7a52d1",
       "name": "Set Usernames"
     },
     {
@@ -442,7 +436,7 @@
         160
       ],
       "typeVersion": 1,
-      "id": "1d911a06-38fb-4a6e-9942-aab2419f6c12",
+      "id": "8289c958-ea9a-4109-ab92-7cf7b56b283f",
       "name": "Sticky Note1"
     },
     {
@@ -457,7 +451,7 @@
         0
       ],
       "typeVersion": 1,
-      "id": "877cc215-a75e-4601-92f8-1bf92d1163aa",
+      "id": "73667d04-a2ec-4f9c-b3a0-8e1c0e0cc372",
       "name": "Sticky Note4"
     },
     {
@@ -599,14 +593,8 @@
         2040,
         60
       ],
-      "id": "7c3c8b96-d3c8-44bd-92ac-2d28d231d8be",
-      "name": "Send to Airtable1",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "12957568-d6bd-4061-ab05-29310fcb51f8",
+      "name": "Send to Airtable1"
     },
     {
       "parameters": {
@@ -620,7 +608,7 @@
         500
       ],
       "typeVersion": 1,
-      "id": "ed565bd0-d8a1-4baa-a8d1-647313d3f450",
+      "id": "83b0df4f-8baf-48a5-bd47-461d92540def",
       "name": "Sticky Note2"
     }
   ],
@@ -778,11 +766,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "aced52bb-1fa4-46c4-9546-4418b84bf7a5",
+  "versionId": "c121ddf3-4fb5-4f01-880d-6b297e11304a",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "UWrfw3aQHNgsK8fW",
-  "tags": []
+  "id": "H9vWocXeeWgXAaBc",
+  "tags": [
+    {
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
+    }
+  ]
 }

@@ -1,5 +1,5 @@
 {
-  "name": "SHABLON_IZ_TIKTOK_P4_COMPETITORS",
+  "name": "SHABLON_TIKTOK_P4_COMPETITORS",
   "nodes": [
     {
       "parameters": {
@@ -39,10 +39,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -780,
-        340
+        2480,
+        2920
       ],
-      "id": "aa259b12-8401-47b7-8b6e-c0366b52e768",
+      "id": "4f51eabf-98c1-4dab-b166-16658b8f42b5",
       "name": "Get Top Posts"
     },
     {
@@ -92,10 +92,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        780,
-        340
+        4040,
+        2920
       ],
-      "id": "493ff25e-b981-4688-ab5a-9afd4a69b7c2",
+      "id": "8243a756-c1de-4472-9d82-5910f01c0300",
       "name": "Edit Fields"
     },
     {
@@ -106,10 +106,10 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        580,
-        340
+        3840,
+        2920
       ],
-      "id": "bfee7daf-3c29-4b7a-9829-401cfb2a7dc6",
+      "id": "5ed32777-509f-4d4e-ad28-957566901caf",
       "name": "Split Out"
     },
     {
@@ -119,10 +119,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1220,
-        340
+        4480,
+        2920
       ],
-      "id": "a9a17452-f107-4bc2-a6f8-438cb013cb29",
+      "id": "e121784e-e164-41da-b5fa-348708306be5",
       "name": "Get URLs"
     },
     {
@@ -264,17 +264,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        1440,
-        340
+        4700,
+        2920
       ],
-      "id": "cc08ca51-d39f-4ca9-b5d8-41be69d31248",
-      "name": "Send to Airtable",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "eee045fa-0fd6-441f-9ee4-16dc23f1d037",
+      "name": "Send to Airtable"
     },
     {
       "parameters": {
@@ -283,10 +277,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
       "position": [
-        300,
-        140
+        3560,
+        2720
       ],
-      "id": "b2b0bdf8-64fd-4478-bd42-c3e14acf023b",
+      "id": "73919a75-6f60-4dee-a784-6e530f179f83",
       "name": "Merge"
     },
     {
@@ -326,10 +320,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        980,
-        340
+        4240,
+        2920
       ],
-      "id": "163ccce8-4098-4715-9433-e21814152324",
+      "id": "e0d888cd-7f90-4e24-8254-f216cc40084e",
       "name": "If"
     },
     {
@@ -370,10 +364,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -580,
-        340
+        2680,
+        2920
       ],
-      "id": "adc18a76-e213-40b9-9173-c446888e62e4",
+      "id": "00a94a5c-48fb-477d-a2c0-2648f855986a",
       "name": "Get MORE Top Users"
     },
     {
@@ -414,10 +408,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -380,
-        340
+        2880,
+        2920
       ],
-      "id": "0ebc4a13-b0e4-447b-93bb-b0c9d57a88e7",
+      "id": "752b6a85-e1a6-40e3-bb8a-9b3d7fcebeb9",
       "name": "I SAID MORE"
     },
     {
@@ -458,10 +452,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -180,
-        340
+        3080,
+        2920
       ],
-      "id": "8d027c65-d2d9-497c-b165-5c0d66f462cb",
+      "id": "aa8e7a9a-f685-4fce-8f9e-ac27574cd0e9",
       "name": "MORE DANG IT"
     },
     {
@@ -477,10 +471,10 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
       "position": [
-        -1020,
-        340
+        2240,
+        2920
       ],
-      "id": "cea087b9-cc58-4465-ba52-ee08a54c36d6",
+      "id": "169bcbb2-a2e4-467f-81c8-a932e45c1794",
       "name": "When Executed by Another Workflow"
     },
     {
@@ -492,11 +486,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -40,
-        0
+        3220,
+        2580
       ],
       "typeVersion": 1,
-      "id": "9c837bca-d11c-4d88-9cbe-5f31a9ec4a8e",
+      "id": "529ca564-38eb-482d-a53d-16392bfe94c0",
       "name": "Sticky Note"
     },
     {
@@ -506,10 +500,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1920,
-        340
+        5180,
+        2920
       ],
-      "id": "8b4ed327-d403-42e5-b4fb-03fde96a7e9b",
+      "id": "964a1eee-7332-483f-84fc-a8042e82719e",
       "name": "Success"
     },
     {
@@ -550,10 +544,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        20,
-        340
+        3280,
+        2920
       ],
-      "id": "53b05b64-cdea-464e-966f-fa73d2b89c9c",
+      "id": "0181bc74-cacb-4b58-8533-6a6d0349eee8",
       "name": "MORE DANG IT1"
     },
     {
@@ -703,17 +697,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        1680,
-        340
+        4940,
+        2920
       ],
-      "id": "c564195f-c1ce-4450-8102-8880895b0809",
-      "name": "Send to Airtable1",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "35b06536-aa73-4d63-95b9-3ca64865649a",
+      "name": "Send to Airtable1"
     },
     {
       "parameters": {
@@ -722,11 +710,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -720,
-        740
+        2540,
+        3320
       ],
       "typeVersion": 1,
-      "id": "cdd080d6-60ff-491e-9962-6c931852f71c",
+      "id": "fe56e60e-f9f1-40de-bdd1-762ae77b18d0",
       "name": "Sticky Note3"
     },
     {
@@ -737,28 +725,12 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1440,
-        600
+        4700,
+        3180
       ],
       "typeVersion": 1,
-      "id": "0620f8e9-1727-43fe-b276-b4d57546f711",
+      "id": "a84a88cb-de96-4a17-9094-bc7bfb23a056",
       "name": "Sticky Note4"
-    },
-    {
-      "parameters": {
-        "content": "## @igorzuevich \n**Автор** на [YouTube](https://www.youtube.com/@igorzuevich)",
-        "height": 240,
-        "width": 280,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -3260,
-        -2580
-      ],
-      "typeVersion": 1,
-      "id": "209e1e1d-34a0-4aa8-8422-3f958fdc8ac3",
-      "name": "Sticky Note2"
     }
   ],
   "pinData": {
@@ -944,18 +916,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "591b446c-028b-48db-8ac6-9d43327c06ca",
+  "versionId": "41576439-522d-4213-ba37-c932046b8c7a",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "WNswVI1SAzkduMau",
+  "id": "DdQEeSpeEmk61aGW",
   "tags": [
     {
-      "createdAt": "2025-03-21T05:05:36.109Z",
-      "updatedAt": "2025-03-21T05:05:36.109Z",
-      "id": "O7fQsEJqI16T5o0y",
-      "name": "Сделано"
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
     }
   ]
 }

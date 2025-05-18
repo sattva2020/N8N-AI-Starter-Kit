@@ -1,20 +1,6 @@
 {
-  "name": "IZ_SUPER_AI_AGENT_MESSAGE",
+  "name": "SUPER_AI_AGENT_TELEGRAM",
   "nodes": [
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        -1560,
-        1240
-      ],
-      "id": "333fa735-121e-4b45-a799-991a1a28caf5",
-      "name": "When chat message received",
-      "webhookId": "bdab170e-cc47-4357-92b9-4dfbf08fe392"
-    },
     {
       "parameters": {
         "promptType": "define",
@@ -26,10 +12,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.8,
       "position": [
-        800,
-        1220
+        1240,
+        1040
       ],
-      "id": "1b197ae2-6d53-4063-a659-a554a83e2ad8",
+      "id": "f8a960c8-5143-4fc2-82cd-1f6fd4e1a366",
       "name": "AI Agent"
     },
     {
@@ -37,10 +23,10 @@
       "type": "@n8n/n8n-nodes-langchain.toolThink",
       "typeVersion": 1,
       "position": [
-        -100,
-        2320
+        340,
+        2140
       ],
-      "id": "ddf9ca45-c588-4930-8f52-5a6a90c6eda8",
+      "id": "af74054a-2f2b-4e08-95cd-a9c15f184cbb",
       "name": "Think"
     },
     {
@@ -52,10 +38,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -220,
-        300
+        220,
+        120
       ],
-      "id": "5d8f99c2-1ad6-4feb-9357-4d3767827fe5",
+      "id": "82b2dc35-893e-45d3-a47d-06986c49db2c",
       "name": "Search Web Prompt"
     },
     {
@@ -73,17 +59,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        -1120,
-        1620
+        -600,
+        1320
       ],
-      "id": "3fbd9e5c-6336-498c-849c-d3629945c4dc",
-      "name": "4.1-nano",
-      "credentials": {
-        "openAiApi": {
-          "id": "XLvdxNcexKfUmGhl",
-          "name": "OpenAi account 3"
-        }
-      }
+      "id": "7c58d016-d83d-4b82-be25-7f211f630e1b",
+      "name": "4.1-nano"
     },
     {
       "parameters": {
@@ -104,17 +84,11 @@
       "type": "n8n-nodes-base.googleCalendarTool",
       "typeVersion": 1.3,
       "position": [
-        1200,
-        2320
+        1640,
+        2140
       ],
-      "id": "1da578e7-d77e-4ece-9a12-769dc031a591",
-      "name": "Create Event",
-      "credentials": {
-        "googleCalendarOAuth2Api": {
-          "id": "FmfdXK755Qes1QHO",
-          "name": "Google Calendar account"
-        }
-      }
+      "id": "62918d3c-a083-45e9-b378-6a1d8e8e8861",
+      "name": "Create Event"
     },
     {
       "parameters": {
@@ -137,17 +111,11 @@
       "type": "n8n-nodes-base.googleCalendarTool",
       "typeVersion": 1.3,
       "position": [
-        1340,
-        2320
+        1780,
+        2140
       ],
-      "id": "1c77b3cb-a491-474e-bc21-8d1063cbb29a",
-      "name": "Get Event",
-      "credentials": {
-        "googleCalendarOAuth2Api": {
-          "id": "FmfdXK755Qes1QHO",
-          "name": "Google Calendar account"
-        }
-      }
+      "id": "02576f8b-dca1-4b21-8c1c-666ed559d4d2",
+      "name": "Get Event"
     },
     {
       "parameters": {
@@ -166,17 +134,11 @@
       "type": "n8n-nodes-base.googleCalendarTool",
       "typeVersion": 1.3,
       "position": [
-        1480,
-        2320
+        1920,
+        2140
       ],
-      "id": "9a1d5248-5def-4f8d-b0fc-29c22a76bca8",
-      "name": "Update Event",
-      "credentials": {
-        "googleCalendarOAuth2Api": {
-          "id": "FmfdXK755Qes1QHO",
-          "name": "Google Calendar account"
-        }
-      }
+      "id": "4323bb2f-2eae-4b6c-b8c8-76c5fa16cee0",
+      "name": "Update Event"
     },
     {
       "parameters": {
@@ -193,17 +155,11 @@
       "type": "n8n-nodes-base.googleCalendarTool",
       "typeVersion": 1.3,
       "position": [
-        1620,
-        2320
+        2060,
+        2140
       ],
-      "id": "4f55b0e8-dd25-433e-a43a-443d373f519a",
-      "name": "Delete Event",
-      "credentials": {
-        "googleCalendarOAuth2Api": {
-          "id": "FmfdXK755Qes1QHO",
-          "name": "Google Calendar account"
-        }
-      }
+      "id": "08227851-468a-4c09-9d86-65eec15718df",
+      "name": "Delete Event"
     },
     {
       "parameters": {
@@ -217,10 +173,10 @@
       "type": "n8n-nodes-base.hackerNewsTool",
       "typeVersion": 1,
       "position": [
-        1800,
-        2320
+        2240,
+        2140
       ],
-      "id": "3a641ace-d0da-4152-8585-11c424e96d42",
+      "id": "fbb2896b-391a-448b-a530-36fbfe942c1d",
       "name": "Hacker News"
     },
     {
@@ -239,17 +195,11 @@
       "type": "n8n-nodes-base.redditTool",
       "typeVersion": 1,
       "position": [
-        1940,
-        2320
+        2380,
+        2140
       ],
-      "id": "86ce783d-e6a9-4744-9068-864a7b6d2d4c",
-      "name": "Reddit",
-      "credentials": {
-        "redditOAuth2Api": {
-          "id": "VunGR4GJJpCi9nbb",
-          "name": "Reddit account"
-        }
-      }
+      "id": "8969ece2-0d87-4de4-8073-34e77dfbd4c9",
+      "name": "Reddit"
     },
     {
       "parameters": {
@@ -260,10 +210,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -180,
-        580
+        260,
+        400
       ],
-      "id": "4d91c08b-1051-41f0-8a6c-8d69c5e4220c",
+      "id": "f2c70a85-e740-435d-9b39-da0b4065d320",
       "name": "Calendar Prompt"
     },
     {
@@ -275,10 +225,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -380,
-        700
+        60,
+        520
       ],
-      "id": "30083df9-c760-4c60-895a-57d9b8ed5398",
+      "id": "56d6baf9-3267-4e85-aacc-99a49c5d5534",
       "name": "HackerNews Prompt"
     },
     {
@@ -290,10 +240,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        0,
-        700
+        440,
+        520
       ],
-      "id": "dd49ac4e-08cb-4693-a620-d252f69b0f36",
+      "id": "f145d21a-cbc1-496e-a9f9-96e7673f14a9",
       "name": "Reddit Prompt"
     },
     {
@@ -309,27 +259,21 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        -380,
-        2320
+        60,
+        2140
       ],
-      "id": "f3cf31ef-390e-4498-a3d9-cc33b90917ca",
-      "name": "4.1-mini",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "c1512b26-d0d5-4896-a775-c050e1493c08",
+      "name": "4.1-mini"
     },
     {
       "parameters": {},
       "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
       "typeVersion": 1,
       "position": [
-        2220,
-        2320
+        2660,
+        2140
       ],
-      "id": "69ec8bd4-505c-4774-b930-aa41990215db",
+      "id": "e4cde691-5daf-4833-a0fb-dd12fc5be7b6",
       "name": "Wikipedia"
     },
     {
@@ -361,10 +305,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        560,
-        1220
+        1000,
+        1040
       ],
-      "id": "a3ff53d5-4d3c-42ae-bd81-a99a6bc68411",
+      "id": "4cb23f12-7209-4aaa-b85b-df5f49c47d3a",
       "name": "Chat"
     },
     {
@@ -374,7 +318,7 @@
             {
               "id": "7c89689e-f583-4abe-8911-83c6673543f6",
               "name": "text",
-              "value": "={{ $json.chatInput || $json.message.text }}",
+              "value": "={{ $('Telegram Trigger1').item.json.message.text }}{{ $json.text }}",
               "type": "string"
             }
           ]
@@ -384,10 +328,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1260,
-        1240
+        -820,
+        1080
       ],
-      "id": "599f698f-c557-420e-86cc-611d71c191e2",
+      "id": "9a70e503-899d-47ac-a7c2-ea5562d47478",
       "name": "Set Chat"
     },
     {
@@ -414,17 +358,11 @@
       "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
       "typeVersion": 1.1,
       "position": [
-        2080,
-        2320
+        2520,
+        2140
       ],
-      "id": "e90c6ee9-c1a1-492a-a5c0-84c3548dde75",
-      "name": "Search web",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "Fuba46nFrCCHTyc9",
-          "name": "Header Auth account"
-        }
-      }
+      "id": "17df9ae9-a732-4f03-b01a-c1eea8532197",
+      "name": "Search web"
     },
     {
       "parameters": {
@@ -445,17 +383,11 @@
       "type": "n8n-nodes-base.youTubeTool",
       "typeVersion": 1,
       "position": [
-        2360,
-        2320
+        2800,
+        2140
       ],
-      "id": "38c6dc5c-edc9-4ff4-a917-8dccc70def02",
-      "name": "YouTube",
-      "credentials": {
-        "youTubeOAuth2Api": {
-          "id": "kaehDW4Ii5Pf7uw4",
-          "name": "YouTube account"
-        }
-      }
+      "id": "40494900-c3b9-480a-b997-4c027edcb06e",
+      "name": "YouTube"
     },
     {
       "parameters": {
@@ -466,10 +398,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        20,
-        1200
+        460,
+        1020
       ],
-      "id": "a9993079-ee1a-424f-a013-70d9c75505e0",
+      "id": "bbdd26b2-779a-44f7-bde1-114f5bcdfa61",
       "name": "YouTube Prompt"
     },
     {
@@ -481,10 +413,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        0,
-        940
+        440,
+        760
       ],
-      "id": "2f6124bc-5b2c-417e-bd7e-8946d6fd3d6b",
+      "id": "78aae006-fbbc-4ec5-9941-35df556e6614",
       "name": "Wikipedia Prompt"
     },
     {
@@ -496,25 +428,25 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -180,
-        840
+        260,
+        660
       ],
-      "id": "d3fd5108-3940-4843-b8ec-defcbd33894a",
+      "id": "2c74e146-60f1-4618-aa75-26e60fb088b8",
       "name": "Expenses Prompt"
     },
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "{\n  \"prompt\": \"You are the Help Assistant for this system. Your ONLY job is to explain how users can make requests to use the system's different capabilities by providing clear examples of user prompts. You MUST NOT attempt to call any tools or perform any actions yourself. Only provide example usage instructions.\\n\\nWhen the user asks for help or how to do something (e.g., 'How do I use tasks?', 'Help with email', 'What can you do?'), explain the relevant function and give 1-2 simple examples of what the user should say.\\n\\nHere are the functions and example templates you should follow:\\n\\n*   **Task Management:** Explain that users can create, get, update, and delete tasks.\\n    *   Examples: \\\"Create a task 'Buy milk' status todo\\\", \\\"Show me my tasks\\\", \\\"Update task 'Buy milk' to complete\\\", \\\"Delete the task 'Buy milk'\\\"\\n*   **Email:** Explain getting, sending, replying to emails, and finding contact addresses.\\n    *   Examples: \\\"Check my email\\\", \\\"Send an email to jane.doe@example.com about the project update\\\", \\\"Reply to the last email from John Smith saying 'Thanks!'\\\", \\\"Find the email address for Sarah Lee\\\" (Explain the system will use contacts if needed before sending/replying).\\n*   **Calendar Events:** Explain creating, getting, updating, deleting events.\\n    *   Examples: \\\"Create event 'Doctor Appointment' for tomorrow at 3 PM\\\", \\\"What's on my calendar today?\\\", \\\"Change the 'Doctor Appointment' time to 4 PM\\\", \\\"Delete the 'Doctor Appointment' event\\\"\\n*   **Hacker News:** Explain getting articles.\\n    *   Examples: \\\"Get the top articles from Hacker News\\\", \\\"Show me the latest Hacker News posts\\\"\\n*   **Reddit:** Explain retrieving posts.\\n    *   Examples: \\\"Get posts from the r/technology subreddit about AI\\\", \\\"Find top posts on r/python today\\\"\\n*   **Web Search:** Explain searching the web and that results include title, snippet, date, URL.\\n    *   Examples: \\\"Search the web for 'best Python libraries for data science'\\\", \\\"Find recent news about electric cars\\\"\\n*   **YouTube:** Explain searching for videos.\\n    *   Examples: \\\"Search YouTube for 'learn Javascript tutorial'\\\", \\\"Find music videos by Queen on YouTube\\\"\\n*   **Wikipedia:** Explain searching for articles/information.\\n    *   Examples: \\\"Look up 'Photosynthesis' on Wikipedia\\\", \\\"Get the Wikipedia page for 'Paris'\\\"\\n*   **Bills:** Explain creating (name, price, date - status defaults 'due'), getting, updating, deleting bills.\\n    *   Examples: \\\"Create a bill: Name 'Electricity', Price $75, Date 'next Monday'\\\", \\\"Add bill 'Rent', $1200, paid, date 'today'\\\", \\\"Show me my due bills\\\", \\\"Update the 'Electricity' bill status to paid\\\", \\\"Delete the 'Rent' bill\\\"\\n*   **Expenses:** Explain creating (name, cost, date), getting, updating, deleting expenses.\\n    *   Examples: \\\"Add expense: Name 'Coffee', Cost $4.50, Date 'today'\\\", \\\"Log an expense 'Team Lunch' for $80 on Friday\\\", \\\"Show my expenses for this week\\\", \\\"Update 'Coffee' expense cost to $5\\\", \\\"Delete the 'Team Lunch' expense\\\"\\n*   **Contacts:** Explain getting and creating contacts (First name, Last name, email, mobile) and that the system asks if info is missing on creation.\\n    *   Examples: \\\"Get contact info for Mark Johnson\\\", \\\"Show all contacts\\\", \\\"Create contact: First Bob, Last Martin, email bob.m@email.com, mobile 123-456-7890\\\", \\\"Add contact Peter Pan, email peter@neverland.net\\\" (Explain the system might ask for missing first/last name or mobile).\\n\\nRespond only with these explanations and examples when asked for help.\",\n  \"memory\": \"helper\"\n}",
+        "jsonOutput": "={\n  \"prompt\": \"You are the Help Assistant for this n8n super-agent system. Your only job is to explain how users can invoke the system’s capabilities by giving clear example user prompts. Do NOT call any tools or perform any actions—just show example requests.\\n\\nWhen the user asks for help (e.g. “How do I generate a Reel?”, “Help with TikTok”, “What can this system do?”), explain the relevant function and give 1–2 simple example commands.\\n\\nHere are the capabilities and example templates you should follow:\\n\\n* **HeyGen Agent:** generate avatars and auto-publish videos.\\n  * Examples:\\n    • \\\"Generate a HeyGen avatar from this script: ‘Hello, I’m Igor’ and publish it to my YouTube channel.\\\"\\n    • \\\"Create a HeyGen video using template 123 and schedule it for 10 AM tomorrow.\\\"\\n\\n* **Instagram REEL Agent:** analyze competitor content, find trending Reels, and create scripts.\\n  * Examples:\\n    • \\\"Analyze top Reels in the fitness niche and draft a script for a 30-second workout Reel.\\\"\\n    • \\\"Find trending Instagram Reels about AI marketing and create a storyboard.\\\"\\n\\n* **TikTok Agent:** discover similar TikTok profiles, analyze their best videos, and write a script for new content.\\n  * Examples:\\n    • \\\"Find TikTok profiles like @techguru, analyze their top videos, and draft a script for a similar tech hack video.\\\"\\n    • \\\"Identify top cooking creators and write a 15-second recipe TikTok script.\\\"\\n\\n* **AirTable Instagram:** search and retrieve Instagram profile records from Airtable.\\n  * Examples:\\n    • \\\"Get all profiles with over 100 K followers.\\\"\\n    • \\\"Find the record for @nature_travels and show its description.\\\"\\n\\n* **Copywriter News Agent:** define a target audience, source relevant news, and craft text posts for Telegram, Threads, or Instagram.\\n  * Examples:\\n    • \\\"For freelancers, find the latest AI news and write a Telegram post summarizing key points.\\\"\\n    • \\\"Identify news about e-commerce and draft an Instagram caption.\\\"\\n\\n* **Backup Agent:** export and back up all n8n workflows and templates on the server.\\n  * Examples:\\n    • \\\"Back up all current workflow templates with timestamped filenames.\\\"\\n    • \\\"Create a backup of my custom templates.\\\"\\n\\n* **Baza Agent:** read from and write to the database.\\n  * Examples:\\n    • \\\"Fetch user settings where status = active.\\\"\\n    • \\\"Insert a new record: name='Test', value=42.\\\"\\n\\n* **Calendar Events:** create, retrieve, update, and delete events.\\n  * Examples:\\n    • \\\"Create event 'Doctor Appointment' for tomorrow at 3 PM.\\\"\\n    • \\\"What's on my calendar today?\\\"\\n\\n* **Hacker News:** fetch top Hacker News articles.\\n  * Examples:\\n    • \\\"Get the top articles from Hacker News.\\\"\\n    • \\\"Show me the latest Hacker News posts about startups.\\\"\\n\\n* **Reddit:** retrieve posts from subreddits.\\n  * Examples:\\n    • \\\"Get posts from r/technology about AI.\\\"\\n    • \\\"Find top posts on r/python today.\\\"\\n\\n* **Web Search:** search the web (returns title, snippet, date, URL).\\n  * Examples:\\n    • \\\"Search the web for 'best Python libraries for data science'.\\\"\\n    • \\\"Find recent news about electric cars.\\\"\\n\\n* **YouTube:** search for videos.\\n  * Examples:\\n    • \\\"Search YouTube for 'learn JavaScript tutorial'.\\\"\\n    • \\\"Find music videos by Queen on YouTube.\\\"\\n\\n* **Wikipedia:** look up articles or summaries.\\n  * Examples:\\n    • \\\"Look up 'Photosynthesis' on Wikipedia.\\\"\\n    • \\\"Get the Wikipedia page for 'Paris'.\\\"\\n\\n* **Bills:** create, list, update, and delete bills.\\n  * Examples:\\n    • \\\"Create a bill: Name 'Electricity', Price $75, Date 'next Monday'.\\\"\\n    • \\\"Show me my due bills.\\\"\\n\\n* **Expenses:** log, list, update, and delete expenses.\\n  * Examples:\\n    • \\\"Add expense: Name 'Coffee', Cost $4.50, Date 'today'.\\\"\\n    • \\\"Show my expenses for this week.\\\"\\n\\n* **Contacts:** retrieve and create contacts (first name, last name, email, mobile).\\n  * Examples:\\n    • \\\"Get contact info for Mark Johnson.\\\"\\n    • \\\"Create contact: First Bob, Last Martin, email bob.m@email.com.\\\"\\n\\nRespond only with the relevant explanation and example prompts when asked for help.\",\n  \"memory\": \"helper\"\n}\n",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -360,
-        1200
+        120,
+        1020
       ],
-      "id": "a14af08e-fac8-47c2-a608-1e17b88ca468",
+      "id": "5fffdb03-194f-4eb9-861a-89bcd1dc9a41",
       "name": "Help Prompt"
     },
     {
@@ -525,17 +457,11 @@
       "type": "@n8n/n8n-nodes-langchain.memoryZep",
       "typeVersion": 1.3,
       "position": [
-        -240,
-        2320
+        200,
+        2140
       ],
-      "id": "df61e0d8-632b-496c-893b-f37976801c88",
-      "name": "Zep Specifics",
-      "credentials": {
-        "zepApi": {
-          "id": "m1sCkymodecr5uW0",
-          "name": "Zep Api account"
-        }
-      }
+      "id": "8ee87073-1cf5-44f2-a282-c6e1301599bb",
+      "name": "Zep Specifics"
     },
     {
       "parameters": {
@@ -545,17 +471,59 @@
       "type": "@n8n/n8n-nodes-langchain.memoryZep",
       "typeVersion": 1.3,
       "position": [
-        -240,
-        2520
+        200,
+        2340
       ],
-      "id": "8ef6940c-f19b-4a79-b0f9-44eb6421c13d",
-      "name": "Zep All",
-      "credentials": {
-        "zepApi": {
-          "id": "m1sCkymodecr5uW0",
-          "name": "Zep Api account"
-        }
-      }
+      "id": "c9021fad-b7f2-4cda-b413-198ac643643d",
+      "name": "Zep All"
+    },
+    {
+      "parameters": {
+        "content": "## Динамическая промпт + память",
+        "height": 80,
+        "width": 440,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1160,
+        920
+      ],
+      "typeVersion": 1,
+      "id": "207a6047-1648-48b2-9b10-f1d70a9e2424",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## При желании вы можете изменить промпты.",
+        "height": 80,
+        "width": 580,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "d547a402-0ee5-4252-9fea-03023a1a86af",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Если вы изменяете или добавляете новые подсказки, убедитесь, что маршрутизатор также знает об этом.",
+        "height": 120,
+        "width": 540,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -780,
+        900
+      ],
+      "typeVersion": 1,
+      "id": "8b74e0ab-49a3-46bc-b322-08b94606b239",
+      "name": "Sticky Note3"
     },
     {
       "parameters": {
@@ -579,10 +547,10 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.1,
       "position": [
-        80,
-        2320
+        520,
+        2140
       ],
-      "id": "cb0acef5-24ad-4629-9263-436c32cbd40e",
+      "id": "b5b57d20-2ecd-47cb-913a-7ba545b6c591",
       "name": "HeyGen AUTO"
     },
     {
@@ -594,10 +562,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -380,
-        460
+        60,
+        280
       ],
-      "id": "53639858-2302-4b35-b1be-87d12cbb5457",
+      "id": "aacbe2b9-f566-4100-b6a4-d27cf6898d14",
       "name": "Heygen Prompt"
     },
     {
@@ -622,10 +590,10 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.1,
       "position": [
-        200,
-        2320
+        660,
+        2260
       ],
-      "id": "4bbfd213-0e22-4ae7-bfe0-1efdc015e4d7",
+      "id": "1d45680d-32e0-41e1-89d4-1e86d241a81a",
       "name": "Instagram REELS AGENT"
     },
     {
@@ -637,10 +605,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        0,
-        460
+        440,
+        280
       ],
-      "id": "14d66e94-156f-4cb7-b826-c3bbe1376999",
+      "id": "478c3054-5988-477f-acec-f396ff2da24b",
       "name": "Instagram REEL Prompt"
     },
     {
@@ -649,9 +617,9 @@
         "description": "Call this tool (`Dinamic_model_llm`) to answer general, open-ended questions with dynamic LLM model selection.",
         "workflowId": {
           "__rl": true,
-          "value": "9JzjB8ItD82Beq0L",
+          "value": "XeMsVatpIgIwHEbp",
           "mode": "list",
-          "cachedResultName": "Динамическая модель ChatModel"
+          "cachedResultName": "Динамическая модель с Telegram"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
@@ -665,10 +633,10 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.1,
       "position": [
-        320,
-        2320
+        760,
+        2140
       ],
-      "id": "9c85cecf-7076-4482-9d9b-8b45992b6d2f",
+      "id": "388ee143-d493-4ccb-a770-87fdf27c8b99",
       "name": "Dinamic model AGENT"
     },
     {
@@ -680,10 +648,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -380,
-        960
+        60,
+        780
       ],
-      "id": "28030c7a-4443-4e34-b2a9-ceef9637b94f",
+      "id": "e6429e4b-611c-4aa8-896b-08deb8c455f5",
       "name": "Dinamic Model Prompt"
     },
     {
@@ -727,10 +695,10 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.1,
       "position": [
-        440,
-        2320
+        900,
+        2260
       ],
-      "id": "6ba4af49-c77a-462c-b2f5-4343f81ee090",
+      "id": "6e3a1634-108b-43b2-aa07-4fdcc4bfffdb",
       "name": "Copywriter News AGENT"
     },
     {
@@ -742,10 +710,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -360,
-        1480
+        80,
+        1300
       ],
-      "id": "f20fa547-3be8-4766-bfdf-c6ea25ea72a8",
+      "id": "9e374399-c194-46be-80d4-1600d9a63c32",
       "name": "COPY NEWS Prompt"
     },
     {
@@ -770,10 +738,10 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.1,
       "position": [
-        560,
-        2320
+        1000,
+        2140
       ],
-      "id": "887b6181-e232-4450-9bac-d5ddffb963fa",
+      "id": "b5c91a3c-8971-4835-ae49-2a23c25633ed",
       "name": "Backup AGENT"
     },
     {
@@ -798,10 +766,10 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.1,
       "position": [
-        680,
-        2320
+        1120,
+        2260
       ],
-      "id": "5a903862-320e-4564-9e80-1455c70bb937",
+      "id": "eed43f42-5595-42ff-b721-261d6c59bd1e",
       "name": "BAZA AGENT"
     },
     {
@@ -813,10 +781,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -180,
-        1080
+        260,
+        900
       ],
-      "id": "d5f96455-5025-470c-a9e1-809990d02191",
+      "id": "9a85a903-1472-4490-8e67-2653c02ae6fb",
       "name": "BackUp Prompt"
     },
     {
@@ -862,10 +830,10 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.1,
       "position": [
-        800,
-        2320
+        1240,
+        2140
       ],
-      "id": "bd0093fb-9897-4d00-b917-94a6c93e0ece",
+      "id": "f51c573e-f5bd-477b-b690-ae1d8a25d353",
       "name": "TikTok AGENT"
     },
     {
@@ -877,10 +845,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        40,
-        1480
+        480,
+        1300
       ],
-      "id": "214fd112-7ed4-44fe-ab6f-f6b1dd4c273e",
+      "id": "9cd29860-d838-46db-b139-0bcdfeeb6f9c",
       "name": "TikTok Prompt"
     },
     {
@@ -905,17 +873,11 @@
       "type": "n8n-nodes-base.airtableTool",
       "typeVersion": 2.1,
       "position": [
-        1080,
-        2320
+        1520,
+        2140
       ],
-      "id": "99bd6dd9-2131-4d3d-bbfa-5de7fc98441f",
-      "name": "Airtable",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "f6df6261-d9fd-48bf-9b34-3fe9d9993f14",
+      "name": "Airtable"
     },
     {
       "parameters": {
@@ -926,10 +888,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -180,
-        1340
+        260,
+        1160
       ],
-      "id": "e9c3f046-5cee-4b94-b7f9-5f79544c1470",
+      "id": "9d4e0e61-62fb-4a54-a5fa-7108841f0d07",
       "name": "AirTable Instagram Prompt"
     },
     {
@@ -963,7 +925,7 @@
             },
             {
               "category": "Dinamic Model",
-              "description": "Is this an open-ended or general question that doesn’t fit other specific routes and requires dynamic model selection by Dinamic_model_llm?"
+              "description": "Only if you are asked to answer using a dynamic model."
             },
             {
               "category": "Wikipedia",
@@ -1004,16 +966,16 @@
           ]
         },
         "options": {
-          "systemPromptTemplate": "Please classify the text provided by the user into one of the following categories: {categories}, and use the provided formatting instructions below. Don't explain, and only output the json."
+          "systemPromptTemplate": "=Please classify the text provided by the user into one of the following categories: {categories}, and use the provided formatting instructions below. Don't explain, and only output the json."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.textClassifier",
       "typeVersion": 1,
       "position": [
-        -1000,
-        1260
+        -560,
+        1080
       ],
-      "id": "35c5ef19-9742-4bb9-b74c-b0de815da762",
+      "id": "07e01bc7-22ad-45ee-894a-aaaca701a221",
       "name": "Text Classifier (routing Agent)"
     },
     {
@@ -1025,59 +987,207 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -180,
-        1660
+        260,
+        1480
       ],
-      "id": "7265d67d-e43f-4920-946d-65507feba8b1",
+      "id": "201723c6-706e-4e5b-b3b1-dd5c8123a9bc",
       "name": "BAZA Prompt"
     },
     {
       "parameters": {
-        "content": "## Если вы изменяете или добавляете новые подсказки, убедитесь, что маршрутизатор также знает об этом.",
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -2320,
+        1120
+      ],
+      "id": "23cd7b6e-3620-436d-bda9-d1b3e0410aff",
+      "name": "Telegram Trigger1",
+      "webhookId": "79408097-d284-4034-a6d7-65bb07b242ba"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Telegram Trigger1').item.json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "dd8451ae-fc03-49d0-a19e-2678a5f4ff64"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bc42e6d3-ad50-4188-a168-9c5696e74252",
+                    "leftValue": "={{ $('Telegram Trigger1').item.json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1620,
+        1100
+      ],
+      "id": "f69fa02b-276c-4808-8b2a-ba44cda74356",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Telegram Trigger1').item.json.message.voice.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1340,
+        1280
+      ],
+      "id": "dfef2964-566e-4ced-a656-e2d375439a89",
+      "name": "Telegram3",
+      "webhookId": "0142b70e-e116-4fe0-bce6-bfc0fb8db9db"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1120,
+        1280
+      ],
+      "id": "3504abce-ff05-44b3-95e1-9ee7dddf0bfb",
+      "name": "OpenAI1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a9e919bb-8d22-4855-a7b6-a9e5a9f39778",
+              "leftValue": "={{ $json.message.chat.username }}",
+              "rightValue": "=igorzuevich\n",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2120,
+        1120
+      ],
+      "id": "75682ada-1c51-4657-a835-515bbb714d81",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $('Telegram Trigger1').item.json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1840,
+        1100
+      ],
+      "id": "6ff6a2dd-6b31-4bea-8294-ce88f90872a0",
+      "name": "Telegram2",
+      "webhookId": "4f938fd7-6e62-45f5-9f45-118ed704bc35"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger1').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1660,
+        1040
+      ],
+      "id": "0011a0ba-28c4-4fd7-a138-704db8a50228",
+      "name": "Telegram1",
+      "webhookId": "927ce694-1b0f-40c8-8622-4d925e707ca4"
+    },
+    {
+      "parameters": {
+        "content": "## Видео по настройке Telegram: https://youtu.be/c8bePGmxFNw",
         "height": 120,
         "width": 540,
         "color": 5
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1220,
-        1060
+        -2140,
+        1460
       ],
       "typeVersion": 1,
-      "id": "44065b85-7258-4835-b1ce-3e5b80c9875d",
+      "id": "071c01d1-4798-4d69-9fc2-bfa0243d76c9",
       "name": "Sticky Note"
-    },
-    {
-      "parameters": {
-        "content": "## Динамическая промпт + память",
-        "height": 80,
-        "width": 440,
-        "color": 5
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        700,
-        1080
-      ],
-      "typeVersion": 1,
-      "id": "a4870624-0183-40ef-8894-297080e8ad56",
-      "name": "Sticky Note1"
-    },
-    {
-      "parameters": {
-        "content": "## При желании вы можете изменить промпты.",
-        "height": 80,
-        "width": 580,
-        "color": 5
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -460,
-        160
-      ],
-      "typeVersion": 1,
-      "id": "13019c92-cde8-4b9b-8819-af02bc694de7",
-      "name": "Sticky Note2"
     },
     {
       "parameters": {
@@ -1088,12 +1198,12 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -420,
-        2660
+        -20,
+        2520
       ],
       "typeVersion": 1,
-      "id": "75675f6f-74f1-412f-b1c3-dea18d914ef5",
-      "name": "Sticky Note5"
+      "id": "b486144a-cc65-486e-b1bd-db78d2c296e4",
+      "name": "Sticky Note4"
     },
     {
       "parameters": {
@@ -1104,27 +1214,16 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -80,
-        2900
+        280,
+        2700
       ],
       "typeVersion": 1,
-      "id": "71e5a4bc-254b-4d1d-8bdc-8e659a8be68c",
-      "name": "Sticky Note6"
+      "id": "0d094af9-8ea0-47ae-ac3f-e6cfbd1cb661",
+      "name": "Sticky Note5"
     }
   ],
   "pinData": {},
   "connections": {
-    "When chat message received": {
-      "main": [
-        [
-          {
-            "node": "Set Chat",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Think": {
       "ai_tool": [
         [
@@ -1669,17 +1768,107 @@
           }
         ]
       ]
+    },
+    "Telegram Trigger1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Set Chat",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram3": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "Set Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Telegram2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram2": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "61276441-8e39-4a30-943d-d0f50d955ded",
+  "versionId": "413bc663-dd09-4afe-b090-9a0ec135a3ec",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "32BQDECRv1bxw5Kj",
-  "tags": []
+  "id": "chUG6adaTiRGX5DU",
+  "tags": [
+    {
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
+    }
+  ]
 }

@@ -1,5 +1,5 @@
 {
-  "name": "Shablon_AI AGENT_TELEGRAM_NEWS_WRITER",
+  "name": "Shablon_AI_AGENT_TELEGRAM_NEWS_WRITER",
   "nodes": [
     {
       "parameters": {
@@ -8,13 +8,13 @@
         "fieldsToInclude": "title, raw_content",
         "options": {}
       },
-      "id": "f1284d45-a957-4d10-87f7-bf64f9dbff07",
+      "id": "0f20b5c4-f229-4a84-be70-fb7fb15d1bc7",
       "name": "Aggregate",
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        760,
-        -420
+        2160,
+        100
       ]
     },
     {
@@ -22,13 +22,13 @@
         "fieldToSplitOut": "results",
         "options": {}
       },
-      "id": "7af8ab44-53c7-4c1a-b730-52b315cf0c0f",
+      "id": "a14ec5b8-1266-480d-b9fb-a423de3ef19d",
       "name": "Split Out",
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        560,
-        -420
+        1960,
+        100
       ]
     },
     {
@@ -40,52 +40,40 @@
         "jsonBody": "={\n    \"api_key\": \"[ВАШ API КЛЮЧ ТУТ]\",\n    \"query\": \"{{ $json.query.replace(/\"/g, '\\\\\"') }}\",\n    \"search_depth\": \"basic\",\n    \"include_answer\": true,\n    \"topic\": \"news\",\n    \"include_raw_content\": true,\n    \"max_results\": 3\n} ",
         "options": {}
       },
-      "id": "68c15b46-defb-4543-9627-1c90f48a12de",
+      "id": "c0247613-de41-4e0d-90df-3b4c72835074",
       "name": "Search Internet",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        360,
-        -420
+        1760,
+        100
       ]
     },
     {
       "parameters": {
         "options": {}
       },
-      "id": "64ac1e2e-c745-4984-a813-d726f71585a9",
+      "id": "9ca247c8-4fcf-4eca-a0b6-3781dfaa691f",
       "name": "OpenAI Chat Model1",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1,
       "position": [
-        220,
-        80
-      ],
-      "credentials": {
-        "openAiApi": {
-          "id": "XLvdxNcexKfUmGhl",
-          "name": "OpenAi account 3"
-        }
-      }
+        1620,
+        600
+      ]
     },
     {
       "parameters": {
         "options": {}
       },
-      "id": "e6082e5b-5800-4a69-b327-bfa3d6dd8b78",
+      "id": "de034146-e846-4212-bd8c-eb1c2d5c2b0b",
       "name": "OpenAI Chat Model2",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1,
       "position": [
-        560,
-        80
-      ],
-      "credentials": {
-        "openAiApi": {
-          "id": "XLvdxNcexKfUmGhl",
-          "name": "OpenAi account 3"
-        }
-      }
+        1960,
+        600
+      ]
     },
     {
       "parameters": {
@@ -194,39 +182,27 @@
         },
         "options": {}
       },
-      "id": "490d4f22-3ed0-4979-941b-9192b1f941fb",
+      "id": "d40adf63-063f-4f0b-b8f9-b36574758982",
       "name": "Update Campaign",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        60,
-        480
-      ],
-      "credentials": {
-        "googleApi": {
-          "id": "zWdAGQsYe4ElFP3I",
-          "name": "Google Drive account"
-        }
-      }
+        1460,
+        1000
+      ]
     },
     {
       "parameters": {
         "options": {}
       },
-      "id": "fd037fc5-b8fd-4c6f-a64c-ed64d6244c83",
+      "id": "9f1618ec-63a2-46e9-aeaa-037b7fb80a0a",
       "name": "OpenAI Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1,
       "position": [
-        -280,
-        80
-      ],
-      "credentials": {
-        "openAiApi": {
-          "id": "XLvdxNcexKfUmGhl",
-          "name": "OpenAi account 3"
-        }
-      }
+        1120,
+        600
+      ]
     },
     {
       "parameters": {
@@ -248,13 +224,13 @@
         },
         "options": {}
       },
-      "id": "706c296f-19b4-4c5f-a629-49a1c598dad8",
+      "id": "5d4d8d9c-11f3-467b-9e69-6cd8922022e6",
       "name": "Set Search Fields",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        180,
-        -420
+        1580,
+        100
       ]
     },
     {
@@ -279,17 +255,11 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        -160,
-        -420
+        1240,
+        100
       ],
-      "id": "87c3bcdf-e853-4d3b-9b50-621c45179db6",
-      "name": "Google Sheets",
-      "credentials": {
-        "googleApi": {
-          "id": "zWdAGQsYe4ElFP3I",
-          "name": "Google Drive account"
-        }
-      }
+      "id": "d5d707f9-c454-4d26-90ac-b8825c155eea",
+      "name": "Google Sheets"
     },
     {
       "parameters": {
@@ -298,10 +268,10 @@
       "type": "n8n-nodes-base.limit",
       "typeVersion": 1,
       "position": [
-        0,
-        -420
+        1400,
+        100
       ],
-      "id": "45a55895-9246-4961-bb27-8773efad5610",
+      "id": "9c584792-80e4-467b-a068-16c04e16f71e",
       "name": "Limit"
     },
     {
@@ -398,17 +368,11 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        -320,
-        -420
+        1080,
+        100
       ],
-      "id": "724ba1cc-502c-445c-8973-dcb85c2e55fa",
-      "name": "Google Sheets1",
-      "credentials": {
-        "googleApi": {
-          "id": "zWdAGQsYe4ElFP3I",
-          "name": "Google Drive account"
-        }
-      }
+      "id": "63c63dc5-6df0-4037-ba0a-335641ce88b0",
+      "name": "Google Sheets1"
     },
     {
       "parameters": {
@@ -422,17 +386,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        -1240,
-        -140
+        160,
+        380
       ],
-      "id": "e0cd6c8c-5503-4b27-aa26-dc5740158ae8",
-      "name": "OpenAI Chat Model3",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "dd571f0c-c4c7-4339-adfa-02c53a720807",
+      "name": "OpenAI Chat Model3"
     },
     {
       "parameters": {
@@ -446,17 +404,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        -1240,
-        240
+        160,
+        760
       ],
-      "id": "bfadb0d4-6e30-4b30-b23f-1981a6c20cf2",
-      "name": "OpenAI Chat Model4",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "433de069-5bf4-4e81-b2b5-a42ccbe4de8e",
+      "name": "OpenAI Chat Model4"
     },
     {
       "parameters": {
@@ -470,17 +422,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        -1240,
-        620
+        160,
+        1140
       ],
-      "id": "5eaab1c5-eeee-4a32-bdc9-33c60934ce36",
-      "name": "OpenAI Chat Model5",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "5802f038-bfaa-4d88-aa49-d78ebee7e85d",
+      "name": "OpenAI Chat Model5"
     },
     {
       "parameters": {
@@ -493,10 +439,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        -1240,
-        0
+        160,
+        520
       ],
-      "id": "af05c154-dbf3-409d-9433-224cd6a88a80",
+      "id": "af1b62bc-b786-4962-b8e7-87f4129101e7",
       "name": "AI Agent Генератор задачи"
     },
     {
@@ -510,10 +456,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        -1240,
-        400
+        160,
+        920
       ],
-      "id": "138479a6-296d-49a1-946c-f0aece28fefc",
+      "id": "546b5317-59ce-4c74-9563-2d07844c93ab",
       "name": "AI Agent Генератор Названия"
     },
     {
@@ -527,10 +473,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        -1240,
-        -360
+        160,
+        160
       ],
-      "id": "e53c99ae-39be-4367-ab9c-b1ac5896b338",
+      "id": "94f28cbd-4495-49d6-af29-8e3cc407d926",
       "name": "AI Agent по ЦА"
     },
     {
@@ -542,13 +488,13 @@
           "systemMessage": "=<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Agentinstructions>\n    <Role>\n        <Name>Эксперт по контенту для Telegram канала</Name>\n        <Description>Вы эксперт по созданию контента для Telegram канала, специализируетесь на преобразовании статей в высокововлекающие посты для определённой целевой аудитории.</Description>\n    </Role>\n    <Goal>\n        <Primary>Создать Telegram пост по предоставленной статье.</Primary>\n    </Goal>\n    <Instructions>\n        <Instruction>\n            <![CDATA[\nТехническое задание: используя предоставленную статью, составьте пост для Telegram канала, который:\n1. Написан в лаконичном, увлекательном тоне, оптимизированном для мобильных устройств.\n2. Адаптирован под интересы, потребности и профессиональные цели целевой аудитории.\n3. Представлен в виде простого текста с частыми переносами строк для удобочитаемости. Максимум 2-3 предложения в абзаце.\n4. Содержит 1-2 эмодзи для придания индивидуальности и привлекательности.\n5. Предоставляет ценную информацию и включает ясный призыв к действию.\n6. Содержит 3-5 релевантных хештегов.\n7. Выводит только текст поста — без дополнительного контента.\n\nКонтекст: Пост должен кратко передавать основное сообщение статьи и резонировать с ценностями аудитории. Он должен звучать естественно, разговорно и не превышать 2200 символов, но при этом не быть меньше 1500 символов.\n\nНапоминания:\n- Контент должен соответствовать интересам и вызовам целевой аудитории.\n- Обязательно использовать 1-2 эмодзи и призыв к действию.\n- Выводите только текст поста.\n- Ответ должен быть на русском языке.\n            ]]>\n        </Instruction>\n    </Instructions>\n</Agentinstructions>\n\n"
         }
       },
-      "id": "e7c2b903-c66d-4643-895f-def1b9ec77bd",
+      "id": "00ac1de8-06f6-4c26-9ce9-97ab8ce9de97",
       "name": "Telegram пост",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        -300,
-        -100
+        1100,
+        420
       ]
     },
     {
@@ -560,13 +506,13 @@
           "systemMessage": "=<Agentinstructions>\n    <Role>\n        <Name>Эксперт по контенту для Threads</Name>\n        <Description>Вы эксперт в создании контента для Threads, специализируетесь на преобразовании статей в увлекательные и краткие твиты для конкретной целевой аудитории.</Description>\n    </Role>\n    <Goal>\n        <Primary>Создать твит по предоставленной статье.</Primary>\n    </Goal>\n    <Instructions>\n        <Instruction>\n            <![CDATA[\nТехническое задание: используя предоставленную статью, составьте твит, который:\n1. Краток, лаконичен и оптимизирован для лимита Threads (390 символов).\n2. Соответствует интересам, потребностям и целям целевой аудитории.\n3. Содержит 1-2 эмодзи для усиления индивидуальности и привлекательности.\n4. Предоставляет ценное сообщение или инсайт и включает явный призыв к действию.\n5. Содержит 1 релевантный хештега.\n6. Выводит только текст твита — без дополнительного контента.\n\nКонтекст: Твит должен кратко передавать суть статьи, привлекать внимание, предлагать немедленную ценность и стимулировать вовлеченность (лайки, ответы, клики).\n\nНапоминания:\n- Тон должен быть доступным и увлекательным.\n- Используйте эмодзи экономно для акцента.\n- Убедитесь, что твит не превышает 390 символов и адаптирован под аудиторию.\n- Выводите только текст твита.\n- Ответ должен быть на русском языке.\n            ]]>\n        </Instruction>\n    </Instructions>\n</Agentinstructions>\n"
         }
       },
-      "id": "efb7803e-d2c0-468e-b6e6-1040541817de",
+      "id": "5067f29e-93a0-47f9-a0f2-f878ad1ad7c6",
       "name": "Threads",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        200,
-        -100
+        1600,
+        420
       ]
     },
     {
@@ -583,13 +529,13 @@
         },
         "options": {}
       },
-      "id": "69a4a7ff-f48c-4427-bf62-c65d4b72fada",
+      "id": "d85c16db-4074-4561-a82a-4339b4730fa9",
       "name": "Success",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        400,
-        480
+        1800,
+        1000
       ]
     },
     {
@@ -601,13 +547,13 @@
           "systemMessage": "=<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Agentinstructions>\n    <Role>\n        <Name>Эксперт копирайтер. </Name>\n        <Description>Вы опытный и креативный блогер, способный создавать увлекательные, лаконичные и хорошо структурированные статьи для Instagram на основе предоставленного контента.</Description>\n    </Role>\n    <Goal>\n        <Primary>Создать пост для Instagram до 2000 символов на основе предоставленного контента.</Primary>\n    </Goal>\n    <Instructions>\n        <Instruction>\n            <![CDATA[\nТехническое задание: напишите пост для Instagram до 2000 символов используя предоставленный контент. Пост должна быть связной, увлекательной и информативной, ориентированной на широкую аудиторию. Обеспечьте профессиональный, но дружелюбный тон и логичное структурирование от введения до заключения.\n\nКонтекст: данная задача необходима для быстрого создания качественных полезных постов, которые привлекают внимание читателей, точно передают основное сообщение и помогают брендам или отдельным лицам устанавливать лидерство в мнениях и эффективно взаимодействовать с аудиторией.\n\nНапоминания:\n- Сохраняйте ясность и логическую последовательность между абзацами.\n- Обеспечьте увлекательный, дружеский, но профессиональный тон.\n- Пост должна быть лаконичной и соответствовать предоставленному контенту.\n- Дели текст на абзацы через каждые 2-3 предложения.\n- Пост должен быть для Instagram до 2000 символов, но не менее 1400 символов.\n- Ответ должен быть на русском языке.\n            ]]>\n        </Instruction>\n    </Instructions>\n</Agentinstructions>\n"
         }
       },
-      "id": "9dfb2be5-fb84-4010-b500-af111af0c07e",
+      "id": "11b2d671-f5ca-495f-9870-52c408973b48",
       "name": "InstagramWriter",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        540,
-        -120
+        1940,
+        400
       ]
     },
     {
@@ -619,11 +565,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1400,
-        -520
+        0,
+        0
       ],
       "typeVersion": 1,
-      "id": "9dd02b86-dc5e-4451-9aab-8fc688f8850d",
+      "id": "615f431e-5f58-40be-99d2-19118501b625",
       "name": "Sticky Note1"
     },
     {
@@ -634,11 +580,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -2780,
-        -320
+        -1380,
+        200
       ],
       "typeVersion": 1,
-      "id": "9223ebf1-12d1-48c0-8bda-b6750ace8d16",
+      "id": "21b293ac-7a64-4dbf-8966-db7280a42ad6",
       "name": "Sticky Note"
     },
     {
@@ -650,11 +596,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -360,
-        -500
+        1040,
+        20
       ],
       "typeVersion": 1,
-      "id": "42d57776-6f68-4da2-9010-74c2900e66b8",
+      "id": "ff4d38ad-c52e-417c-b328-c851adf2bf97",
       "name": "Sticky Note2"
     },
     {
@@ -666,11 +612,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -360,
-        -180
+        1040,
+        340
       ],
       "typeVersion": 1,
-      "id": "e751d7c4-89b1-4d75-8238-b6c154bb0235",
+      "id": "7e83d01c-a5ad-47c8-b780-8157d40da925",
       "name": "Sticky Note3"
     },
     {
@@ -682,11 +628,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -80,
-        380
+        1320,
+        900
       ],
       "typeVersion": 1,
-      "id": "ae1b479c-f842-44bb-b045-42d733c568e9",
+      "id": "3d5ec806-05f6-4e4e-92ca-c881a9344bc3",
       "name": "Sticky Note4"
     },
     {
@@ -696,21 +642,15 @@
         ],
         "additionalFields": {}
       },
-      "id": "2cc04bf9-a0f6-4eee-9d37-604bc64e4458",
+      "id": "7bdc9fc5-0cf1-4ad9-b183-419187e57a71",
       "name": "Telegram Trigger",
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.1,
       "position": [
-        -2720,
-        -100
+        -1320,
+        420
       ],
-      "webhookId": "2194a6b2-2302-4406-9c8c-207161b7eb22",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
+      "webhookId": "2194a6b2-2302-4406-9c8c-207161b7eb22"
     },
     {
       "parameters": {
@@ -729,10 +669,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1880,
-        -240
+        -480,
+        280
       ],
-      "id": "0afeea7c-c727-45a9-aaca-2013d1793465",
+      "id": "3ef7423d-5378-412a-bfb3-4c3148315787",
       "name": "Edit Fields"
     },
     {
@@ -743,18 +683,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -2200,
-        0
+        -800,
+        520
       ],
-      "id": "51b0fa0a-da54-4c34-abae-d6c6e02ede78",
+      "id": "acd7a6f2-e305-4071-b7eb-153cc28d7fe7",
       "name": "Telegram",
-      "webhookId": "c66673cf-72f0-4233-82d8-70fe313d8765",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
+      "webhookId": "c66673cf-72f0-4233-82d8-70fe313d8765"
     },
     {
       "parameters": {
@@ -765,17 +699,11 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        -2020,
-        0
+        -620,
+        520
       ],
-      "id": "840d5d40-0c96-466c-b61e-0cffaebc5e92",
-      "name": "OpenAI",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "cf04a440-cdc6-428f-8003-3ec38f861bb2",
+      "name": "OpenAI"
     },
     {
       "parameters": {
@@ -837,10 +765,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        -2360,
-        -100
+        -960,
+        420
       ],
-      "id": "98534d60-0432-4ebc-b1aa-9dcf95417d7a",
+      "id": "54bda7ba-d774-444c-b3c8-6af0311d672b",
       "name": "Switch"
     },
     {
@@ -851,18 +779,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -2540,
-        -100
+        -1140,
+        420
       ],
-      "id": "d35184fb-41dc-48c7-928f-837449deb052",
+      "id": "82f90035-1fa1-47ac-a9a9-e1b6e34e5954",
       "name": "Telegram2",
-      "webhookId": "8cd99b7a-3eca-4fd9-9b9a-168ea002f4b1",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
+      "webhookId": "8cd99b7a-3eca-4fd9-9b9a-168ea002f4b1"
     },
     {
       "parameters": {
@@ -872,21 +794,15 @@
           "appendAttribution": false
         }
       },
-      "id": "22a63395-998e-405a-8757-105b6a891d6e",
+      "id": "40d2bfbe-cf3c-4c61-b907-ff94f95467b2",
       "name": "Respond to Me",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        700,
-        480
+        2100,
+        1000
       ],
-      "webhookId": "cd45388a-451a-42a0-b4aa-94857c5cc9f2",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
+      "webhookId": "cd45388a-451a-42a0-b4aa-94857c5cc9f2"
     }
   ],
   "pinData": {},
@@ -1200,11 +1116,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "27a89b55-27b4-4af8-b9ec-064bfed20a9f",
+  "versionId": "7fbd4248-437e-4743-8a8f-fed5db78a731",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "HQTWTWJHwdPReX1Y",
-  "tags": []
+  "id": "nGccMfa1M0TgtlP1",
+  "tags": [
+    {
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
+    }
+  ]
 }

@@ -1,5 +1,5 @@
 {
-  "name": "Google Календарь 2",
+  "name": "Google",
   "nodes": [
     {
       "parameters": {
@@ -11,18 +11,12 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.1,
       "position": [
-        -180,
-        0
+        -480,
+        120
       ],
-      "id": "1a4eecf6-eaab-442a-9295-97388cac9a4d",
+      "id": "b458b00c-e3fc-4ecf-aed3-88c57c9bbe8c",
       "name": "Telegram Trigger",
-      "webhookId": "512fa4aa-e773-4faf-af19-19dc58be6cbb",
-      "credentials": {
-        "telegramApi": {
-          "id": "PZ8G2FOFBcVzOqdk",
-          "name": "Telegram account"
-        }
-      }
+      "webhookId": "512fa4aa-e773-4faf-af19-19dc58be6cbb"
     },
     {
       "parameters": {
@@ -41,10 +35,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        300,
-        -120
+        0,
+        0
       ],
-      "id": "6d9babbc-ac9d-4abc-8fe5-ef225c4bad6f",
+      "id": "df72b3ca-acfb-4df2-afd7-ea4a4196f7c2",
       "name": "Edit Fields"
     },
     {
@@ -55,18 +49,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        280,
-        140
+        -20,
+        260
       ],
-      "id": "78851d57-8dfa-4b0e-87f9-81b138378085",
+      "id": "8a50f48d-747e-4fb6-90b6-ed85e74e2e46",
       "name": "Telegram",
-      "webhookId": "c66673cf-72f0-4233-82d8-70fe313d8765",
-      "credentials": {
-        "telegramApi": {
-          "id": "PZ8G2FOFBcVzOqdk",
-          "name": "Telegram account"
-        }
-      }
+      "webhookId": "c66673cf-72f0-4233-82d8-70fe313d8765"
     },
     {
       "parameters": {
@@ -77,17 +65,11 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        500,
-        140
+        200,
+        260
       ],
-      "id": "8df805f1-f8b4-4980-b0c5-d9403f960619",
-      "name": "OpenAI",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "10d2cc66-8a7d-4ac3-b874-0690d7289cfd",
+      "name": "OpenAI"
     },
     {
       "parameters": {
@@ -100,10 +82,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        720,
-        -60
+        420,
+        60
       ],
-      "id": "d95e2493-e5d8-40fa-bc4d-fc8bc40c8531",
+      "id": "08091183-23aa-46a6-a227-5dd37a2fd252",
       "name": "AI Agent"
     },
     {
@@ -119,17 +101,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        720,
-        260
+        420,
+        380
       ],
-      "id": "0e222cab-667c-4b17-9690-f4ff9407c135",
-      "name": "OpenAI Chat Model",
-      "credentials": {
-        "openAiApi": {
-          "id": "L72MI6qYBAu3BCux",
-          "name": "OpenAi account 2"
-        }
-      }
+      "id": "40dd2cf9-623a-44e0-8bb7-62c65de30d97",
+      "name": "OpenAI Chat Model"
     },
     {
       "parameters": {
@@ -140,18 +116,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1080,
-        -60
+        780,
+        60
       ],
-      "id": "01c9d89f-7b07-46b4-bdf0-43e4d831147f",
+      "id": "ee468354-d0d9-4d3d-a83d-29f73dff2ba8",
       "name": "Telegram1",
-      "webhookId": "71bef9fe-77cf-4fb9-ac5a-3060176cb65d",
-      "credentials": {
-        "telegramApi": {
-          "id": "PZ8G2FOFBcVzOqdk",
-          "name": "Telegram account"
-        }
-      }
+      "webhookId": "71bef9fe-77cf-4fb9-ac5a-3060176cb65d"
     },
     {
       "parameters": {
@@ -161,10 +131,10 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        860,
-        260
+        560,
+        380
       ],
-      "id": "9ee7be19-1371-4460-b34f-809559365a8f",
+      "id": "2ea2ed71-9b7e-4c00-8d81-7e36874f1523",
       "name": "Window Buffer Memory"
     },
     {
@@ -227,10 +197,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        40,
-        0
+        -260,
+        120
       ],
-      "id": "a99f1c88-94dc-46ab-a710-aa5937151ecf",
+      "id": "5e4ec970-17ad-4dc6-93bc-4a7899118165",
       "name": "Switch"
     },
     {
@@ -252,17 +222,11 @@
       "type": "n8n-nodes-base.googleCalendarTool",
       "typeVersion": 1.3,
       "position": [
-        1000,
-        440
+        700,
+        560
       ],
-      "id": "64c24234-8c34-4c06-be88-525915cddfb8",
-      "name": "Google Calendar",
-      "credentials": {
-        "googleCalendarOAuth2Api": {
-          "id": "FmfdXK755Qes1QHO",
-          "name": "Google Calendar account"
-        }
-      }
+      "id": "b400d9bb-110e-46f2-994c-3ad48737b25f",
+      "name": "Google Calendar"
     },
     {
       "parameters": {
@@ -284,17 +248,11 @@
       "type": "n8n-nodes-base.googleCalendarTool",
       "typeVersion": 1.3,
       "position": [
-        1120,
-        260
+        820,
+        380
       ],
-      "id": "34a68cb0-cccd-44e5-a811-90be6f0a3300",
-      "name": "Google Calendar1",
-      "credentials": {
-        "googleCalendarOAuth2Api": {
-          "id": "FmfdXK755Qes1QHO",
-          "name": "Google Calendar account"
-        }
-      }
+      "id": "e0d898cd-d7ea-4e7b-b0f7-1d01988efa5a",
+      "name": "Google Calendar1"
     },
     {
       "parameters": {
@@ -318,17 +276,11 @@
       "type": "n8n-nodes-base.googleCalendarTool",
       "typeVersion": 1.3,
       "position": [
-        1280,
-        300
+        980,
+        420
       ],
-      "id": "8bceb752-03ab-4f8d-9875-840861ff0fb4",
-      "name": "Google Calendar2",
-      "credentials": {
-        "googleCalendarOAuth2Api": {
-          "id": "FmfdXK755Qes1QHO",
-          "name": "Google Calendar account"
-        }
-      }
+      "id": "ebd20bb8-bc96-4b9e-a5a3-e0aa20de759d",
+      "name": "Google Calendar2"
     },
     {
       "parameters": {
@@ -349,17 +301,11 @@
       "type": "n8n-nodes-base.googleCalendarTool",
       "typeVersion": 1.3,
       "position": [
-        1380,
-        100
+        1080,
+        220
       ],
-      "id": "b6a20049-2a77-4f88-90b3-f58169fc5040",
-      "name": "Google Calendar3",
-      "credentials": {
-        "googleCalendarOAuth2Api": {
-          "id": "FmfdXK755Qes1QHO",
-          "name": "Google Calendar account"
-        }
-      }
+      "id": "127656ed-3521-4057-a984-49202b1faf0b",
+      "name": "Google Calendar3"
     }
   ],
   "pinData": {},
@@ -508,11 +454,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "bb3a9817-56b1-4499-8cdb-954b3af3429f",
+  "versionId": "3432752c-93e0-4ff1-b2ac-9720097fec13",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "LW7pIVh17iqfF3E0",
-  "tags": []
+  "id": "HUh7o6wIzb6arfCY",
+  "tags": [
+    {
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
+    }
+  ]
 }

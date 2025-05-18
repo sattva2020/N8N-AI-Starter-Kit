@@ -1,5 +1,5 @@
 {
-  "name": "SHABLON_IZ_TIKTOK_P2_REPURPOSE",
+  "name": "SHABLON_TIKTOK_P2_REPURPOSE",
   "nodes": [
     {
       "parameters": {
@@ -16,7 +16,7 @@
         400,
         180
       ],
-      "id": "310f3e04-a137-4081-a3a9-b94fa087e967",
+      "id": "b03c899b-9f57-4233-86e5-5485dc966362",
       "name": "AI Agent"
     },
     {
@@ -114,14 +114,8 @@
         480,
         560
       ],
-      "id": "787836db-7d7c-4e59-b39f-4103b97f7cc0",
-      "name": "Create Script",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "ef9703f8-6c13-4a15-8b5b-0e722caf9bd7",
+      "name": "Create Script"
     },
     {
       "parameters": {
@@ -134,7 +128,7 @@
         -260,
         180
       ],
-      "id": "5801c933-5026-4936-95b6-bfd4b3180a54",
+      "id": "ebed2d6b-6307-4c67-93d2-2d9410d5b927",
       "name": "Get Video"
     },
     {
@@ -150,7 +144,7 @@
         500
       ],
       "typeVersion": 1,
-      "id": "7cf0aee3-b01f-4b7b-8335-ce172b5f0a50",
+      "id": "a8498686-cb99-4499-876a-7217e1592f48",
       "name": "Sticky Note3"
     },
     {
@@ -166,14 +160,8 @@
         180,
         180
       ],
-      "id": "b034482e-3ab1-45f8-a246-ed70272fa243",
-      "name": "Whisper",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "ef78b3dc-d3fc-4f46-8f9d-d2e35352bf66",
+      "name": "Whisper"
     },
     {
       "parameters": {
@@ -200,14 +188,8 @@
         -700,
         180
       ],
-      "id": "f229d0b8-008b-44de-8105-d9c8609c3eaf",
-      "name": "Get Record ID",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "58a4c693-40b9-4280-8aca-286100c17158",
+      "name": "Get Record ID"
     },
     {
       "parameters": {
@@ -219,7 +201,7 @@
         700,
         560
       ],
-      "id": "9ab9a0b0-4c7d-42a1-99d5-b0185b7cbd66",
+      "id": "5c7a6fd0-26c4-48a2-9ba3-ace080157cad",
       "name": "Structured Output Parser"
     },
     {
@@ -327,14 +309,8 @@
         1060,
         200
       ],
-      "id": "797527d1-8d5c-4c6c-8f8f-40c270c64216",
-      "name": "Update Record",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "01ba85c3-29fd-4cf8-9aac-b09588eee1e0",
+      "name": "Update Record"
     },
     {
       "parameters": {
@@ -346,7 +322,7 @@
         -40,
         180
       ],
-      "id": "f9c54f2a-8fd1-4818-a713-05f5fbaf9448",
+      "id": "b0d4c9d1-4585-4f75-8b59-1a4a909cd3a3",
       "name": "Change to mpeg"
     },
     {
@@ -388,7 +364,7 @@
         -480,
         180
       ],
-      "id": "ef207fda-8562-43b5-9ba5-4d165dc20eb6",
+      "id": "13581bc5-0933-4064-837f-af340c09d2ac",
       "name": "Find Video"
     },
     {
@@ -407,7 +383,7 @@
         -940,
         180
       ],
-      "id": "cb4cd0c3-3a1a-4e8a-b038-7014490a677f",
+      "id": "b137580a-8532-4b96-a3dc-6ef02ee42e92",
       "name": "When Executed by Another Workflow"
     },
     {
@@ -423,7 +399,7 @@
         0
       ],
       "typeVersion": 1,
-      "id": "a6b6abc1-29d1-450c-a259-e9a3f0f444a8",
+      "id": "e91e3aa4-8cc4-449a-bd9a-d2ca0145bb20",
       "name": "Sticky Note"
     },
     {
@@ -436,7 +412,7 @@
         1360,
         200
       ],
-      "id": "e4a1b3be-a75b-4e58-b02f-6420423b6864",
+      "id": "ac2a6c06-5c39-4850-8596-6684054c03ec",
       "name": "Success"
     },
     {
@@ -454,14 +430,8 @@
         120,
         540
       ],
-      "id": "5a4e7ff4-fa94-4944-a830-ce150c847429",
-      "name": "OpenAI Chat Model",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "b8a715f6-e1d1-4cc4-a844-89f8bbd5e780",
+      "name": "OpenAI Chat Model"
     },
     {
       "parameters": {
@@ -488,14 +458,8 @@
         840,
         160
       ],
-      "id": "2273e221-d9cc-405e-930f-d6988e00d848",
-      "name": "Update Record1",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "04534450-e835-4c29-8d51-7cc25803da69",
+      "name": "Update Record1"
     },
     {
       "parameters": {
@@ -508,7 +472,7 @@
         580
       ],
       "typeVersion": 1,
-      "id": "268c34aa-519c-4147-908f-040b0ff52d18",
+      "id": "a5079aea-f665-4b93-9198-27b13cea067c",
       "name": "Sticky Note5"
     },
     {
@@ -523,24 +487,8 @@
         380
       ],
       "typeVersion": 1,
-      "id": "baf7b93e-60e0-46b4-8640-a20c5c25fafc",
+      "id": "da491df1-be0a-4f36-af12-304ee19e0166",
       "name": "Sticky Note6"
-    },
-    {
-      "parameters": {
-        "content": "## @igorzuevich \n**Автор** на [YouTube](https://www.youtube.com/@igorzuevich)",
-        "height": 240,
-        "width": 280,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        1620,
-        3140
-      ],
-      "typeVersion": 1,
-      "id": "0e4e003e-f48d-48fb-941a-225c5b448a0a",
-      "name": "Sticky Note2"
     }
   ],
   "pinData": {
@@ -690,18 +638,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "bedf62e5-6a4f-461d-ac13-25ad19ece7dd",
+  "versionId": "ba53c665-1a32-4ca8-b2f4-22b5821751da",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "lELd2pdvfIWiBigY",
+  "id": "WhXmu0Jf2dchg0sh",
   "tags": [
     {
-      "createdAt": "2025-03-21T05:05:36.109Z",
-      "updatedAt": "2025-03-21T05:05:36.109Z",
-      "id": "O7fQsEJqI16T5o0y",
-      "name": "Сделано"
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
     }
   ]
 }

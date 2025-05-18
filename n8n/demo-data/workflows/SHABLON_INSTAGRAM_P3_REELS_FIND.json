@@ -1,5 +1,5 @@
 {
-  "name": "SHABLON_IZ_INSTAGRAM_P3_REELS_FIND",
+  "name": "SHABLON_INSTAGRAM_P3_REELS_FIND",
   "nodes": [
     {
       "parameters": {
@@ -138,17 +138,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        2200,
-        480
+        1520,
+        780
       ],
-      "id": "6c908e47-ee58-4a8d-812f-1c68d97117ec",
-      "name": "Send to Airtable",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "411100eb-75b7-4412-97a7-a2cd1b73a8d0",
+      "name": "Send to Airtable"
     },
     {
       "parameters": {
@@ -197,10 +191,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1880,
-        480
+        1200,
+        780
       ],
-      "id": "80bb9feb-f9ee-46a9-a984-af797b8b132f",
+      "id": "3ed72147-2e81-46b4-b29a-8209ff40641a",
       "name": "Reels Data"
     },
     {
@@ -216,10 +210,10 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
       "position": [
-        360,
-        80
+        -320,
+        380
       ],
-      "id": "3c9d089d-5de3-4803-b185-9c76ab40f113",
+      "id": "7ac395fd-5793-43ca-bc62-622a41405877",
       "name": "When Executed by Another Workflow"
     },
     {
@@ -252,10 +246,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        840,
-        80
+        160,
+        380
       ],
-      "id": "2bb249a9-983d-408c-82ef-18cfd13e4e78",
+      "id": "456b2e78-ffa0-40ad-b173-7f6b556dcb99",
       "name": "Scrape Reels"
     },
     {
@@ -267,11 +261,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        3180,
-        -80
+        2500,
+        220
       ],
       "typeVersion": 1,
-      "id": "d36cf586-eea6-4d63-9c76-2b332abad27f",
+      "id": "bce2c996-5607-45c6-833e-553cf85780ab",
       "name": "Sticky Note6"
     },
     {
@@ -281,10 +275,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2820,
-        480
+        2140,
+        780
       ],
-      "id": "1c634999-a04d-4ecc-9ae2-913dda37c4ad",
+      "id": "d8907191-b76c-4825-9231-93dd2149faf7",
       "name": "Success"
     },
     {
@@ -317,10 +311,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2400,
-        80
+        1720,
+        380
       ],
-      "id": "a1138146-a7a7-4ce3-bdaf-8fdcea1dade0",
+      "id": "f44fe79f-52ec-4400-b168-e956f446b235",
       "name": "Get Reshares"
     },
     {
@@ -340,10 +334,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1620,
-        0
+        940,
+        300
       ],
-      "id": "9f451d8c-4070-444e-8845-b73f41531fa7",
+      "id": "634eb0cc-0519-4db1-bc49-43c964fa21f9",
       "name": "Edit Fields"
     },
     {
@@ -353,10 +347,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        1860,
-        -40
+        1180,
+        260
       ],
-      "id": "612ab77c-0481-4827-9399-05331ed5e7a9",
+      "id": "9f662bd0-3a08-4ccc-9bfe-521806a2cc3c",
       "name": "Loop Over Items",
       "executeOnce": false,
       "alwaysOutputData": false,
@@ -370,10 +364,10 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        2640,
-        120
+        1960,
+        420
       ],
-      "id": "071f2c1f-39b9-426e-be4d-18d2d35de953",
+      "id": "08419542-267a-41a8-996a-0d16c7651904",
       "name": "Wait 0.25",
       "webhookId": "66e507e6-7296-45d0-aacf-de58bafeb7bd"
     },
@@ -382,10 +376,10 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        1100,
-        80
+        420,
+        380
       ],
-      "id": "0e102ff2-f694-40ca-8c11-db22a64e092b",
+      "id": "1319479a-be9d-459b-b515-571f61bf034c",
       "name": "Wait 5",
       "webhookId": "d3e2686e-d35a-4061-8ada-f7cb94e69ae1"
     },
@@ -397,10 +391,10 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        1380,
-        80
+        700,
+        380
       ],
-      "id": "460a3878-f299-4755-a5f2-af292b8e2998",
+      "id": "3c586c5a-3750-4d91-afbe-cbc91dc2585e",
       "name": "Split data.items"
     },
     {
@@ -411,11 +405,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        660,
-        -20
+        -20,
+        280
       ],
       "typeVersion": 1,
-      "id": "8eb3a76f-7ecb-4ce5-a7c2-5cfb15943a23",
+      "id": "24234141-f46d-4277-a249-81d221015694",
       "name": "Sticky Note1"
     },
     {
@@ -426,11 +420,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        680,
-        -300
+        0,
+        0
       ],
       "typeVersion": 1,
-      "id": "e6e0f130-9f95-4f2f-bdc8-47f313d87361",
+      "id": "c9e6e77d-4f0e-4599-ad0c-d0328c37b8b7",
       "name": "Sticky Note2"
     },
     {
@@ -441,11 +435,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        560,
-        320
+        -120,
+        620
       ],
       "typeVersion": 1,
-      "id": "c52e98ea-53b7-4271-ae24-2d798ce21185",
+      "id": "c22a96a3-983e-46e3-a469-cd698d038eda",
       "name": "Sticky Note7"
     },
     {
@@ -456,11 +450,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2380,
-        340
+        1700,
+        640
       ],
       "typeVersion": 1,
-      "id": "84c0cc0f-4e6b-418a-875a-e29db4f61bd0",
+      "id": "c8dc5067-6a02-454d-ba20-f48b91c3c7d7",
       "name": "Sticky Note"
     },
     {
@@ -609,17 +603,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        2560,
-        480
+        1880,
+        780
       ],
-      "id": "8dcc45b0-eac7-4781-a1fd-3c823971399a",
-      "name": "Send the goodies1",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "ffc779ad-ee1a-4ab2-aa49-67e9165ed457",
+      "name": "Send the goodies1"
     }
   ],
   "pinData": {
@@ -764,11 +752,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "d82da571-7db0-4eed-875b-875049946fae",
+  "versionId": "9f412972-5ce1-4d17-a200-b6f4ac9b9c2b",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "aqssa5VgAmmhX5pX",
-  "tags": []
+  "id": "6WPYh8mMBWCDsiAX",
+  "tags": [
+    {
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
+    }
+  ]
 }

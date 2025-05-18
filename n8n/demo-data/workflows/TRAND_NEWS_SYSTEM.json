@@ -1,5 +1,5 @@
 {
-  "name": "IZ_TRAND_NEWS_SYSTEM",
+  "name": "TRAND_NEWS_SYSTEM",
   "nodes": [
     {
       "parameters": {
@@ -13,10 +13,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.8,
       "position": [
-        -380,
-        -380
+        660,
+        280
       ],
-      "id": "4d764184-79bd-4ca0-9862-2f5d2afd6669",
+      "id": "bfd4d891-271e-4c87-908b-a01e0ed4c0d2",
       "name": "AI Agent"
     },
     {
@@ -36,17 +36,11 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "typeVersion": 1,
       "position": [
-        -220,
-        -120
+        820,
+        540
       ],
-      "id": "f23b9bc5-8835-4a4a-9601-77164f4a58a8",
-      "name": "Pinecone Vector Store",
-      "credentials": {
-        "pineconeApi": {
-          "id": "xHYJdGWUvOWZd8CK",
-          "name": "PineconeApi account"
-        }
-      }
+      "id": "bf6be132-d1bd-4aaa-9bf0-5631860c1367",
+      "name": "Pinecone Vector Store"
     },
     {
       "parameters": {
@@ -55,17 +49,11 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
       "typeVersion": 1.2,
       "position": [
-        -200,
-        40
+        840,
+        700
       ],
-      "id": "b3f2a4e3-e509-41ae-b0c4-4c5af81f00ad",
-      "name": "Embeddings OpenAI",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "609af14b-16f6-4630-b300-7117713dd93d",
+      "name": "Embeddings OpenAI"
     },
     {
       "parameters": {
@@ -88,10 +76,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -840,
-        1000
+        200,
+        1660
       ],
-      "id": "a148fd72-a4fa-4a07-8407-21e06c00a3c8",
+      "id": "acb7633e-da44-411f-b305-82c5235b5498",
       "name": "Tavily"
     },
     {
@@ -99,10 +87,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -2760,
-        1960
+        -1720,
+        2620
       ],
-      "id": "46b517a2-5ef0-425e-9697-4949a8cb4bd4",
+      "id": "e7897297-993e-458d-8f9f-de3e6ec12569",
       "name": "When clicking ‘Test workflow’"
     },
     {
@@ -112,10 +100,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        880,
-        2380
+        1920,
+        3040
       ],
-      "id": "4e74e990-582d-4131-b073-cf389ced2d99",
+      "id": "ef061c87-3ada-4f45-b101-e84f73ddd573",
       "name": "Loop Over Items"
     },
     {
@@ -145,17 +133,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -640,
-        2300
+        400,
+        2960
       ],
-      "id": "8fa15cfa-f690-426f-84c6-9bd5cd7de676",
-      "name": "Get Channel ID",
-      "credentials": {
-        "youTubeOAuth2Api": {
-          "id": "kaehDW4Ii5Pf7uw4",
-          "name": "YouTube account"
-        }
-      }
+      "id": "7da8c027-24d1-4611-9d2e-6f26c5689f88",
+      "name": "Get Channel ID"
     },
     {
       "parameters": {
@@ -165,10 +147,10 @@
       "type": "@n8n/n8n-nodes-langchain.chainSummarization",
       "typeVersion": 2,
       "position": [
-        1320,
-        1960
+        2360,
+        2620
       ],
-      "id": "e76a5884-e3e1-41de-8e03-3831bfe07370",
+      "id": "7e152baf-d250-4e93-bea9-08868647a64a",
       "name": "Summarization Chain"
     },
     {
@@ -194,17 +176,11 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        -60,
-        780
+        980,
+        1440
       ],
-      "id": "5ad854e5-be9f-4d6e-b261-8ba1eb2ae626",
-      "name": "Supabase",
-      "credentials": {
-        "supabaseApi": {
-          "id": "koxVIlMFEhTVYykk",
-          "name": "Supabase account"
-        }
-      }
+      "id": "46e6365c-80d8-4c5b-964c-983bbe035b44",
+      "name": "Supabase"
     },
     {
       "parameters": {
@@ -229,17 +205,11 @@
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        2040,
-        1960
+        3080,
+        2620
       ],
-      "id": "57c7c89d-799e-494d-984e-9e8a56335d7e",
-      "name": "Supabase1",
-      "credentials": {
-        "supabaseApi": {
-          "id": "koxVIlMFEhTVYykk",
-          "name": "Supabase account"
-        }
-      }
+      "id": "81a3622c-5ea0-4fe4-ba5c-444d6223070c",
+      "name": "Supabase1"
     },
     {
       "parameters": {
@@ -257,10 +227,10 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.5,
       "position": [
-        -460,
-        780
+        580,
+        1440
       ],
-      "id": "cb95c5f5-49d2-4f66-9e85-2b9beb92c271",
+      "id": "a508a1b2-f0ff-43e0-b67a-f22301c2ea8e",
       "name": "Basic LLM Chain"
     },
     {
@@ -279,10 +249,10 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.5,
       "position": [
-        1680,
-        1960
+        2720,
+        2620
       ],
-      "id": "6964cec1-98c5-40de-baa7-50a3aa332efc",
+      "id": "65d357c2-d98b-42c6-8f8f-ed57bccac07b",
       "name": "Basic LLM Chain1"
     },
     {
@@ -297,17 +267,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        1340,
-        2180
+        2380,
+        2840
       ],
-      "id": "874ecadf-2790-4328-ad14-b4610550343f",
-      "name": "4o-mini",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "80b3db20-0cfb-47f3-a39a-aa63d12f5fb4",
+      "name": "4o-mini"
     },
     {
       "parameters": {
@@ -352,17 +316,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        340,
-        2160
+        1380,
+        2820
       ],
-      "id": "01ea87c0-f74f-432d-b52f-226cc269b2a7",
-      "name": "Get 1 Video",
-      "credentials": {
-        "youTubeOAuth2Api": {
-          "id": "kaehDW4Ii5Pf7uw4",
-          "name": "YouTube account"
-        }
-      }
+      "id": "02d30228-0579-4ee1-b6d0-e7568cf0bf66",
+      "name": "Get 1 Video"
     },
     {
       "parameters": {
@@ -372,10 +330,10 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -640,
-        2160
+        400,
+        2820
       ],
-      "id": "5d3bc102-cf4b-456b-96b5-58370520d750",
+      "id": "d8260e0d-95df-45f8-8d8d-ca1c6c1920e4",
       "name": "Split Items"
     },
     {
@@ -386,10 +344,10 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        280,
-        1960
+        1320,
+        2620
       ],
-      "id": "a0c264ea-5359-4fd4-ad29-e39822cf803e",
+      "id": "62d27491-f6d6-4f32-8108-bd6c99a8ba19",
       "name": "Split Items Again"
     },
     {
@@ -409,10 +367,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        680,
-        2380
+        1720,
+        3040
       ],
-      "id": "6164defd-e7fe-44ca-84f0-afe921a03853",
+      "id": "0a2e66f1-b6bd-4ca0-b6b4-bf22826bd304",
       "name": "Set VideoId"
     },
     {
@@ -429,17 +387,11 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "typeVersion": 1,
       "position": [
-        140,
-        780
+        1180,
+        1440
       ],
-      "id": "d8e23ef3-7920-48f7-86c0-ec25d7dae01b",
-      "name": "Pinecone Vector Store1",
-      "credentials": {
-        "pineconeApi": {
-          "id": "xHYJdGWUvOWZd8CK",
-          "name": "PineconeApi account"
-        }
-      }
+      "id": "869a9450-f8b5-4de6-b2d5-47f77961c6a6",
+      "name": "Pinecone Vector Store1"
     },
     {
       "parameters": {
@@ -469,10 +421,10 @@
       "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
       "typeVersion": 1,
       "position": [
-        280,
-        1000
+        1320,
+        1660
       ],
-      "id": "d3e8a2d3-fc12-484c-8e1a-8f1cf724aa54",
+      "id": "99186d12-e6f0-4de0-94c2-d30e985f8633",
       "name": "Default Data Loader"
     },
     {
@@ -480,10 +432,10 @@
       "type": "@n8n/n8n-nodes-langchain.textSplitterTokenSplitter",
       "typeVersion": 1,
       "position": [
-        300,
-        1160
+        1340,
+        1820
       ],
-      "id": "08cd4aae-79d2-4707-8feb-c38f3cc1dfa0",
+      "id": "6be85f0b-54bd-404a-9429-8f5979600345",
       "name": "Token Splitter"
     },
     {
@@ -500,17 +452,11 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "typeVersion": 1,
       "position": [
-        2240,
-        1960
+        3280,
+        2620
       ],
-      "id": "b6d621fb-7d30-4249-968b-a2790fcef9e2",
-      "name": "Pinecone Vector Store2",
-      "credentials": {
-        "pineconeApi": {
-          "id": "xHYJdGWUvOWZd8CK",
-          "name": "PineconeApi account"
-        }
-      }
+      "id": "280c1902-94ff-4a6a-ad4b-794cdb10459a",
+      "name": "Pinecone Vector Store2"
     },
     {
       "parameters": {
@@ -540,10 +486,10 @@
       "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
       "typeVersion": 1,
       "position": [
-        2380,
-        2180
+        3420,
+        2840
       ],
-      "id": "00af2567-1ece-435b-a579-5c18d4edd7bf",
+      "id": "69f922c1-0caf-4daf-a85e-da2fb80902a4",
       "name": "Default Data Loader1"
     },
     {
@@ -551,10 +497,10 @@
       "type": "@n8n/n8n-nodes-langchain.textSplitterTokenSplitter",
       "typeVersion": 1,
       "position": [
-        2400,
-        2340
+        3440,
+        3000
       ],
-      "id": "9085b9d3-0166-4dc1-9c5c-6ea133113e11",
+      "id": "896b11cb-050e-47eb-89c1-14a9275dbe5b",
       "name": "Token Splitter1"
     },
     {
@@ -566,10 +512,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1660,
-        2160
+        -620,
+        2820
       ],
-      "id": "b7bf420c-4fea-4981-ba27-f56fcd6cad7d",
+      "id": "4be59c09-7943-445e-b500-0f6b6b08a02c",
       "name": "YouTube Users"
     },
     {
@@ -585,17 +531,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        -560,
-        -120
+        480,
+        540
       ],
-      "id": "56a7caa5-3993-403d-b6ce-fd95d7d5632c",
-      "name": "4o-minix",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "01443e3a-d478-4508-917d-c16a8baa4273",
+      "name": "4o-minix"
     },
     {
       "parameters": {
@@ -604,10 +544,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -1260,
-        2160
+        -220,
+        2820
       ],
-      "id": "43de97c6-5612-442e-812e-67e98b198de8",
+      "id": "d5949f35-86cd-4f92-86ca-8827c22c6b24",
       "name": "Loop Over Items1"
     },
     {
@@ -618,10 +558,10 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -1460,
-        2160
+        -420,
+        2820
       ],
-      "id": "f371a304-e69b-4ddd-970e-8fa7bb492a6e",
+      "id": "73537cde-c592-4fea-b31b-e8239f0eb639",
       "name": "Split Out"
     },
     {
@@ -641,10 +581,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -440,
-        2160
+        600,
+        2820
       ],
-      "id": "d09c219a-56e6-4936-9b70-5a2397a24d5e",
+      "id": "3a266de5-0544-4413-bb26-420ff072df20",
       "name": "Set"
     },
     {
@@ -654,10 +594,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -240,
-        2160
+        800,
+        2820
       ],
-      "id": "323237c1-5974-4be3-be38-1a8f6a359e04",
+      "id": "6a4a73e6-9d6f-40fc-b416-71388fd4fd8b",
       "name": "Loop Over Items2"
     },
     {
@@ -667,10 +607,10 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        1640,
-        2380
+        2680,
+        3040
       ],
-      "id": "370f0e7a-f89d-44d0-8380-483baff3eaf4",
+      "id": "11716f01-6ab3-457c-bc05-72c6dd20a10f",
       "name": "Wait",
       "webhookId": "ae65e9fd-c5aa-4417-9cc9-6ca5dc7ffc28"
     },
@@ -681,17 +621,11 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
       "typeVersion": 1.2,
       "position": [
-        120,
-        1000
+        1160,
+        1660
       ],
-      "id": "d94dc0bc-6c61-45a3-80e5-64cd3e5d58a1",
-      "name": "3-small",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "2e35e21b-7eb0-42f7-8244-e6022487c268",
+      "name": "3-small"
     },
     {
       "parameters": {
@@ -700,17 +634,11 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
       "typeVersion": 1.2,
       "position": [
-        2220,
-        2180
+        3260,
+        2840
       ],
-      "id": "8a7c1384-aa91-4151-9d4b-80a6ed977897",
-      "name": "3-small-x",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "dc9b42bb-0846-4772-b6e0-96d5ef16bff4",
+      "name": "3-small-x"
     },
     {
       "parameters": {
@@ -719,10 +647,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        -320,
-        1000
+        720,
+        1660
       ],
-      "id": "22354bfd-01c3-4405-99a9-cc8ac6bbfe0f",
+      "id": "fb943b57-e861-4ece-bc6a-abe62fcd2c32",
       "name": "Parser"
     },
     {
@@ -732,10 +660,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        1860,
-        2180
+        2900,
+        2840
       ],
-      "id": "fa320912-404f-45fa-87a1-11055a7f7f7c",
+      "id": "e464b4ce-efbe-434e-86fc-8e23489d6a78",
       "name": "Parserx"
     },
     {
@@ -746,10 +674,10 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -1440,
-        1000
+        -400,
+        1660
       ],
-      "id": "dc80b826-b1ec-466f-8998-0a2626013e51",
+      "id": "83421845-cbb4-423b-81e7-5260eb77e0cc",
       "name": "Split Out1"
     },
     {
@@ -759,10 +687,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -1220,
-        1000
+        -180,
+        1660
       ],
-      "id": "005e2a16-ce8c-4814-ba3c-826dca94393e",
+      "id": "28fe23bb-37bc-467c-8a3d-3d3b1cc4512a",
       "name": "Loop Over Items3"
     },
     {
@@ -774,11 +702,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1800,
-        880
+        -760,
+        1540
       ],
       "typeVersion": 1,
-      "id": "c4784772-cac6-4a67-b137-4596daa88089",
+      "id": "2cc84feb-ec7e-4521-b2b9-c26864286a57",
       "name": "Sticky Note"
     },
     {
@@ -790,11 +718,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1960,
-        2360
+        -920,
+        3020
       ],
       "typeVersion": 1,
-      "id": "bc24af2d-4dde-4552-b98f-a12253ed6923",
+      "id": "e5fe2788-8eb2-499c-b401-69a6f5515ff8",
       "name": "Sticky Note1"
     },
     {
@@ -806,11 +734,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -980,
-        1200
+        60,
+        1860
       ],
       "typeVersion": 1,
-      "id": "2808bbda-bb8c-4801-a312-5cd11f574820",
+      "id": "1702ab03-4e28-4f16-ba1c-311162f35dc5",
       "name": "Sticky Note2"
     },
     {
@@ -822,11 +750,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1840,
-        2340
+        2880,
+        3000
       ],
       "typeVersion": 1,
-      "id": "c084bc22-52bc-4efa-b57d-7d5c9c137853",
+      "id": "34c07565-7725-4d1a-aed4-ba5bfba46650",
       "name": "Sticky Note4",
       "disabled": true
     },
@@ -839,11 +767,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        620,
-        2020
+        1660,
+        2680
       ],
       "typeVersion": 1,
-      "id": "a7b7f777-6384-4d2e-92c4-b1b1324a196b",
+      "id": "f6a662d8-9a17-4c1e-895a-3ea793a50b88",
       "name": "Sticky Note5"
     },
     {
@@ -855,11 +783,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -160,
-        660
+        880,
+        1320
       ],
       "typeVersion": 1,
-      "id": "7185c22b-d8eb-4907-beff-f21260dc58bc",
+      "id": "7d7705df-9f19-4f39-a72a-4aa5bf0d6313",
       "name": "Sticky Note6"
     },
     {
@@ -871,11 +799,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        220,
-        2380
+        1260,
+        3040
       ],
       "typeVersion": 1,
-      "id": "c91dd11c-72ab-46dd-b49f-36f3a32a4133",
+      "id": "c83e0fb4-de53-4e48-94e7-8ed566c1e10a",
       "name": "Sticky Note9",
       "disabled": true
     },
@@ -888,11 +816,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        120,
-        -180
+        1160,
+        480
       ],
       "typeVersion": 1,
-      "id": "56791e44-ac51-49d1-97a3-627450cc5461",
+      "id": "75217e1d-9aaf-45cd-80e5-ffcd43c75331",
       "name": "Sticky Note10",
       "disabled": true
     },
@@ -905,11 +833,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -620,
-        20
+        420,
+        680
       ],
       "typeVersion": 1,
-      "id": "4b0825b0-9c78-48e4-9312-7ee5cba76f09",
+      "id": "143d43a3-6710-4f83-88f1-64d713593a09",
       "name": "Sticky Note11",
       "disabled": true
     },
@@ -921,11 +849,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -2820,
-        2180
+        -1780,
+        2840
       ],
       "typeVersion": 1,
-      "id": "269fb03b-272a-4927-b7bd-992957d12e4d",
+      "id": "ee5a6b2b-2165-4cc9-9cfa-af1380845940",
       "name": "Sticky Note12"
     },
     {
@@ -941,10 +869,10 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        -2740,
-        1780
+        -1700,
+        2440
       ],
-      "id": "4a9352de-3a24-40a6-8926-5c4c66ad9446",
+      "id": "dbb42a3c-ac31-4999-ad9d-73d8dafb85bf",
       "name": "Run every 24 hours"
     },
     {
@@ -956,10 +884,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1660,
-        1000
+        -620,
+        1660
       ],
-      "id": "56b567ca-156d-4a2a-8d9e-5b95adcc7452",
+      "id": "4468ab06-7b82-4e37-be18-73b02fcab364",
       "name": "Queries"
     },
     {
@@ -971,11 +899,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -60,
-        -20
+        980,
+        640
       ],
       "typeVersion": 1,
-      "id": "0bcd3cd0-577d-4d9d-8ded-9be0de5832ee",
+      "id": "e20589bd-f21e-473d-b300-44f8cd87eedb",
       "name": "Sticky Note13",
       "disabled": true
     },
@@ -988,11 +916,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -280,
-        1160
+        760,
+        1820
       ],
       "typeVersion": 1,
-      "id": "55812f3a-65d2-4847-abd4-2cbca3cd61c6",
+      "id": "101f0fba-da0c-4fee-b2a2-563f182c2e35",
       "name": "Sticky Note14"
     },
     {
@@ -1004,11 +932,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1940,
-        1840
+        2980,
+        2500
       ],
       "typeVersion": 1,
-      "id": "82ebcf49-c210-4f0b-abe7-347c026375b6",
+      "id": "7e3a0567-0496-4010-871d-a8c5e5393a34",
       "name": "Sticky Note15",
       "disabled": true
     },
@@ -1021,11 +949,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -740,
-        2560
+        300,
+        3220
       ],
       "typeVersion": 1,
-      "id": "c9bd1f06-d903-46a0-b299-a8d98ccbcb52",
+      "id": "979746e6-389e-4d4c-919f-5a2a9a6d12a9",
       "name": "Sticky Note16"
     },
     {
@@ -1037,11 +965,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        720,
-        660
+        1760,
+        1320
       ],
       "typeVersion": 1,
-      "id": "6455327a-71d1-42b4-9768-3d99b03a22da",
+      "id": "0ea0d002-cfce-4285-a077-2ab0d9704264",
       "name": "Sticky Note3"
     },
     {
@@ -1056,17 +984,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        -540,
-        1000
+        500,
+        1660
       ],
-      "id": "5db2803e-eb0b-4b6e-a34d-d94c9fbf068d",
-      "name": "OpenAI Chat Model",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "16a3ba59-9c8a-4d06-ae90-c4fe9c3f7074",
+      "name": "OpenAI Chat Model"
     },
     {
       "parameters": {
@@ -1104,10 +1026,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1120,
-        2380
+        2160,
+        3040
       ],
-      "id": "a41ea136-6f8e-4b91-8745-7768957ba2dd",
+      "id": "442d9769-a85d-4e9c-9fe7-6955eafada95",
       "name": "Transcribe1"
     },
     {
@@ -1127,10 +1049,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1380,
-        2380
+        2420,
+        3040
       ],
-      "id": "e4fa50d9-4c98-447d-b235-de482c3c0bdc",
+      "id": "15ddad60-69f2-4714-8420-8f679b3f7dc8",
       "name": "Edit Fields"
     },
     {
@@ -1145,17 +1067,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        1600,
-        2180
+        2640,
+        2840
       ],
-      "id": "64f7fe07-8fdd-44fd-96b5-1a55455e8e86",
-      "name": "OpenAI Chat Model1",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "d3224fbd-3835-404b-855e-aec6f57749c9",
+      "name": "OpenAI Chat Model1"
     },
     {
       "parameters": {
@@ -1166,11 +1082,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        460,
-        -440
+        1500,
+        220
       ],
       "typeVersion": 1,
-      "id": "87e32f66-1143-4da8-baa8-666108182669",
+      "id": "65b8fcd0-5e56-49ed-a110-6a39c1f67fdb",
       "name": "Sticky Note8"
     },
     {
@@ -1182,11 +1098,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -2880,
-        540
+        -1840,
+        1200
       ],
       "typeVersion": 1,
-      "id": "e717b33b-feba-49d4-8cf5-8516d87659c7",
+      "id": "0d5b969e-94ce-441a-a9b3-386aa8ce647f",
       "name": "Sticky Note17"
     },
     {
@@ -1198,11 +1114,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1040,
-        -660
+        0,
+        0
       ],
       "typeVersion": 1,
-      "id": "1ca1b19a-4b44-40db-9d42-f44b3cd3f453",
+      "id": "83cec95c-0b40-47d5-829c-7bde07657c06",
       "name": "Sticky Note18"
     },
     {
@@ -1213,11 +1129,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1860,
-        600
+        -820,
+        1260
       ],
       "typeVersion": 1,
-      "id": "7ba945a1-8b14-4fb3-814b-0e97a25aa7c0",
+      "id": "a84922c1-7cc8-44ab-8f6e-63e86e74f566",
       "name": "Sticky Note23"
     },
     {
@@ -1229,11 +1145,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1980,
-        1580
+        -940,
+        2240
       ],
       "typeVersion": 1,
-      "id": "42ae923c-56dc-49f8-aacd-67fc128577f2",
+      "id": "d5bf802f-6433-4d68-a2f3-e73d5926ea6d",
       "name": "Sticky Note24"
     },
     {
@@ -1249,10 +1165,10 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
       "position": [
-        -640,
-        -380
+        400,
+        280
       ],
-      "id": "4d54cff4-70a0-4efc-adf7-628e4f08c0ad",
+      "id": "6518936b-4d41-4366-b910-555324fc194f",
       "name": "When Executed by Another Workflow"
     },
     {
@@ -1272,10 +1188,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        200,
-        -400
+        1240,
+        260
       ],
-      "id": "a8f49e0d-97b4-4974-9eec-a9d8f07dad82",
+      "id": "3dd3e179-3461-4605-af8a-bf457ffd1dea",
       "name": "Edit Fields1"
     }
   ],
@@ -1817,18 +1733,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "e684e187-bbf4-4973-af84-8ee4cf18dcb0",
+  "versionId": "0c615e91-a90e-4d01-a32a-9c9f5df688ef",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "yUVeBhlm9MeusTTw",
+  "id": "Q8d7TZIDNGkcQeBv",
   "tags": [
     {
-      "createdAt": "2025-03-21T05:05:36.109Z",
-      "updatedAt": "2025-03-21T05:05:36.109Z",
-      "id": "O7fQsEJqI16T5o0y",
-      "name": "Сделано"
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
     }
   ]
 }

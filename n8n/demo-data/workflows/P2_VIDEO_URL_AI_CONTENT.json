@@ -1,5 +1,5 @@
 {
-  "name": "IZ_P2_VIDEO_URL_AI_CONTENT",
+  "name": "P2_VIDEO_URL_AI_CONTENT",
   "nodes": [
     {
       "parameters": {
@@ -23,17 +23,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        -40,
-        1380
+        -1420,
+        1420
       ],
-      "id": "17fc3c3d-5e75-4b7b-89f9-88b1d58ccce9",
-      "name": "Get Links",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "ed2db600-279b-422d-8b88-67ab0cd9eb83",
+      "name": "Get Links"
     },
     {
       "parameters": {
@@ -118,10 +112,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        480,
-        1360
+        -900,
+        1400
       ],
-      "id": "80363f3c-14e1-4b9c-96ae-c85179c42d2d",
+      "id": "c8713e36-a10f-41cd-8b06-47bfd864c9ef",
       "name": "Switch"
     },
     {
@@ -131,10 +125,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2500,
-        2620
+        1120,
+        2660
       ],
-      "id": "c1769617-1c9d-4b98-8098-6dc7194387c3",
+      "id": "96b684b4-44bf-4658-86e2-e5ca0ae834ca",
       "name": "Change to mpeg"
     },
     {
@@ -144,10 +138,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        1480,
-        2600
+        100,
+        2640
       ],
-      "id": "fc728a00-51a9-4bc0-8772-1fc46ce19385",
+      "id": "0c4d5e9b-e3d0-4576-b77b-194d1a9d2270",
       "name": "TikTok Link Loop"
     },
     {
@@ -157,10 +151,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        1680,
-        1380
+        300,
+        1420
       ],
-      "id": "2ee4eb93-7b4b-4059-920c-c2cbbd3828e5",
+      "id": "20d13da1-a4df-4c92-a310-b84799c2269c",
       "name": "YouTube Link Loop"
     },
     {
@@ -267,17 +261,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        2200,
-        2440
+        820,
+        2480
       ],
-      "id": "a35e5132-f830-4e43-ae8f-fcbb85293310",
-      "name": "TikTok Complete",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "13eb09cd-fe8a-4914-ba72-c415dc16ec35",
+      "name": "TikTok Complete"
     },
     {
       "parameters": {
@@ -393,17 +381,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        2400,
-        2440
+        1020,
+        2480
       ],
-      "id": "d7231e69-f668-481c-97a6-aa227744afba",
-      "name": "TikTok create",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "1e177e50-e71d-47ba-a00f-43d91c9d75dc",
+      "name": "TikTok create"
     },
     {
       "parameters": {
@@ -509,17 +491,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        2500,
-        1180
+        1120,
+        1220
       ],
-      "id": "f34cdcbf-a8e0-4d25-9836-4439c8e1c393",
-      "name": "YouTube Complete",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "1b83243d-1e55-4348-a4f5-6a731a248590",
+      "name": "YouTube Complete"
     },
     {
       "parameters": {
@@ -636,17 +612,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        2780,
-        1180
+        1400,
+        1220
       ],
-      "id": "44d173cb-020b-453b-81f2-8dfa8bca820e",
-      "name": "YouTube Create",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "a0b5e756-3420-447a-b0b0-7f0eabcc3fde",
+      "name": "YouTube Create"
     },
     {
       "parameters": {
@@ -671,10 +641,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        3120,
-        1380
+        1740,
+        1420
       ],
-      "id": "e7aae75c-8819-4a8b-9aa3-f565d59858f8",
+      "id": "ba7f4100-9e87-4cb6-a8f0-d344a6c0b074",
       "name": "Select YouTube"
     },
     {
@@ -700,10 +670,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        3020,
-        2480
+        1640,
+        2520
       ],
-      "id": "77df0b9e-3473-403e-ae9b-60f060996398",
+      "id": "6cae9196-f733-44bd-a418-3e86b5eb8473",
       "name": "Select TikTok"
     },
     {
@@ -713,10 +683,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        3340,
-        2440
+        1960,
+        2480
       ],
-      "id": "4ec5a44b-fdab-44c7-95c9-5b33178227d6",
+      "id": "bc8b6339-9d66-47c9-8e6f-bb8597a1151c",
       "name": "Loop TikTok Scripts"
     },
     {
@@ -726,10 +696,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        3400,
-        1380
+        2020,
+        1420
       ],
-      "id": "497a0c38-e953-4690-8347-d42fcd3847bb",
+      "id": "ce8518ec-5bb2-46b8-9228-2db2356ed070",
       "name": "Loop YouTube Scripts"
     },
     {
@@ -739,10 +709,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3580,
-        2440
+        2200,
+        2480
       ],
-      "id": "cbf3099f-6803-44dd-8813-f9ada4d317af",
+      "id": "4783274e-c65f-40dd-be99-b2c77156fe1d",
       "name": "TikTok Get'em"
     },
     {
@@ -752,10 +722,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3660,
-        1380
+        2280,
+        1420
       ],
-      "id": "f4a9c321-fe9b-4134-835c-e034e790690d",
+      "id": "f9a14a12-4a01-4c14-8ab4-7248b317bf03",
       "name": "YouTube Get'em"
     },
     {
@@ -770,10 +740,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        3860,
-        2440
+        2480,
+        2480
       ],
-      "id": "e24e712d-66ce-40b0-b498-0e283c8b123a",
+      "id": "bd487265-c101-4d62-81ba-64ab237841fe",
       "name": "TikTok Repurpose",
       "onError": "continueRegularOutput"
     },
@@ -789,10 +759,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        3860,
-        1380
+        2480,
+        1420
       ],
-      "id": "fb7d7ca2-bcaf-4554-a765-34636256f19b",
+      "id": "21889810-f483-4e35-9914-843eb4f82f7b",
       "name": "YouTube Repurpose",
       "onError": "continueRegularOutput"
     },
@@ -921,17 +891,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        4220,
-        1380
+        2840,
+        1420
       ],
-      "id": "8a09fca7-4377-471f-bda7-1cf0988237fa",
-      "name": "Update YouTube Script",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "986fa13f-7bfa-40f6-ac26-913cfd4d0c88",
+      "name": "Update YouTube Script"
     },
     {
       "parameters": {
@@ -1058,17 +1022,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        4260,
-        2440
+        2880,
+        2480
       ],
-      "id": "931483d4-0fa6-459b-a8ed-f3ceadb2aac7",
-      "name": "Update TikTok Script",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "a27e1dc9-4954-4158-819f-293cd6e16027",
+      "name": "Update TikTok Script"
     },
     {
       "parameters": {
@@ -1094,17 +1052,11 @@
       "type": "n8n-nodes-base.airtableTool",
       "typeVersion": 2.1,
       "position": [
-        3960,
-        1660
+        2580,
+        1700
       ],
-      "id": "b0d41b21-d4b9-4d1a-9be3-dc237ab084f5",
-      "name": "Fetch Original Script YT",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "7b3803de-6d0b-4eec-8843-c07c862c9daf",
+      "name": "Fetch Original Script YT"
     },
     {
       "parameters": {
@@ -1130,17 +1082,11 @@
       "type": "n8n-nodes-base.airtableTool",
       "typeVersion": 2.1,
       "position": [
-        3920,
-        2740
+        2540,
+        2780
       ],
-      "id": "596136e2-428b-4d5e-b3b4-36febac1012d",
-      "name": "Fetch Original Script TT",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "7184737b-f636-4a64-89ea-81e247d4105e",
+      "name": "Fetch Original Script TT"
     },
     {
       "parameters": {
@@ -1149,10 +1095,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        4280,
-        2860
+        2900,
+        2900
       ],
-      "id": "3ff212c0-385c-42b8-b39e-4e6539fe33b0",
+      "id": "274cbb72-f318-4ec0-9c48-91b5f3d4a2c0",
       "name": "Parser TT"
     },
     {
@@ -1162,10 +1108,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        4140,
-        1660
+        2760,
+        1700
       ],
-      "id": "d59acade-c570-4e5d-9302-1ab46d989819",
+      "id": "47440ba6-1660-41be-96ab-a8d8126300c5",
       "name": "Parser YT"
     },
     {
@@ -1176,10 +1122,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        1620,
-        300
+        240,
+        340
       ],
-      "id": "a6e263eb-c27c-4042-8281-400ef0ce464f",
+      "id": "f419d9b0-e58a-404b-8aab-1928b9f2fa74",
       "name": "Instagram Link Loop"
     },
     {
@@ -1285,17 +1231,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        2100,
-        140
+        720,
+        180
       ],
-      "id": "127c3bd3-79f1-4d7e-b743-1d707cf69898",
-      "name": "Instagram Complete",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "9afcb1ce-085f-4fdd-9c97-b5d8d1661e26",
+      "name": "Instagram Complete"
     },
     {
       "parameters": {
@@ -1409,17 +1349,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        2340,
-        140
+        960,
+        180
       ],
-      "id": "e51d2e0c-be36-4606-9224-be894f7681f4",
-      "name": "Instagram Create",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "6c35da25-c6d8-447d-a800-a7edd4231706",
+      "name": "Instagram Create"
     },
     {
       "parameters": {
@@ -1444,10 +1378,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2860,
-        140
+        1480,
+        180
       ],
-      "id": "d22393f0-e688-447b-8030-7a77f54a2535",
+      "id": "9c0073df-7892-4047-b881-675582f182c0",
       "name": "Select Instagram"
     },
     {
@@ -1462,10 +1396,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        3580,
-        300
+        2200,
+        340
       ],
-      "id": "895822ba-31dd-4a5d-9a90-21c9bdcae10d",
+      "id": "dbaeb2fc-4d9d-4832-bb71-fa49dd7d8741",
       "name": "Instagram Repurpose",
       "onError": "continueRegularOutput"
     },
@@ -1493,17 +1427,11 @@
       "type": "n8n-nodes-base.airtableTool",
       "typeVersion": 2.1,
       "position": [
-        3680,
-        580
+        2300,
+        620
       ],
-      "id": "eface309-5968-47e0-845d-c3ae691a6273",
-      "name": "Fetch Original Script IG",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "8a6aa534-7ec1-4da7-8e41-b4c42075adf6",
+      "name": "Fetch Original Script IG"
     },
     {
       "parameters": {
@@ -1512,10 +1440,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        3120,
-        300
+        1740,
+        340
       ],
-      "id": "9f31ca40-21c5-4613-af52-031ae156ac59",
+      "id": "58ab0324-7c49-42c2-9d26-5557ecc54333",
       "name": "Loop Instagram Scripts"
     },
     {
@@ -1525,10 +1453,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3380,
-        300
+        2000,
+        340
       ],
-      "id": "ccce8772-d680-4bf2-8104-d21eb7cb8c0c",
+      "id": "28cde00b-650f-4e7b-87fe-02ef84a1a684",
       "name": "Instagram Get'em"
     },
     {
@@ -1656,17 +1584,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        3940,
-        300
+        2560,
+        340
       ],
-      "id": "e940888b-47d2-4aec-baca-71b2f20e652d",
-      "name": "Update Instagram Script",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "13faa0d3-a0d6-4f37-9d4c-4f106c0597cb",
+      "name": "Update Instagram Script"
     },
     {
       "parameters": {
@@ -1676,10 +1598,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2160,
-        2600
+        780,
+        2640
       ],
-      "id": "19ad6d23-f8b1-4cec-8e4e-55e5e1fcb1f6",
+      "id": "7d351624-6a0b-4eb5-ae44-e592af3abff5",
       "name": "Get TikTok Vid"
     },
     {
@@ -1690,10 +1612,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2100,
-        300
+        720,
+        340
       ],
-      "id": "0fc080ea-e4ba-429f-92d8-dbe6a61e16aa",
+      "id": "28847b74-5310-4dd5-b6f0-14102f2d6577",
       "name": "Get IG Vid"
     },
     {
@@ -1703,10 +1625,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        3860,
-        580
+        2480,
+        620
       ],
-      "id": "25ccf4be-4695-490d-95f8-be0e9a3c8ed3",
+      "id": "aa1b8cd7-4eed-441c-81f3-852454165766",
       "name": "Parser IG"
     },
     {
@@ -1722,10 +1644,10 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
       "position": [
-        -280,
-        1380
+        -1660,
+        1420
       ],
-      "id": "da3f13ac-9560-414e-ad3f-724b1ed89038",
+      "id": "aebd0dcf-a865-4dd0-a5e6-7efa39b7ef79",
       "name": "When Executed by Another Workflow"
     },
     {
@@ -1737,17 +1659,11 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        2300,
-        300
+        920,
+        340
       ],
-      "id": "e384d106-e31a-4767-afbf-08ca866e9bb8",
-      "name": "Whisper IG",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "8091a979-a3f8-44d7-b009-9f143caeb00a",
+      "name": "Whisper IG"
     },
     {
       "parameters": {
@@ -1759,17 +1675,11 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        2720,
-        2600
+        1340,
+        2640
       ],
-      "id": "6a7ba144-cf96-4828-8a5e-9fdbe1bec3e1",
-      "name": "Whisper TT",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "95203381-ffbe-45b7-b823-a20e3e599971",
+      "name": "Whisper TT"
     },
     {
       "parameters": {
@@ -1806,10 +1716,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1880,
-        2600
+        500,
+        2640
       ],
-      "id": "24e7c572-40a6-49c6-9c1f-347f4150bf6c",
+      "id": "2f5929c6-a5f4-4711-9ad9-75bbc598de4c",
       "name": "Get TikTok URL"
     },
     {
@@ -1847,10 +1757,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1900,
-        300
+        520,
+        340
       ],
-      "id": "87a8aaa1-cc0b-4574-8868-0eafc339e83c",
+      "id": "e07c7224-c2af-46c7-ae00-53bb15b3b5ff",
       "name": "Get IG URL"
     },
     {
@@ -1860,10 +1770,10 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        2800,
-        1380
+        1420,
+        1420
       ],
-      "id": "9a660f26-8023-4c4a-aceb-f3929a7cbf5b",
+      "id": "a8a0d849-acc1-4265-a816-119e898e534c",
       "name": "Wait",
       "webhookId": "50ccde18-17a0-4ef6-b99a-5203d3846156"
     },
@@ -1876,11 +1786,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1500,
-        1600
+        120,
+        1640
       ],
       "typeVersion": 1,
-      "id": "3436e8f6-8fc9-45d1-96c2-71a2fa846545",
+      "id": "8fec2507-2cd5-4c80-8d8a-deedaaf32a9b",
       "name": "Sticky Note5"
     },
     {
@@ -1892,11 +1802,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -100,
-        820
+        -1480,
+        860
       ],
       "typeVersion": 1,
-      "id": "730795c9-1a38-4e5d-8d26-bbc6cbcd9c59",
+      "id": "8f647851-f221-4ada-87ac-06a42c5ae70d",
       "name": "Sticky Note7"
     },
     {
@@ -1911,17 +1821,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        3420,
-        560
+        2040,
+        600
       ],
-      "id": "4a5aa107-5a87-47ab-9f96-5385e765e54f",
-      "name": "OpenAI Chat Model",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "3332a455-a4a7-4a6f-8608-c58284a93a72",
+      "name": "OpenAI Chat Model"
     },
     {
       "parameters": {
@@ -2046,17 +1950,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        2560,
-        140
+        1180,
+        180
       ],
-      "id": "5c058368-e1c9-4f30-88a8-f400a5106a5e",
-      "name": "Airtable",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "49aa26bc-4fca-441e-bd73-c653d165973d",
+      "name": "Airtable"
     },
     {
       "parameters": {
@@ -2086,10 +1984,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        200,
-        1380
+        -1180,
+        1420
       ],
-      "id": "2141898b-fd08-4128-95ca-3f2b398a64e1",
+      "id": "64ac4dc8-f370-46b6-b0ee-620a4eebcf0f",
       "name": "If"
     },
     {
@@ -2124,10 +2022,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2180,
-        1360
+        800,
+        1400
       ],
-      "id": "8ab27345-2c30-4c0f-a5ce-585b38156d26",
+      "id": "028787c9-ad77-4401-abcd-332e4e1b7264",
       "name": "Transcribe1"
     },
     {
@@ -2147,10 +2045,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2400,
-        1360
+        1020,
+        1400
       ],
-      "id": "074ab957-a304-4a6b-b621-21c6dc21f1b5",
+      "id": "533c2f9f-debc-4c32-abb1-80141ac8ca14",
       "name": "Edit Fields"
     },
     {
@@ -2165,17 +2063,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        3720,
-        1660
+        2340,
+        1700
       ],
-      "id": "c1faaf00-2139-402e-be59-962f4b4d3d46",
-      "name": "OpenAI Chat Model1",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "af3bf310-ed66-4c47-b4a4-dac107838c75",
+      "name": "OpenAI Chat Model1"
     },
     {
       "parameters": {
@@ -2185,11 +2077,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        5080,
-        820
+        3700,
+        860
       ],
       "typeVersion": 1,
-      "id": "dd59ba75-136c-4766-9d55-bce83156401a",
+      "id": "f2f1fff8-6490-4a49-9ae8-1a57d836e015",
       "name": "Sticky Note"
     },
     {
@@ -2315,17 +2207,11 @@
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
       "position": [
-        2680,
-        2400
+        1300,
+        2440
       ],
-      "id": "c3ff4167-5d82-4107-9e10-42887ba70fae",
-      "name": "Airtable1",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "3b18b935-42c9-40b1-8056-07e1151926f0",
+      "name": "Airtable1"
     },
     {
       "parameters": {
@@ -2339,17 +2225,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        3640,
-        2780
+        2260,
+        2820
       ],
-      "id": "1b2a3318-4b78-4830-9b89-0c2c2faaef87",
-      "name": "OpenAI Chat Model2",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "046cf986-b452-43d8-bf2e-b52a28612272",
+      "name": "OpenAI Chat Model2"
     },
     {
       "parameters": {
@@ -2359,11 +2239,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        6360,
-        840
+        4980,
+        880
       ],
       "typeVersion": 1,
-      "id": "6f5f4454-6be2-406b-b3d4-d59de7c4eaea",
+      "id": "56577577-a725-4968-9276-66773e2ca885",
       "name": "Sticky Note1"
     },
     {
@@ -2375,11 +2255,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1380,
-        -40
+        0,
+        0
       ],
       "typeVersion": 1,
-      "id": "146e9cb7-c172-4e57-b7c9-350d99f2a47b",
+      "id": "239f6fdb-19d1-4581-97f1-1c2510163a8d",
       "name": "Sticky Note2"
     },
     {
@@ -2391,11 +2271,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1400,
-        1100
+        20,
+        1140
       ],
       "typeVersion": 1,
-      "id": "39f892eb-a69b-47b0-9cbe-e84de97dd176",
+      "id": "e1dcd055-c64c-4340-b244-cfe073df92b3",
       "name": "Sticky Note3"
     },
     {
@@ -2407,28 +2287,12 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1380,
-        2200
+        0,
+        2240
       ],
       "typeVersion": 1,
-      "id": "4efc3743-8e66-4dee-bcec-342310aa51b9",
+      "id": "317150c4-93c4-43bc-a49b-dac52aed6328",
       "name": "Sticky Note4"
-    },
-    {
-      "parameters": {
-        "content": "## @igorzuevich \n**Автор** на [YouTube](https://www.youtube.com/@igorzuevich)",
-        "height": 240,
-        "width": 280,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        6140,
-        2400
-      ],
-      "typeVersion": 1,
-      "id": "78b02729-2fd5-4ef1-ae86-1baa676fa21b",
-      "name": "Sticky Note6"
     }
   ],
   "pinData": {},
@@ -3015,11 +2879,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "155bf910-b7cd-480a-9b13-e7572fcfca5a",
+  "versionId": "981c355b-f295-4189-a493-d8f67242a684",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "ih8mwjCX6nnDAnB6",
-  "tags": []
+  "id": "StBzXqTCQAFEGu31",
+  "tags": [
+    {
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
+    }
+  ]
 }

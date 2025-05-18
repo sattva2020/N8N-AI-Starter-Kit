@@ -1,5 +1,5 @@
 {
-  "name": "SHABLON_IZ_INSTAGRAM_P1_MASTER_AI_TELEGRAM",
+  "name": "SHABLON_INSTAGRAM_P1_MASTER_AI_CHAT",
   "nodes": [
     {
       "parameters": {
@@ -38,10 +38,10 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2,
       "position": [
-        420,
-        1020
+        -860,
+        880
       ],
-      "id": "ae3c9de9-0dae-4f91-b663-f1b15f65c2e1",
+      "id": "23163fb0-7480-45be-adb9-e2aa376f252c",
       "name": "Analyze Reels"
     },
     {
@@ -81,10 +81,10 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2,
       "position": [
-        600,
-        1020
+        -660,
+        860
       ],
-      "id": "adfa0107-50dc-41a9-8958-1a8c0a413354",
+      "id": "482f1aa9-c765-4cb7-af70-d3b8ad2decb0",
       "name": "Repurpose"
     },
     {
@@ -99,41 +99,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        100,
-        480
+        -1220,
+        600
       ],
-      "id": "9da63e64-9560-48bc-b33e-3570ae97cbc1",
-      "name": "ChatGPT",
-      "credentials": {
-        "openAiApi": {
-          "id": "XLvdxNcexKfUmGhl",
-          "name": "OpenAi account 3"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Telegram Trigger1').item.json.message.chat.id }}",
-        "text": "={{ $json.output }}",
-        "additionalFields": {
-          "appendAttribution": false
-        }
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        920,
-        320
-      ],
-      "id": "335045b2-23c5-4b2c-911e-1ad6766ed34b",
-      "name": "Telegram",
-      "webhookId": "927ce694-1b0f-40c8-8622-4d925e707ca4",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
+      "id": "5e344643-815d-45b0-921c-0621c2aafbc5",
+      "name": "ChatGPT"
     },
     {
       "parameters": {
@@ -159,17 +129,11 @@
       "type": "n8n-nodes-base.airtableTool",
       "typeVersion": 2.1,
       "position": [
-        720,
-        620
+        -500,
+        500
       ],
-      "id": "b480ec22-9aa8-4344-84e0-3c9830f60de2",
-      "name": "Fetch Instagram Reels",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "17a0cf91-fffc-4bbb-92a5-19f21a214cb5",
+      "name": "Fetch Instagram Reels"
     },
     {
       "parameters": {
@@ -195,17 +159,11 @@
       "type": "n8n-nodes-base.airtableTool",
       "typeVersion": 2.1,
       "position": [
-        860,
-        620
+        -340,
+        500
       ],
-      "id": "96d52ce7-fe11-4d57-b123-e79593c8d024",
-      "name": "Fetch Usernames",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "36f43b97-dfb8-4f0b-a0cd-6010c3525ad8",
+      "name": "Fetch Usernames"
     },
     {
       "parameters": {
@@ -244,10 +202,10 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2,
       "position": [
-        280,
-        1000
+        -1020,
+        860
       ],
-      "id": "8fe19e7a-cc04-4a1f-82f2-4d568374d297",
+      "id": "89cafed9-9114-41f5-95cf-8074488d0587",
       "name": "Find Competitors"
     },
     {
@@ -258,256 +216,17 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1360,
-        940
+        120,
+        880
       ],
       "typeVersion": 1,
-      "id": "54f4046f-3815-4449-be47-a345d1736ad5",
+      "id": "ed3e3ea4-bee6-4ad1-b9f6-74c04a9b9078",
       "name": "Sticky Note6"
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "dc04da2b-b648-42a4-9a04-bdf8a8d23508",
-              "name": "message.text",
-              "value": "={{ $('Telegram Trigger1').item.json.message.text }}{{ $json.text }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -60,
-        280
-      ],
-      "id": "e07bceb8-4949-4b23-b96d-5a4d35ad45fb",
-      "name": "Edit Fields"
-    },
-    {
-      "parameters": {
-        "updates": [
-          "message"
-        ],
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegramTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        -1420,
-        320
-      ],
-      "id": "ffb1d033-59cd-4524-8b4d-a319ae8d1239",
-      "name": "Telegram Trigger1",
-      "webhookId": "79408097-d284-4034-a6d7-65bb07b242ba",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $('Telegram Trigger1').item.json.message.text }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "exists",
-                      "singleValue": true
-                    },
-                    "id": "dd8451ae-fc03-49d0-a19e-2678a5f4ff64"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "text"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "id": "bc42e6d3-ad50-4188-a168-9c5696e74252",
-                    "leftValue": "={{ $('Telegram Trigger1').item.json.message.voice.file_id }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "exists",
-                      "singleValue": true
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "voice"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.2,
-      "position": [
-        -720,
-        300
-      ],
-      "id": "4ec38d84-6bc3-4c60-8082-4f625f74b61b",
-      "name": "Switch1"
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "fileId": "={{ $('Telegram Trigger1').item.json.message.voice.file_id }}"
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        -500,
-        460
-      ],
-      "id": "52fc1ca0-0acb-4315-be6d-7c7868b12d97",
-      "name": "Telegram3",
-      "webhookId": "0142b70e-e116-4fe0-bce6-bfc0fb8db9db",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "audio",
-        "operation": "transcribe",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.openAi",
-      "typeVersion": 1.8,
-      "position": [
-        -300,
-        460
-      ],
-      "id": "711fee0f-b727-42d7-ad2e-1c75a690abd8",
-      "name": "OpenAI1",
-      "credentials": {
-        "openAiApi": {
-          "id": "XLvdxNcexKfUmGhl",
-          "name": "OpenAi account 3"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "a9e919bb-8d22-4855-a7b6-a9e5a9f39778",
-              "leftValue": "={{ $json.message.chat.username }}",
-              "rightValue": "=igorzuevich\n",
-              "operator": {
-                "type": "string",
-                "operation": "notEquals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -1220,
-        320
-      ],
-      "id": "5c7757a9-b35b-470c-b593-24b550da30b5",
-      "name": "If1"
-    },
-    {
-      "parameters": {
-        "content": "### Проверка бота (обычно для AI Ассистентов используют)",
-        "height": 100,
-        "width": 220
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -1160,
-        480
-      ],
-      "typeVersion": 1,
-      "id": "e375357b-9756-4f7d-9b7b-41c4d3bce080",
-      "name": "Sticky Note7"
-    },
-    {
-      "parameters": {
-        "operation": "sendChatAction",
-        "chatId": "={{ $('Telegram Trigger1').item.json.message.chat.id }}"
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        -940,
-        300
-      ],
-      "id": "1e3d0eb9-a39f-4746-904b-ccf3e4834aec",
-      "name": "Telegram2",
-      "webhookId": "4f938fd7-6e62-45f5-9f45-118ed704bc35",
-      "credentials": {
-        "telegramApi": {
-          "id": "XUm07jZTU6o7G7Zz",
-          "name": "Telegram account 3 (Главный AI Помощник)"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "content": "### Подключите свой Telegram\n",
-        "height": 80,
-        "width": 180
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -1440,
-        500
-      ],
-      "typeVersion": 1,
-      "id": "69046549-e184-4d1b-a3cc-139de518a452",
-      "name": "Sticky Note9"
-    },
-    {
-      "parameters": {
         "promptType": "define",
-        "text": "={{ $json.message.text }}",
+        "text": "={{ $json.chatInput }}",
         "options": {
           "systemMessage": "=# Instagram Assistant Prompt\n\n## Role\nYou are a highly efficient, fun, and enthusiastic personal assistant specializing in Instagram. Your expertise allows you to expertly interpret user queries and seamlessly route them to the correct Instagram tool.\n\n## Task\nProcess all Instagram-related requests by identifying the intent—whether fetching, analyzing, deleting, repurposing reels or finding competitors—and then acting accordingly.\n\n## Instructions\n- **Fetching Reels**: show 10 records of only (username, caption, views, likes, shares and Record ID only)\n- **Fetching Usernames**: output these (username (hyperlink using URL) and followers)\n- **Repurposing reels**: fetch and send the corresponding Record ID only to the \"Repurpose\" tool\n- **Find competitors**: send the username only\n- **Analyze Reels**: send the username only\n- When asked to \"write usernames here\", you should access the Fetch Usernames tool and perform the necessary actions\n\n## Extras\n- Incorporate numeral emojis (e.g., 1️⃣, 2️⃣, 3️⃣) when listing steps and include emojis throughout your responses\n- Notify the user if a tool fails to respond\n- If no records exist, mention this to the user\n- If query is unclear, inform the user of the services you can provide\n- When fetching results, prioritize by highest Views number\n- The final answer must be in Russian\n\n## Constraints\n- Do not send the full script on completion of repurposing\n- Never display full captions if they exceed 60 characters; always truncate appropriately\n- If you are uncertain about the intended action, ask the user for more details before proceeding\n\n## Response After Task Completion\nWhen you receive \"Task has completed successfully\", respond that the task was successfully completed and explain what steps can be taken next."
         }
@@ -515,10 +234,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
       "position": [
-        400,
-        320
+        -860,
+        260
       ],
-      "id": "20d37d38-ea15-46c4-86b9-208bef23b8ff",
+      "id": "a09d9a80-23a7-422f-adde-4700fda06231",
       "name": "INSTAGRAM AGENT"
     },
     {
@@ -528,11 +247,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        320,
-        140
+        -920,
+        80
       ],
       "typeVersion": 1,
-      "id": "b21822f2-5ff7-403e-be70-a4fa7904b085",
+      "id": "27b8fee4-ee99-4749-b896-c8ba078d694e",
       "name": "Sticky Note10"
     },
     {
@@ -543,11 +262,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        1240,
-        60
+        0,
+        0
       ],
       "typeVersion": 1,
-      "id": "0cc588b9-9c58-447f-a481-ed0c60321681",
+      "id": "eb4ba8f6-d707-40c5-a132-df6fe9aa302b",
       "name": "Sticky Note"
     },
     {
@@ -558,26 +277,52 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2120,
-        60
+        880,
+        0
       ],
       "typeVersion": 1,
-      "id": "1637c842-ef33-4b4a-982b-9ac70f0d59d7",
+      "id": "ca2d9d1b-3c05-454f-9918-695a90ec4ea5",
       "name": "Sticky Note1"
     },
     {
-      "parameters": {
-        "sessionIdType": "customKey",
-        "sessionKey": "={{ $json.message.text }}"
-      },
+      "parameters": {},
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        300,
+        -1080,
         600
       ],
-      "id": "004d635d-037d-486d-913d-e2fbe79c3c4b",
+      "id": "482ea767-9a9b-40fd-b7b9-5eea4bb58d9b",
       "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "content": "### Подключите свой Telegram\n",
+        "height": 80,
+        "width": 180
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1940,
+        300
+      ],
+      "typeVersion": 1,
+      "id": "66c4f528-09e8-4045-9089-a89de16412dc",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1600,
+        260
+      ],
+      "id": "bd20d3f3-54be-41f3-abf3-7baf36696298",
+      "name": "When chat message received",
+      "webhookId": "a4176b94-4864-4315-b3b1-850192b5392e"
     }
   ],
   "pinData": {},
@@ -648,101 +393,6 @@
         ]
       ]
     },
-    "Edit Fields": {
-      "main": [
-        [
-          {
-            "node": "INSTAGRAM AGENT",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Telegram Trigger1": {
-      "main": [
-        [
-          {
-            "node": "If1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Switch1": {
-      "main": [
-        [
-          {
-            "node": "Edit Fields",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Telegram3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Telegram3": {
-      "main": [
-        [
-          {
-            "node": "OpenAI1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenAI1": {
-      "main": [
-        [
-          {
-            "node": "Edit Fields",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If1": {
-      "main": [
-        [
-          {
-            "node": "Telegram2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Telegram2": {
-      "main": [
-        [
-          {
-            "node": "Switch1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "INSTAGRAM AGENT": {
-      "main": [
-        [
-          {
-            "node": "Telegram",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Simple Memory": {
       "ai_memory": [
         [
@@ -753,24 +403,34 @@
           }
         ]
       ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "INSTAGRAM AGENT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "e278f4da-32cd-4c75-9670-707882068b7a",
+  "versionId": "349efa1e-4d60-4f67-82e1-9a7a98eba06d",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "ncaDbv1lYTzxrdCu",
+  "id": "7MnsWWa1eEVxZOCQ",
   "tags": [
     {
-      "createdAt": "2025-03-21T05:05:36.109Z",
-      "updatedAt": "2025-03-21T05:05:36.109Z",
-      "id": "O7fQsEJqI16T5o0y",
-      "name": "Сделано"
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
     }
   ]
 }

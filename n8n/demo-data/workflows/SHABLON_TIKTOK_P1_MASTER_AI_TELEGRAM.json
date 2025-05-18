@@ -1,6 +1,24 @@
 {
-  "name": "SHABLON_IZ_TIKTOK_P1_MASTER_AI_CHAT",
+  "name": "SHABLON_TIKTOK_P1_MASTER_AI_TELEGRAM",
   "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger1').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2860,
+        60
+      ],
+      "id": "872d3d12-1847-44f4-859c-4dee9a90cced",
+      "name": "Telegram",
+      "webhookId": "8e19d119-d6c6-4cdd-9a33-b5db8efbf08f"
+    },
     {
       "parameters": {
         "content": "## Найти конкурентов по поисковому запросу.\n\n## Например, \"найти конкурентов по запросу: дизайн веб-сайта\"",
@@ -9,11 +27,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -360,
-        1100
+        1300,
+        1680
       ],
       "typeVersion": 1,
-      "id": "b1bbcce0-fdcb-4a64-afd0-5a25a96aef8d",
+      "id": "2483564b-2a04-46c2-8d23-17f5e1cec257",
       "name": "Sticky Note"
     },
     {
@@ -24,11 +42,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        200,
-        1100
+        1860,
+        1680
       ],
       "typeVersion": 1,
-      "id": "34120914-e79d-4e1b-a247-fc1cda4b3e5d",
+      "id": "a135037c-0830-49f2-8478-de82855da9ff",
       "name": "Sticky Note1"
     },
     {
@@ -39,11 +57,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        920,
-        1100
+        2580,
+        1680
       ],
       "typeVersion": 1,
-      "id": "ebdf402c-083e-4649-ab41-5a542fd911c5",
+      "id": "9dec42b9-1772-4175-bf5d-8f90da2ff3c8",
       "name": "Sticky Note2"
     },
     {
@@ -55,11 +73,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        920,
-        940
+        2580,
+        1520
       ],
       "typeVersion": 1,
-      "id": "484e09ab-ea02-44cc-8057-7a76a6cb82d1",
+      "id": "866664ad-c7cb-4697-a3d3-b6d2d805c6d5",
       "name": "Sticky Note6"
     },
     {
@@ -71,11 +89,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        200,
-        1460
+        1860,
+        2040
       ],
       "typeVersion": 1,
-      "id": "134982c9-9059-4240-bd28-4bfd6c7a33ba",
+      "id": "ad2b3e00-2659-4e63-a2e4-7d45520411f8",
       "name": "Sticky Note8"
     },
     {
@@ -87,12 +105,196 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        220,
-        940
+        1880,
+        1520
       ],
       "typeVersion": 1,
-      "id": "ffd6ea8e-4f5c-4ac0-8f3a-c1ffd194e84b",
+      "id": "8b60c43a-e490-47be-9b22-268c24834c25",
       "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        520,
+        80
+      ],
+      "id": "a4080b18-2dd0-42e4-a9cf-81259649e8e4",
+      "name": "Telegram2",
+      "webhookId": "16829d61-0c27-46c8-8f60-e938afc2e572"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9d8e573-3830-4e93-9f74-4838b5ff49b5",
+              "name": "text",
+              "value": "={{ $('Telegram Trigger1').item.json.message.text }} {{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1380,
+        60
+      ],
+      "id": "b83fc102-261b-4bc3-bf10-5617df8e2ba1",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Telegram Trigger1').item.json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ca9cc06c-dcf8-457b-854b-4c03d3d15dcc",
+                    "leftValue": "={{ $('Telegram Trigger1').item.json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        740,
+        80
+      ],
+      "id": "a8754999-7c15-4e64-b5e9-fda0fc32d1ac",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1180,
+        400
+      ],
+      "id": "5d818bdd-9a7a-4b16-aa4b-c1282535884a",
+      "name": "OpenAI1"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Telegram Trigger1').item.json.message.voice.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        980,
+        380
+      ],
+      "id": "2e4e3e18-be5e-430a-a611-719346a8777f",
+      "name": "Telegram3",
+      "webhookId": "b7d85eca-45a9-4488-b15d-fb05d3568dc5"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "304de859-23d8-4e8b-a12d-446090cd40be",
+      "name": "Telegram Trigger1",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        80,
+        100
+      ],
+      "webhookId": "6ba075d8-f155-4150-82a2-735d52c0604c"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fef76fb8-7518-4bcd-8107-9ddca403149b",
+              "leftValue": "={{ $json.message.chat.id }}",
+              "rightValue": "={{ $json.message.chat.id }}",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        280,
+        100
+      ],
+      "id": "b0780359-9887-4757-be88-7904ea5d56f3",
+      "name": "If1"
     },
     {
       "parameters": {
@@ -103,12 +305,27 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -760,
-        1100
+        900,
+        1680
       ],
       "typeVersion": 1,
-      "id": "584c9c25-6256-49e4-a19f-d08861c9d1c5",
+      "id": "e9a583e5-6375-4fc7-931c-47e1fc657e52",
       "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## СТАРТ\n",
+        "height": 600,
+        "width": 1600
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "5ccbb97c-44a8-4805-86f1-b711b0b2443b",
+      "name": "Sticky Note5"
     },
     {
       "parameters": {
@@ -119,25 +336,25 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        60,
-        -580
+        1720,
+        0
       ],
       "typeVersion": 1,
-      "id": "e9e4dc8a-b981-43e9-87fb-28399d4ad3b3",
+      "id": "2d6cfa1c-8662-4814-b55c-d85849e52e33",
       "name": "Sticky Note7"
     },
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "={{ $json.sessionId }}"
+        "sessionKey": "={{ $('Telegram Trigger1').item.json.message.chat.id }}"
       },
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        480,
-        -120
+        2060,
+        500
       ],
-      "id": "37f76cd4-5701-4ea3-be8d-d3ca31dc84b0",
+      "id": "30378dba-2ef8-4bf6-8d96-2713b3229ce5",
       "name": "Simple Memory"
     },
     {
@@ -176,10 +393,10 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2,
       "position": [
-        660,
-        260
+        2320,
+        840
       ],
-      "id": "4906f750-57fe-43c1-af67-ceb41faa028d",
+      "id": "1b97b3c6-ae80-4b5c-bfa9-2ea6696ca28d",
       "name": "Top Posts"
     },
     {
@@ -219,10 +436,10 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2,
       "position": [
-        460,
-        280
+        2120,
+        860
       ],
-      "id": "b4acc011-2cc6-4539-a697-8f9c60c9e1f5",
+      "id": "ee319ed5-1d59-4c7b-bc8e-809dab2103ab",
       "name": "Find competitors"
     },
     {
@@ -262,10 +479,10 @@
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2,
       "position": [
-        880,
-        280
+        2540,
+        860
       ],
-      "id": "459be8e5-2f9c-4097-b324-c2a1695956be",
+      "id": "71dcf340-e892-41a7-a863-1d4951e107fa",
       "name": "Repurpose"
     },
     {
@@ -280,17 +497,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        140,
-        -100
+        1800,
+        480
       ],
-      "id": "91351ea7-cbd4-4946-af7e-060ea9d2afa2",
-      "name": "OpenAI Chat Model",
-      "credentials": {
-        "openAiApi": {
-          "id": "L72MI6qYBAu3BCux",
-          "name": "OpenAi account 2"
-        }
-      }
+      "id": "499dc292-bb27-4047-9c20-7438e00e165d",
+      "name": "OpenAI Chat Model"
     },
     {
       "parameters": {
@@ -317,17 +528,11 @@
       "type": "n8n-nodes-base.airtableTool",
       "typeVersion": 2.1,
       "position": [
-        1000,
-        0
+        2660,
+        580
       ],
-      "id": "e95a0beb-6308-49ca-85d1-4224dcb4ed58",
-      "name": "Fetch Posts",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "8f45fa08-c2ee-441a-a622-abe9bfd07820",
+      "name": "Fetch Posts"
     },
     {
       "parameters": {
@@ -353,22 +558,16 @@
       "type": "n8n-nodes-base.airtableTool",
       "typeVersion": 2.1,
       "position": [
-        1180,
-        -20
+        2840,
+        560
       ],
-      "id": "661b1b39-d648-4ad3-b170-6afcd4917487",
-      "name": "Fetch usernames",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "5a914e95-01a7-4590-b585-d180dbf353a4",
+      "name": "Fetch usernames"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ $json.chatInput }}",
+        "text": "={{ $json.text }}",
         "options": {
           "systemMessage": "=### Role:\nYou are a highly efficient, fun, and enthusiastic personal assistant specializing in Tik Tok. Your expertise allows you to expertly interpret user queries and seamlessly route them to the correct Tik Tok tool.\n\n### Task:\nProcess all Tik Tok-related requests by identifying the intent—whether fetching, analyzing, repurposing posts, finding competitors and getting top posts then acting accordingly.\n\n### Instructions:\n\n- Fetching posts: output these (caption (hyperlink to video using URL), username, views, likes, shares and Record ID)\n- Fetching usernames: Display 10 per request, output these (username (hyperlink to profile using URL), followers and Record ID)\n- Repurposing posts: fetch and send the corresponding Record ID only to the \"Repurpose\" tool.\n- Find competitors: send search term only (eg. ai automations)\n- Top Posts: fetch and send the corresponding Record ID only to the \"Top Posts\" tool.\n- Give the final answer in Russian.\n\n### Extras:\n- Notify the user if a tool fails to respond.\n- If no records exist, mention this to the user.\n- If query is unclear, inform the user of the services you can provide.\n- Format all lists extremely neatly wht line breaks.\n\n### Constraints:\n\n- Do not send the username to the \"Top Posts\" tool, but instead the Record ID.\n- Do not send the full script on completion of repurposing.\n- Never display full captions if they exceed 60 characters; always truncate appropriately.\n- If you are uncertain about the intended action, ask the user for more details before proceeding.\n- Don't use `\\n`, `&nbsp;` or other HTML/code characters - just regular spaces and line breaks.\n- Don't use emojis in your answer."
         }
@@ -376,44 +575,99 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.8,
       "position": [
-        560,
-        -480
+        2220,
+        100
       ],
-      "id": "60088231-3828-4a70-be78-c189b951f7c5",
+      "id": "660e714c-f4eb-4b5f-a61d-121de055ff2a",
       "name": "TikTok Agent"
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        -580,
-        -480
-      ],
-      "id": "a52a0909-9b6c-453c-b4a8-0230c8333211",
-      "name": "When chat message received",
-      "webhookId": "f032da40-58af-4928-bef1-29e680249111"
-    },
-    {
-      "parameters": {
-        "content": "## СТАРТ\n",
-        "height": 400,
-        "width": 460
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -760,
-        -600
-      ],
-      "typeVersion": 1,
-      "id": "7e530fd3-3d36-492a-bfa4-7d47886f08e1",
-      "name": "Sticky Note3"
     }
   ],
   "pinData": {},
   "connections": {
+    "Telegram2": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram3": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Telegram2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "TikTok Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Simple Memory": {
       "ai_memory": [
         [
@@ -493,14 +747,9 @@
     },
     "TikTok Agent": {
       "main": [
-        []
-      ]
-    },
-    "When chat message received": {
-      "main": [
         [
           {
-            "node": "TikTok Agent",
+            "node": "Telegram",
             "type": "main",
             "index": 0
           }
@@ -512,18 +761,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "bbf73b56-567f-4d85-b734-b5eaaf713f60",
+  "versionId": "7d5673b1-53fb-407e-a5c2-c42a6e8d9379",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "QjG15DwvOz31pnMn",
+  "id": "8BSCgZALP0KbNFyQ",
   "tags": [
     {
-      "createdAt": "2025-03-21T05:05:36.109Z",
-      "updatedAt": "2025-03-21T05:05:36.109Z",
-      "id": "O7fQsEJqI16T5o0y",
-      "name": "Сделано"
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
     }
   ]
 }

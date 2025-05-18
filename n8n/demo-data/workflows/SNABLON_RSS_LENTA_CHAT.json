@@ -1,5 +1,5 @@
 {
-  "name": "IGORZUEVICH_SNABLON_RSS_LENTA_CHAT",
+  "name": "SNABLON_RSS_LENTA_CHAT",
   "nodes": [
     {
       "parameters": {
@@ -8,10 +8,10 @@
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.1,
       "position": [
-        -620,
-        0
+        -1380,
+        140
       ],
-      "id": "e0400894-d30b-4f61-824b-871cffd3ff43",
+      "id": "a80375d6-9ef5-4391-b59a-c16a585389cb",
       "name": "When chat message received",
       "webhookId": "398ce4de-d6bf-4276-87d4-2c11f178c889"
     },
@@ -26,10 +26,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.8,
       "position": [
-        -120,
-        0
+        -880,
+        140
       ],
-      "id": "d366ccbe-d9f6-4728-ba24-fd7a8d12e28c",
+      "id": "29d7a092-89ee-4f72-a546-d2d270911cbe",
       "name": "AI Agent"
     },
     {
@@ -44,27 +44,21 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        -200,
-        280
+        -960,
+        420
       ],
-      "id": "12fd325d-b38e-4287-ac1f-98b0d39259bd",
-      "name": "OpenAI Chat Model",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "482d3bd5-da1f-4d61-b781-2594080cc4dc",
+      "name": "OpenAI Chat Model"
     },
     {
       "parameters": {},
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        -40,
-        280
+        -800,
+        420
       ],
-      "id": "ae7f1c13-6f48-4ef4-a5fe-55eee547b2f1",
+      "id": "1fc88b6f-f8b9-48c2-899f-bca641ad6f22",
       "name": "Simple Memory"
     },
     {
@@ -75,10 +69,10 @@
       "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
       "typeVersion": 1,
       "position": [
-        240,
-        360
+        -520,
+        500
       ],
-      "id": "0e645404-7578-4c72-a1f1-7fedefad57f7",
+      "id": "5a05a2b2-9f91-4117-b76e-bcb898d29a05",
       "name": "Answer questions with a vector store"
     },
     {
@@ -93,17 +87,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        360,
-        700
+        -400,
+        840
       ],
-      "id": "067820a3-b9a0-43b8-b2a8-113e60452af5",
-      "name": "OpenAI Chat Model1",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "1e4540c8-70ae-4769-861a-0fa467183d5c",
+      "name": "OpenAI Chat Model1"
     },
     {
       "parameters": {
@@ -118,17 +106,11 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "typeVersion": 1.1,
       "position": [
-        100,
-        520
+        -660,
+        660
       ],
-      "id": "19712324-9b0c-42c7-bcfe-c9ef169609b0",
-      "name": "Pinecone Vector Store",
-      "credentials": {
-        "pineconeApi": {
-          "id": "xHYJdGWUvOWZd8CK",
-          "name": "PineconeApi account"
-        }
-      }
+      "id": "782a6406-21ba-4fe4-8c23-df37f1c14df7",
+      "name": "Pinecone Vector Store"
     },
     {
       "parameters": {
@@ -138,17 +120,11 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
       "typeVersion": 1.2,
       "position": [
-        160,
-        700
+        -600,
+        840
       ],
-      "id": "d93322c1-eb74-41cb-9717-4a90a3f27f9e",
-      "name": "Embeddings OpenAI",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "ac1b8c29-91ff-4314-a587-c314f89ec5f6",
+      "name": "Embeddings OpenAI"
     },
     {
       "parameters": {
@@ -158,11 +134,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -800,
-        -120
+        -1560,
+        20
       ],
       "typeVersion": 1,
-      "id": "e546e66f-d61d-42ec-a66a-2a1d9317eecf",
+      "id": "e602202a-74db-400a-8544-9e0ac4e77cec",
       "name": "Sticky Note1"
     },
     {
@@ -174,11 +150,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -240,
-        -120
+        -1000,
+        20
       ],
       "typeVersion": 1,
-      "id": "c4368b51-deca-4cf7-a773-ea7eede0c315",
+      "id": "becd3fd3-2b0b-4725-be67-6eedfc341f1a",
       "name": "Sticky Note"
     },
     {
@@ -195,17 +171,11 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "typeVersion": 1,
       "position": [
-        2320,
-        40
+        1560,
+        180
       ],
-      "id": "adf118b2-8e37-4589-ac66-02bd998e51d5",
-      "name": "Pinecone Vector Store1",
-      "credentials": {
-        "pineconeApi": {
-          "id": "xHYJdGWUvOWZd8CK",
-          "name": "PineconeApi account"
-        }
-      }
+      "id": "5e8fa33e-8a8f-4616-9228-4da685e2192f",
+      "name": "Pinecone Vector Store1"
     },
     {
       "parameters": {
@@ -215,17 +185,11 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
       "typeVersion": 1.2,
       "position": [
-        2240,
-        300
+        1480,
+        440
       ],
-      "id": "e2429495-4462-49a8-88bd-a0bd7c18dad4",
-      "name": "Embeddings OpenAI1",
-      "credentials": {
-        "openAiApi": {
-          "id": "T7XqlsJ9D3iey8AW",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "265f620b-1261-4a97-ba12-4c95ff0eb151",
+      "name": "Embeddings OpenAI1"
     },
     {
       "parameters": {
@@ -251,10 +215,10 @@
       "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
       "typeVersion": 1,
       "position": [
-        2520,
-        240
+        1760,
+        380
       ],
-      "id": "8c7dce53-4a6a-4d8f-9c7f-c38b02732b97",
+      "id": "e81b610b-4379-426d-997f-492bac0baa6f",
       "name": "Default Data Loader"
     },
     {
@@ -262,10 +226,10 @@
       "type": "@n8n/n8n-nodes-langchain.textSplitterCharacterTextSplitter",
       "typeVersion": 1,
       "position": [
-        2580,
-        440
+        1820,
+        580
       ],
-      "id": "b6e2c996-7f55-497a-9fb2-384b9b5640bc",
+      "id": "c34e2175-c6fd-4ec2-9842-a17995920bc4",
       "name": "Character Text Splitter"
     },
     {
@@ -279,10 +243,10 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        840,
-        120
+        80,
+        260
       ],
-      "id": "72f30b0d-c3d6-43f2-b65d-598ebb1e32c1",
+      "id": "fb756084-c22f-4437-87c9-0c381727496a",
       "name": "Schedule Trigger"
     },
     {
@@ -292,10 +256,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        1280,
-        120
+        520,
+        260
       ],
-      "id": "5fd67ecd-3c42-4a92-b9ab-0ad3b966a5d4",
+      "id": "490f40c1-aff0-440e-9cb5-eaa1009bcd02",
       "name": "Loop Over Items"
     },
     {
@@ -306,10 +270,10 @@
       "type": "n8n-nodes-base.rssFeedRead",
       "typeVersion": 1.1,
       "position": [
-        1580,
-        240
+        820,
+        380
       ],
-      "id": "2cedf01c-e4ab-4abb-b89c-8b143c8f0cd9",
+      "id": "ba7612a1-dfe3-4f8f-a713-1db1e704fd06",
       "name": "RSS Read"
     },
     {
@@ -320,10 +284,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1820,
-        20
+        1060,
+        160
       ],
-      "id": "83d7a0a1-9db5-4234-b4d5-e31c24151677",
+      "id": "d2b1a39a-d077-4150-a354-4ccfc237b0f8",
       "name": "Get HTML"
     },
     {
@@ -333,10 +297,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1040,
-        120
+        280,
+        260
       ],
-      "id": "31442b45-9a17-4b39-a1df-f3346e50e901",
+      "id": "65d12f35-b5aa-492d-970e-71347e4131f3",
       "name": "Input RSS Feeds here"
     },
     {
@@ -346,10 +310,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2060,
-        20
+        1300,
+        160
       ],
-      "id": "e287f44f-d738-4316-89bf-6ee99e8d5783",
+      "id": "a4473e80-d158-4bab-b9f4-86a265e6149a",
       "name": "Clean up"
     },
     {
@@ -361,11 +325,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        760,
-        -140
+        0,
+        0
       ],
       "typeVersion": 1,
-      "id": "2904bcb6-c682-4703-8f05-5e70245315da",
+      "id": "54bb8fea-6fb0-4ce5-b8a1-e0c776dbfe75",
       "name": "Sticky Note3"
     },
     {
@@ -395,27 +359,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1520,
-        -60
+        760,
+        80
       ],
-      "id": "9da4abe5-5724-4ec0-8560-56454bedfc1d",
+      "id": "a218c7fe-71f9-4508-8c3f-25513428328f",
       "name": "If"
-    },
-    {
-      "parameters": {
-        "content": "## @igorzuevich \n**Автор** на [YouTube](https://www.youtube.com/@igorzuevich)",
-        "height": 240,
-        "width": 280,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -7800,
-        4500
-      ],
-      "typeVersion": 1,
-      "id": "f7498839-7a07-42af-a710-9f533616f4ab",
-      "name": "Sticky Note2"
     }
   ],
   "pinData": {},
@@ -619,11 +567,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "7cf3cf35-be77-4a62-8d68-d31f87899440",
+  "versionId": "8c0fb0bf-2e27-40bf-8fda-50e590f16c57",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "JNyIn6VPUMKLaOPI",
-  "tags": []
+  "id": "CFqvwjNENbH8zLAL",
+  "tags": [
+    {
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
+    }
+  ]
 }

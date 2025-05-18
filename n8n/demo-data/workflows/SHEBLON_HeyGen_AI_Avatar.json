@@ -1,5 +1,5 @@
 {
-  "name": "IZ_SHEBLON_HeyGen_AI_Avatar",
+  "name": "SHEBLON_HeyGen_AI_Avatar",
   "nodes": [
     {
       "parameters": {
@@ -28,10 +28,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2620,
-        980
+        280,
+        1020
       ],
-      "id": "528c614c-9b41-4002-bf05-9e53b29ed55c",
+      "id": "de15e3c9-19e6-466d-bb39-eecee8350ea1",
       "name": "Upload to Blotato"
     },
     {
@@ -55,10 +55,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2860,
-        180
+        520,
+        220
       ],
-      "id": "ac511c95-268f-458d-bb83-7c3120ea8911",
+      "id": "ffeea9e9-daff-48cd-9deb-5c408d7e0b92",
       "name": "[Instagram] Publish via Blotato"
     },
     {
@@ -82,10 +82,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2860,
-        520
+        520,
+        560
       ],
-      "id": "dfdd98bb-8b0b-4c5a-bff8-51bd68aecdf7",
+      "id": "f888ff89-6535-4e7a-aca5-69cfb67b23a3",
       "name": "[Facebook] Publish via Blotato",
       "disabled": true
     },
@@ -110,10 +110,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2960,
-        980
+        620,
+        1020
       ],
-      "id": "dbcf32ca-7a8e-4809-8ff8-fafcbfe09fc3",
+      "id": "db079f61-a662-45f1-9b15-43dcdc66b3a1",
       "name": "[Linkedin] Publish via Blotato",
       "disabled": true
     },
@@ -138,10 +138,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2860,
-        1380
+        520,
+        1420
       ],
-      "id": "cdb4c4a7-a192-46e6-8237-54e034a8e740",
+      "id": "ea9bee07-70ab-4640-960a-4f1bd635f713",
       "name": "[Tiktok] Publish via Blotato"
     },
     {
@@ -155,10 +155,10 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        2860,
-        1780
+        520,
+        1820
       ],
-      "id": "3f6b80da-c4f7-4f45-b67b-ddaa1919454d",
+      "id": "3edd898f-04de-426d-89e5-bc486a6d172e",
       "name": "OpenAI",
       "disabled": true
     },
@@ -189,10 +189,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3080,
-        1780
+        740,
+        1820
       ],
-      "id": "300c3aa6-d805-4069-b46f-649c18179af5",
+      "id": "a4e373df-0835-4677-8efd-f0d89a1073e3",
       "name": "Upload to Blotato - Image",
       "disabled": true
     },
@@ -217,10 +217,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3300,
-        1780
+        960,
+        1820
       ],
-      "id": "b5b11a13-5966-452d-9c4c-8720fc5237b2",
+      "id": "8a3553e1-c4d7-4c55-b665-2e6e6171ffc9",
       "name": "[Pinterest] Publish via Blotato",
       "disabled": true
     },
@@ -245,10 +245,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3220,
-        180
+        880,
+        220
       ],
-      "id": "12b6f0af-9e0a-4bfb-9c67-f9cbecfbeb67",
+      "id": "792d7f50-7a76-4cbf-8a2e-67f339325637",
       "name": "[Youtube] Publish via Blotato"
     },
     {
@@ -272,10 +272,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3220,
-        520
+        880,
+        560
       ],
-      "id": "cf7a0896-2c0f-4fe0-b820-d08f55f6ab0e",
+      "id": "478bc5ba-a1a7-4dfb-89b5-083496f25383",
       "name": "[Threads] Publish via Blotato",
       "disabled": true
     },
@@ -300,10 +300,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3260,
-        980
+        920,
+        1020
       ],
-      "id": "a0968e8c-a612-42a4-b09a-24b714b1e808",
+      "id": "52bb3734-d271-4dfb-a8e2-029f038c3722",
       "name": "[Twitter] Publish via Blotato"
     },
     {
@@ -327,10 +327,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3220,
-        1380
+        880,
+        1420
       ],
-      "id": "4ca73e5a-78d7-4972-ad1a-d7f416798e6f",
+      "id": "24f06c80-d33c-43c9-a09d-9d485c31acd2",
       "name": "[Bluesky] Publish via Blotato",
       "disabled": true
     },
@@ -347,10 +347,10 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        40,
-        960
+        -2300,
+        1000
       ],
-      "id": "bc0c5e71-9dba-432d-8d1d-07a4dc292520",
+      "id": "f6c808ad-41af-4c4b-8870-a39916a0e2a5",
       "name": "Schedule Trigger"
     },
     {
@@ -364,10 +364,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.8,
       "position": [
-        240,
-        960
+        -2100,
+        1000
       ],
-      "id": "f0734133-eba9-4853-a0f3-81c596946611",
+      "id": "f9e9a627-812d-49d0-96bf-9b7417420c5b",
       "name": "AI Agent"
     },
     {
@@ -380,10 +380,10 @@
       "type": "n8n-nodes-base.hackerNewsTool",
       "typeVersion": 1,
       "position": [
-        420,
-        1280
+        -1920,
+        1320
       ],
-      "id": "86400cfe-ad5b-41b2-9fac-2c573e694a44",
+      "id": "ea41b03a-56f5-496b-94f7-b83cff6253db",
       "name": "Fetch HN Article"
     },
     {
@@ -399,10 +399,10 @@
       "type": "n8n-nodes-base.hackerNewsTool",
       "typeVersion": 1,
       "position": [
-        300,
-        1280
+        -2040,
+        1320
       ],
-      "id": "8ae73383-1031-4463-ae71-a3abc3cf8415",
+      "id": "c304030c-42c3-4e0e-86ef-519cd9aacdc0",
       "name": "Fetch HN Front Page"
     },
     {
@@ -413,10 +413,10 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        1720,
-        980
+        -620,
+        1020
       ],
-      "id": "4a68cb9e-cedc-4b07-8a0c-ce5f218b4d87",
+      "id": "dd1bd685-6625-4fdf-84d9-0ee26f0682ad",
       "name": "Wait",
       "webhookId": "81b4ae9c-7a4b-4c1e-b6c6-7ced0b4010ab",
       "alwaysOutputData": false
@@ -434,10 +434,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        140,
-        1220
+        -2200,
+        1260
       ],
-      "id": "1c2371a9-c6c6-4f7e-bf16-2518941cce4b",
+      "id": "9d9fab3f-0217-4c5a-8101-f9c8067805f4",
       "name": "Write Script"
     },
     {
@@ -449,10 +449,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1200,
-        980
+        -1140,
+        1020
       ],
-      "id": "241c1777-0851-4582-9bbc-e1ad95d43242",
+      "id": "ee0e863a-f792-4d26-bd74-c5a7209bc621",
       "name": "Setup Heygen"
     },
     {
@@ -481,10 +481,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1920,
-        980
+        -420,
+        1020
       ],
-      "id": "fbde1968-c259-4d30-ab0f-5b3965e8899b",
+      "id": "f82d2a1f-58b0-4d74-875b-2d7c66d65fd7",
       "name": "Get Avatar Video"
     },
     {
@@ -497,10 +497,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -20,
-        680
+        -2360,
+        720
       ],
-      "id": "e50f882e-2cec-4cdb-9d6c-689663271f89",
+      "id": "e7ad7772-fd57-4ce1-8de2-12e5ec424b5a",
       "name": "Sticky Note"
     },
     {
@@ -513,10 +513,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        1100,
-        680
+        -1240,
+        720
       ],
-      "id": "910341e8-5646-40b3-ab8d-27966e814b49",
+      "id": "61615dde-f23f-4ced-9edc-2833723b96c8",
       "name": "Sticky Note1"
     },
     {
@@ -529,10 +529,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        2340,
-        -40
+        0,
+        0
       ],
-      "id": "7e82743f-4d40-48f2-84a3-f5cc0377f74f",
+      "id": "ea88d7bb-31dd-4a1d-9dbd-55236405f56f",
       "name": "Sticky Note2"
     },
     {
@@ -544,10 +544,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2420,
-        980
+        80,
+        1020
       ],
-      "id": "2eb24755-55cd-41b3-af3a-a53f46e68864",
+      "id": "eaa33f04-6c92-4ae5-942c-74fabda201c6",
       "name": "Prepare for Publish"
     },
     {
@@ -570,10 +570,10 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        600,
-        840
+        -1740,
+        880
       ],
-      "id": "3376f599-48eb-4b34-83c3-306fcfe0d2a8",
+      "id": "d95c4c47-4542-424e-a849-107449b070f9",
       "name": "Write Long Caption"
     },
     {
@@ -596,10 +596,10 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        620,
-        1280
+        -1720,
+        1320
       ],
-      "id": "17b1cd40-ca3e-415a-96b3-9cfdd4221860",
+      "id": "8eb13110-d42b-4172-b4bf-eba7bec95b47",
       "name": "Write Short Caption"
     },
     {
@@ -623,10 +623,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1440,
-        980
+        -900,
+        1020
       ],
-      "id": "a00b7755-fb93-4459-97a4-31f90ff94953",
+      "id": "ed60ee77-08bd-48bf-8821-656bd1458b73",
       "name": "Create Avatar Video"
     },
     {
@@ -639,10 +639,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        1300,
-        1240
+        -1040,
+        1280
       ],
-      "id": "d8c90a04-7145-4a12-a5ba-13b5c8d99a2d",
+      "id": "f715f03a-10db-4406-a732-81ad24ad8809",
       "name": "Sticky Note3"
     },
     {
@@ -655,10 +655,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        2400,
-        1200
+        60,
+        1240
       ],
-      "id": "0799d12f-0554-42ce-ba79-5fbfdce2a391",
+      "id": "c4437553-a3e7-4b2a-96d1-6144ffed14c5",
       "name": "Sticky Note4"
     },
     {
@@ -670,11 +670,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -1100,
-        680
+        -3440,
+        720
       ],
       "typeVersion": 1,
-      "id": "db71a0fc-a913-492a-b9ce-5f5e0cca472b",
+      "id": "5b9d829b-f187-4565-9fa1-027f3fedf77a",
       "name": "Sticky Note5"
     },
     {
@@ -686,11 +686,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -2160,
-        680
+        -4500,
+        720
       ],
       "typeVersion": 1,
-      "id": "cb05ca93-55f6-4fad-b45d-f4f9528dc045",
+      "id": "5c1b2831-f243-44cd-ace7-2d9cb29343a0",
       "name": "Sticky Note6"
     },
     {
@@ -702,11 +702,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -920,
-        1600
+        -3260,
+        1640
       ],
       "typeVersion": 1,
-      "id": "81406a71-8462-41cb-8b68-2dfbea7d7621",
+      "id": "110eb52e-e395-48d5-bd68-a299a760d010",
       "name": "Sticky Note7"
     },
     {
@@ -729,10 +729,10 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
       "position": [
-        620,
-        1060
+        -1720,
+        1100
       ],
-      "id": "66821ad2-efc0-48c4-b974-885abe993d11",
+      "id": "14367161-fb91-460d-98f5-cfe780105484",
       "name": "Write Title"
     },
     {
@@ -744,11 +744,11 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -920,
-        1960
+        -3260,
+        2000
       ],
       "typeVersion": 1,
-      "id": "ad6192ec-034d-49e8-87e6-ff8325bbc868",
+      "id": "dfff2df6-fea3-42f5-b621-8011e52431a3",
       "name": "Sticky Note8"
     }
   ],
@@ -975,18 +975,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "a9e4f4e0-5b9b-438f-a785-3ff3518b5e9a",
+  "versionId": "59562fa6-a3a9-43fe-af8b-5ad691db3719",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "z0j7GJOFSjGVX6Lf",
+  "id": "2bjjX8Lu1d0xkxxe",
   "tags": [
     {
-      "createdAt": "2025-03-21T05:05:36.109Z",
-      "updatedAt": "2025-03-21T05:05:36.109Z",
-      "id": "O7fQsEJqI16T5o0y",
-      "name": "Сделано"
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
     }
   ]
 }

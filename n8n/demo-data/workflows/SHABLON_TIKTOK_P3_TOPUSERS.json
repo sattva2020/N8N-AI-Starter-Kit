@@ -1,5 +1,5 @@
 {
-  "name": "SHABLON_IZ_TIKTOK_P3_TOPUSERS",
+  "name": "SHABLON_TIKTOK_P3_TOPUSERS",
   "nodes": [
     {
       "parameters": {
@@ -42,7 +42,7 @@
         80,
         160
       ],
-      "id": "daa4fdef-2e27-48fd-8944-f39a01f5d327",
+      "id": "542cf62e-3c6d-4b20-b32f-b38ff36a9259",
       "name": "Get Top Posts"
     },
     {
@@ -61,7 +61,7 @@
         -280,
         160
       ],
-      "id": "10f01427-ab2d-41a5-9a2f-4b959a18c6b0",
+      "id": "7ca16722-23ba-4cf6-811a-f65db815bd8e",
       "name": "When Executed by Another Workflow"
     },
     {
@@ -89,14 +89,8 @@
         -100,
         160
       ],
-      "id": "f68c0ae2-db11-48b7-a42b-1bfc7ab05906",
-      "name": "Get Records",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "25bfab6d-d4b4-467e-b58c-b6f97e44c81e",
+      "name": "Get Records"
     },
     {
       "parameters": {
@@ -109,7 +103,7 @@
         260,
         160
       ],
-      "id": "1b010499-6b90-48da-8dbf-0f2bac9843a7",
+      "id": "083353b6-6022-41ee-8fd8-d5d94bc9003c",
       "name": "Split Out"
     },
     {
@@ -186,7 +180,7 @@
         -280,
         420
       ],
-      "id": "d518939e-c0e5-4de7-84c7-c812612f9f27",
+      "id": "756f47f2-458a-40f7-a616-2f7a397887a4",
       "name": "Specifics"
     },
     {
@@ -199,7 +193,7 @@
         200,
         420
       ],
-      "id": "1e3567ef-e054-47a3-93fe-57afc2951ede",
+      "id": "b35f9449-6995-46ba-9eee-d3f0fa3d21e3",
       "name": "Get URLs"
     },
     {
@@ -212,7 +206,7 @@
         400,
         420
       ],
-      "id": "b67d4138-6b8f-4f93-9347-4d13955ae18c",
+      "id": "6e9e137e-b766-47e3-b25d-74d9ff379c95",
       "name": "Calculate Share %"
     },
     {
@@ -379,14 +373,8 @@
         640,
         420
       ],
-      "id": "c191b2ba-dafc-4290-ba28-ee4f948f5fe4",
-      "name": "Send the goodies",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
+      "id": "3cfdd9eb-3f38-4172-8c56-cbf5e9b7879c",
+      "name": "Send the goodies"
     },
     {
       "parameters": {
@@ -401,7 +389,7 @@
         0
       ],
       "typeVersion": 1,
-      "id": "c862c3e8-8c08-400a-a045-fd1953a01662",
+      "id": "13f08189-15df-4e3b-8f97-4d89efa0193c",
       "name": "Sticky Note"
     },
     {
@@ -414,7 +402,7 @@
         1060,
         420
       ],
-      "id": "0a4a4de4-bf5f-460c-b6ff-baa37762a2e6",
+      "id": "cc28536c-8e2d-40cf-a0d6-f9daf4b4635e",
       "name": "Success"
     },
     {
@@ -448,7 +436,7 @@
         -100,
         420
       ],
-      "id": "7637d282-9452-4c56-b308-a24aa35c37ab",
+      "id": "1cf04b45-58f8-4f2c-af84-361c0c41aee7",
       "name": "If"
     },
     {
@@ -462,7 +450,7 @@
         660
       ],
       "typeVersion": 1,
-      "id": "dd4f1151-4c2f-4f40-b438-19bd1d61f4ca",
+      "id": "ccd0a7c5-104e-481f-a6ee-0feec6a3adef",
       "name": "Sticky Note1"
     },
     {
@@ -477,7 +465,7 @@
         620
       ],
       "typeVersion": 1,
-      "id": "e99e99e7-2b94-454b-85e4-6018943ffaac",
+      "id": "98331809-d1ff-47e2-a892-f5abcb8861df",
       "name": "Sticky Note2"
     },
     {
@@ -492,7 +480,7 @@
         240
       ],
       "typeVersion": 1,
-      "id": "010f47cb-a31d-40e5-a7fd-119bc8e1499b",
+      "id": "c835522e-4634-49f5-b879-178ef441662a",
       "name": "Sticky Note3"
     },
     {
@@ -666,30 +654,8 @@
         820,
         420
       ],
-      "id": "a76c8b09-8f10-4386-ba70-17148e9d63b6",
-      "name": "Send the goodies1",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "I2xyDRh4mGB6rGH2",
-          "name": "Airtable Personal Access Token account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "content": "## @igorzuevich \n**Автор** на [YouTube](https://www.youtube.com/@igorzuevich)",
-        "height": 240,
-        "width": 280,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        -1860,
-        2380
-      ],
-      "typeVersion": 1,
-      "id": "0e161b42-0b46-4566-be3d-3129076a6166",
-      "name": "Sticky Note4"
+      "id": "4d768fdd-51ad-4097-bd56-36e07ac7b68c",
+      "name": "Send the goodies1"
     }
   ],
   "pinData": {
@@ -817,18 +783,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "59aeda73-c8c9-48bd-9d84-592f9aaee6fa",
+  "versionId": "0fabeae4-88d7-496d-be6e-3104f2e0bc04",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "479931a9b1c0980217b795eef202ec08aa8efa5933ee558f5e5c7dc32b0cdc9e"
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
   },
-  "id": "9F0MkijT4umsbTPV",
+  "id": "2tORpMk4myQeXjnH",
   "tags": [
     {
-      "createdAt": "2025-03-21T05:05:36.109Z",
-      "updatedAt": "2025-03-21T05:05:36.109Z",
-      "id": "O7fQsEJqI16T5o0y",
-      "name": "Сделано"
+      "createdAt": "2025-05-18T15:19:33.676Z",
+      "updatedAt": "2025-05-18T15:19:33.676Z",
+      "id": "naJjhtxzTdEq62Pb",
+      "name": "проверил"
     }
   ]
 }
