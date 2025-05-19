@@ -137,7 +137,7 @@ newgrp docker
 ```
 
 
-# Проверка установки
+#### Проверка установки
 ```bash
 docker --version
 docker compose version
@@ -269,7 +269,7 @@ docker compose up -d --force-recreate
 docker compose --profile cpu pull
 docker compose --profile cpu up -d --force-recreate
 ```
-### Система мониторинга в профиле developer
+## Система мониторинга в профиле developer
 
 Профиль "developer" включает в себя полноценную систему мониторинга на основе стека Prometheus + Grafana + Loki:
 
