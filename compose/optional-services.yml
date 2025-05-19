@@ -14,6 +14,7 @@ volumes:
   elasticsearch_data:
   kibana_data:
 
+# Используем сети, определенные в основном файле docker-compose.yml
 networks:
   frontend:
     external: true

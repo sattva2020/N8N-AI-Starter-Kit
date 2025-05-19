@@ -42,7 +42,8 @@ jupyter_ds_token=$(openssl rand -base64 24 | tr -d "=" | tr -d "/+")
 
 # Генерация хэша пароля для Traefik Dashboard
 read -p "Введите пароль для панели управления Traefik: " traefik_pwd
-traefik_pwd_hash=$(openssl passwd -apr1 $traefik_pwd)
+traefik_pwd_hash=$(openssl passwd -apr1 "$traefik_pwd")
+echo "Сгенерированный хеш пароля: $traefik_pwd_hash"
 
 # Запрос API ключа OpenAI
 read -p "Введите ваш OpenAI API ключ (или оставьте пустым, чтобы настроить позже): " openai_key

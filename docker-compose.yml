@@ -12,16 +12,18 @@ volumes:
   traefik_letsencrypt:
   jupyter_data:
 
+# Определяем сети, которые будут использоваться во всех файлах композиции
+# Важно отметить, что импортируемые файлы должны использовать эти сети как внешние
 networks:
   frontend:
+    external: false
     name: frontend-network
-    driver: bridge
   backend:
+    external: false
     name: backend-network
-    driver: bridge
   database:
+    external: false
     name: database-network
-    driver: bridge
 
 # Общие конфигурации сервисов
 x-service-defaults: &service-defaults
