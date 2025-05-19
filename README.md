@@ -68,7 +68,47 @@
 
 # Установка
 
-#### Установка необходимых пакетов
+## Быстрая установка (рекомендуется)
+
+Самый простой способ установить и настроить N8N AI Starter Kit — использовать автоматический скрипт установки. Этот метод автоматизирует весь процесс настройки, включая создание `.env` файла со случайными безопасными паролями.
+
+```bash
+# Клонирование репозитория
+git clone https://github.com/sattva2020/N8N-AI-Starter-Kit.git
+cd N8N-AI-Starter-Kit
+
+# Установка прав на выполнение для скриптов
+chmod +x scripts/*.sh
+
+# Запуск скрипта автоматической установки
+./scripts/setup.sh
+```
+
+#### После успешного выполнения скрипта установки вы можете запустить проект с нужным профилем:
+
+```bash
+# Для стандартной конфигурации на CPU (по умолчанию)
+docker compose --profile cpu up -d
+
+# Для конфигурации с NVIDIA GPU
+docker compose --profile gpu-nvidia up -d
+
+# Для конфигурации с AMD GPU
+docker compose --profile gpu-amd up -d
+
+# Для минимальной конфигурации (только основные сервисы)
+docker compose --profile minimal up -d
+
+# Для расширенной конфигурации разработчика (с JupyterLab, pgAdmin и др.)
+docker compose --profile developer up -d
+```
+
+#### Ручная установка (для опытных пользователей)
+
+Если вы предпочитаете настроить каждый компонент вручную, следуйте инструкциям ниже.
+
+* Установка необходимых пакетов
+
 ```bash
 sudo apt update
 sudo apt install -y ca-certificates curl git gnupg
@@ -98,6 +138,7 @@ newgrp docker
 
 
 # Проверка установки
+```bash
 docker --version
 docker compose version
 ```
