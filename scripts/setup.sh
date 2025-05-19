@@ -199,8 +199,38 @@ install_required_utils
 print_banner
 detect_os
 
+# Функция для проверки сетевого подключения
+check_network_connectivity() {
+  print_info "Проверка сетевого подключения..."
+  
+  # Проверка доступности Docker Hub
+  if curl -s --connect-timeout 5 https://registry.hub.docker.com/_ping > /dev/null; then
+    print_success "Соединение с Docker Hub: OK"
+  else
+    print_warning "Не удается подключиться к Docker Hub. Это может вызвать проблемы при загрузке образов."
+  fi
+  
+  # Проверка доступности GitHub (для загрузки Docker Compose)
+  if curl -s --connect-timeout 5 https://api.github.com > /dev/null; then
+    print_success "Соединение с GitHub: OK"
+  else
+    print_warning "Не удается подключиться к GitHub. Это может вызвать проблемы при установке Docker Compose."
+  fi
+  
+  # Проверка доступности Let's Encrypt (для SSL-сертификатов)
+  if curl -s --connect-timeout 5 https://acme-v02.api.letsencrypt.org/directory > /dev/null; then
+    print_success "Соединение с Let's Encrypt: OK"
+  else
+    print_warning "Не удается подключиться к Let's Encrypt. Это может вызвать проблемы при получении SSL-сертификатов."
+  fi
+}
+
 # Вызов функции проверки сетевого подключения
-check_network_connectivity
+if command -v curl &> /dev/null; then
+  check_network_connectivity
+else
+  print_warning "Команда curl не найдена. Пропускаем проверку сетевого подключения."
+fi
 
 # Функция для создания файла с советами по устранению неполадок
 create_troubleshooting_file() {
@@ -646,9 +676,10 @@ elif command -v docker-compose >/dev/null 2>&1; then
   # Используем старую команду docker-compose (с дефисом)
   DC_CMD="docker-compose"
   print_success "Обнаружена команда docker-compose (старый формат)"
-else
-  print_warning "Docker Compose не обнаружен. Хотите установить Docker Compose? (y/n)"
-  read install_compose  if [ "$install_compose" = "y" ]; then
+else  print_warning "Docker Compose не обнаружен. Хотите установить Docker Compose? (y/n)"
+  read install_compose
+  
+  if [ "$install_compose" = "y" ]; then
     print_info "Установка Docker Compose..."
     
     if [[ "$OS_TYPE" == *"Ubuntu"* ]] || [[ "$OS_TYPE" == *"Debian"* ]]; then
@@ -695,8 +726,60 @@ else
   fi
 fi
 
+# Проверка доступности портов
+check_port_availability() {
+  print_info "Проверка доступности портов..."
+  
+  # Массив с необходимыми портами
+  local ports=(80 443)
+  local port_issues=false
+  
+  for port in "${ports[@]}"; do
+    # В Linux проверяем через netstat или ss
+    if command -v netstat &> /dev/null; then
+      if netstat -tuln | grep -q ":$port "; then
+        print_error "Порт $port уже используется другой программой."
+        port_issues=true
+      else
+        print_success "Порт $port доступен."
+      fi
+    elif command -v ss &> /dev/null; then
+      if ss -tuln | grep -q ":$port "; then
+        print_error "Порт $port уже используется другой программой."
+        port_issues=true
+      else
+        print_success "Порт $port доступен."
+      fi
+    # В macOS проверяем через lsof
+    elif command -v lsof &> /dev/null; then
+      if lsof -i :$port -sTCP:LISTEN &> /dev/null; then
+        print_error "Порт $port уже используется другой программой."
+        port_issues=true
+      else
+        print_success "Порт $port доступен."
+      fi
+    else
+      print_warning "Не удалось проверить доступность порта $port. Убедитесь, что порты 80 и 443 не заняты другими программами."
+    fi
+  done
+  
+  if [ "$port_issues" = true ]; then
+    print_warning "Обнаружены проблемы с портами. Traefik требует доступные порты 80 и 443 для работы с Let's Encrypt и SSL."
+    print_info "Вы можете продолжить установку, но могут возникнуть проблемы с SSL-сертификатами."
+    read -p "Продолжить установку? (y/n): " continue_setup
+    if [ "$continue_setup" != "y" ]; then
+      print_info "Установка прервана пользователем."
+      exit 1
+    fi
+  fi
+}
+
 # Проверка системных требований
-check_port_availability
+if command -v netstat &> /dev/null || command -v ss &> /dev/null || command -v lsof &> /dev/null; then
+  check_port_availability
+else
+  print_warning "Команды для проверки портов не найдены. Пропускаем проверку доступности портов."
+fi
 check_memory_requirements
 check_cpu_resources
 
