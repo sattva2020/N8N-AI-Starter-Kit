@@ -835,7 +835,8 @@ PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
 # ---- TRAEFIK НАСТРОЙКИ ----
 ACME_EMAIL=${email}
 TRAEFIK_USERNAME=admin
-TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
+# Экранируем символы $ в хеше пароля для правильной обработки в Docker Compose
+TRAEFIK_PASSWORD_HASHED=$(echo "${traefik_pwd_hash}" | sed 's/\$/\$\$/g')
 
 # ---- ZEP НАСТРОЙКИ ----
 ZEP_POSTGRES_USER=postgres
