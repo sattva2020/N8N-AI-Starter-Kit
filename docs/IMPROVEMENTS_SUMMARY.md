@@ -4,6 +4,15 @@
 
 We've made significant improvements to the setup script (`scripts/setup.sh`) to enhance its reliability, compatibility, and user experience.
 
+### Latest Fixes (May 2025)
+
+1. **Critical Script Errors Fixed**
+   - Fixed undefined `DC_CMD` variable by moving its definition to the beginning of script
+   - Eliminated duplicate function definitions (`check_port_availability`, `check_cpu_resources`, `check_memory_requirements`)
+   - Fixed syntax error in `read install_compose` command
+   - Properly ordered function definitions to ensure they're defined before first use
+   - See [MAY_2025_UPDATE.md](./MAY_2025_UPDATE.md) for detailed information
+
 ### Core Improvements
 
 1. **Multi-Platform OS Support**
