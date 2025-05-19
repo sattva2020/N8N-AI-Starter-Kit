@@ -460,6 +460,8 @@ crontab -e
 В n8n создайте новый workflow "System Backup"
 Добавьте узел "Schedule" (расписание) и настройте желаемую периодичность выполнения
 Добавьте узел "Execute Command" со следующей конфигурацией:
+```
 Command: bash
 Arguments: -c, cd /data && ../scripts/backup.sh >> /data/logs/backup.log 2>&1
+```
 Не забудьте активировать workflow после создания
