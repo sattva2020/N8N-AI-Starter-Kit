@@ -86,7 +86,7 @@ PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
 # ---- TRAEFIK НАСТРОЙКИ ----
 ACME_EMAIL=${email}
 TRAEFIK_USERNAME=admin
-TRAEFIK_PASSWORD_HASHED=\${traefik_pwd_hash}
+TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
 
 # ---- ZEP НАСТРОЙКИ ----
 ZEP_POSTGRES_USER=postgres
