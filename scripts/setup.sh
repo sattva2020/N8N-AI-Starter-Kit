@@ -134,9 +134,15 @@ EOF
 
 echo -e "\nФайл .env успешно создан!"
 echo -e "\nНастройка завершена!"
-echo "Для запуска проекта выполните: docker compose --profile cpu up -d"
-echo -e "\nДля запуска с GPU Nvidia выполните:"
-echo "docker compose --profile gpu-nvidia up -d"
-echo -e "\nДля запуска с GPU AMD выполните:"
-echo "docker compose --profile gpu-amd up -d"
+
+echo -e "\n--- Доступные профили запуска ---"
+echo "Основные профили:"
+echo "docker compose --profile cpu up -d           # Стандартный набор сервисов на CPU (по умолчанию)"
+echo "docker compose --profile minimal up -d       # Минимальный набор сервисов (n8n, postgres, ollama)"
+echo "docker compose --profile developer up -d     # Расширенный набор для разработки (с pgAdmin, JupyterLab и др.)"
+
+echo -e "\nПрофили для GPU:"
+echo "docker compose --profile gpu-nvidia up -d    # Стандартный набор с поддержкой NVIDIA GPU"
+echo "docker compose --profile gpu-amd up -d       # Стандартный набор с поддержкой AMD GPU"
+
 echo -e "\nВажно: Сохраните копию файла .env в безопасном месте!"
