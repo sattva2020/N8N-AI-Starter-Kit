@@ -1,6 +1,9 @@
 #!/bin/bash
 # filepath: scripts/setup.sh
-# Версия: 1.5.1 - Исправленная версия с устранением ошибок и улучшенной поддержкой ОС и проверками системы
+# Версия: 1.5.3 - Исправленная версия с лимитом параллельной загрузки контейнеров для решения ошибки concurrent map writes
+
+# Set parallel container limit to prevent concurrent map writes error
+export COMPOSE_PARALLEL_LIMIT=1
 
 # Цвета для вывода
 RED='\033[0;31m'
@@ -108,14 +111,12 @@ detect_os() {
 # Функция для проверки корректности формата доменного имени
 validate_domain_name() {
   local domain=$1
-  # Регулярное выражение для проверки домена
-  # Простое выражение: может содержать буквы, цифры, дефисы и точки, не начинается/заканчивается дефисом, содержит хотя бы одну точку
-  local domain_regex="^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
-  
+  # Новое регулярное выражение для проверки домена
+  local domain_regex="^([a-zA-Z0-9](-?[a-zA-Z0-9]){0,62}\.)+[a-zA-Z]{2,}$"
   if [[ $domain =~ $domain_regex ]]; then
-    return 0  # Валидный домен
+    return 0
   else
-    return 1  # Невалидный домен
+    return 1
   fi
 }
 
@@ -432,16 +433,13 @@ EOF
 # Проверка здоровья Docker
 check_docker_health() {
   print_info "Проверка состояния Docker..."
-  
   if ! command -v docker &> /dev/null; then
     print_error "Docker не установлен или не доступен в PATH."
     return 1
   fi
-  
   # Проверка запущен ли демон Docker
   if ! docker info &> /dev/null; then
     print_error "Демон Docker не запущен или у вас нет прав для его использования."
-    
     if [ "$(uname)" == "Darwin" ]; then
       print_info "Для macOS: Запустите приложение Docker Desktop."
     else
@@ -449,10 +447,8 @@ check_docker_health() {
       print_info "Или добавьте текущего пользователя в группу docker: sudo usermod -aG docker $USER"
       print_info "После добавления в группу выполните: newgrp docker"
     fi
-    
     return 1
   fi
-  
   # Проверка наличия прав у текущего пользователя
   if ! docker ps &> /dev/null; then
     print_error "У вас недостаточно прав для использования Docker."
@@ -460,17 +456,14 @@ check_docker_health() {
     print_info "Затем перезагрузите систему или выполните: newgrp docker"
     return 1
   fi
-  
   # Проверка возможности загрузки образов
   if ! docker pull hello-world &> /dev/null; then
     print_warning "Не удалось загрузить тестовый образ. Возможны проблемы с сетью или Docker Hub."
     print_info "Проверьте настройки сети и доступность Docker Hub."
     return 2
   else
-    # Удаляем тестовый образ после проверки
     docker rmi hello-world &> /dev/null
   fi
-  
   print_success "Docker работает корректно!"
   return 0
 }
@@ -478,6 +471,12 @@ check_docker_health() {
 # Основная логика скрипта
 print_banner
 detect_os
+
+# Проверка Docker Desktop на macOS
+if [[ "$OS_TYPE" == "macOS" && ! -x "/Applications/Docker.app/Contents/Resources/bin/docker" ]]; then
+  print_error "Docker Desktop не установлен. Установите с https://www.docker.com/products/docker-desktop "
+  exit 1
+fi
 
 # Вызов функции установки утилит
 install_required_utils
@@ -490,12 +489,19 @@ else
 fi
 
 if command -v docker &> /dev/null; then
-  check_docker_health
+  if ! check_docker_health; then
+    print_error "Docker не готов. Завершение установки."
+    exit 1
+  fi
 fi
 
 # Проверка доступности портов
 if command -v ss &> /dev/null || command -v netstat &> /dev/null || command -v lsof &> /dev/null; then
   check_port_availability
+  # Проверка lsof на macOS
+  if [[ "$OS_TYPE" == "macOS" && ! -x "$(command -v lsof)" ]]; then
+    print_warning "lsof не установлен. Проверьте занятые порты вручную: sudo lsof -i :80"
+  fi
 else
   print_warning "Не удалось проверить доступность портов 80 и 443. Убедитесь, что они не заняты другими программами."
 fi
@@ -506,6 +512,12 @@ check_cpu_resources
 
 # Проверяем наличие OpenSSL
 command -v openssl >/dev/null 2>&1 || { print_error "Требуется openssl, но он не установлен. Установите openssl и повторите попытку."; exit 1; }
+
+# Проверка Homebrew на macOS
+if [[ "$OS_TYPE" == "macOS" ]] && ! command -v brew &> /dev/null; then
+  print_warning "Homebrew не установлен. Установите его: /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh )\""
+  exit 1
+fi
 
 # Проверка зависимостей
 print_info "Проверка зависимостей..."
@@ -643,11 +655,8 @@ if ! command -v docker >/dev/null 2>&1; then
       exit 1
     fi
   else
-    print_error "Docker необходим для работы N8N AI Starter Kit. Установите Docker и повторите попытку."
-    exit 1
+    print_success "Docker уже установлен: $(docker --version)"
   fi
-else
-  print_success "Docker уже установлен: $(docker --version)"
 fi
 
 # Проверка Docker Compose
@@ -656,10 +665,18 @@ if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; 
   # Новая команда docker compose (без дефиса) доступна
   DC_CMD="docker compose"
   print_success "Обнаружена команда docker compose (новый формат)"
+  compose_version=$(docker compose version | awk '{print $3}')
+  if [[ "$compose_version" < "v2.23.0" ]]; then
+    print_warning "Версия Docker Compose слишком старая для использования профилей."
+  fi
 elif command -v docker-compose >/dev/null 2>&1; then
   # Используем старую команду docker-compose (с дефисом)
   DC_CMD="docker-compose"
   print_success "Обнаружена команда docker-compose (старый формат)"
+  compose_version=$(docker-compose version --short)
+  if [[ "$compose_version" < "1.28.0" ]]; then
+    print_warning "Docker Compose слишком старый для использования профилей."
+  fi
 else
   print_warning "Docker Compose не обнаружен. Хотите установить Docker Compose? (y/n)"
   read install_compose
@@ -717,6 +734,34 @@ fi
 # Создание .env файла
 if [ -f .env ]; then
   print_warning "Файл .env уже существует."
+  
+  # Проверяем и исправляем переменные окружения для Supabase если файл существует
+  print_info "Проверка переменных окружения Supabase в существующем .env файле..."
+  
+  # Проверяем ANON_KEY
+  if grep -q "SUPABASE_ANON_KEY" .env && ! grep -q "^ANON_KEY=" .env; then
+    # Получаем значение SUPABASE_ANON_KEY
+    ANON_KEY_VALUE=$(grep -E "^SUPABASE_ANON_KEY=" .env | cut -d '=' -f2)
+    echo "# ---- SUPABASE ВНУТРЕННИЕ ПЕРЕМЕННЫЕ ----" >> .env
+    echo "ANON_KEY=$ANON_KEY_VALUE" >> .env
+    print_success "Добавлена переменная ANON_KEY на основе существующей SUPABASE_ANON_KEY"
+  fi
+  
+  # Проверяем SERVICE_ROLE_KEY
+  if grep -q "SUPABASE_SERVICE_ROLE_KEY" .env && ! grep -q "^SERVICE_ROLE_KEY=" .env; then
+    # Получаем значение SUPABASE_SERVICE_ROLE_KEY
+    SERVICE_KEY_VALUE=$(grep -E "^SUPABASE_SERVICE_ROLE_KEY=" .env | cut -d '=' -f2)
+    echo "SERVICE_ROLE_KEY=$SERVICE_KEY_VALUE" >> .env
+    print_success "Добавлена переменная SERVICE_ROLE_KEY на основе существующей SUPABASE_SERVICE_ROLE_KEY"
+  fi
+  
+  # Проверяем JWT_SECRET
+  if grep -q "SUPABASE_JWT_SECRET" .env && ! grep -q "^JWT_SECRET=" .env; then
+    JWT_SECRET_VALUE=$(grep -E "^SUPABASE_JWT_SECRET=" .env | cut -d '=' -f2)
+    echo "JWT_SECRET=$JWT_SECRET_VALUE" >> .env
+    print_success "Добавлена переменная JWT_SECRET на основе существующей SUPABASE_JWT_SECRET"
+  fi
+  
   print_info "Рекомендуется создать резервную копию перед перезаписью."
   read -p "Создать резервную копию и перезаписать? (y/n): " overwrite
   
@@ -753,42 +798,44 @@ done
 
 # Генерация паролей и ключей
 print_info "Генерация безопасных паролей и ключей..."
-postgres_pwd=$(openssl rand -base64 16 | tr -d "=" | tr -d "/+")
-n8n_encryption_key=$(openssl rand -base64 32 | tr -d "=" | tr -d "/+")
-n8n_jwt_secret=$(openssl rand -base64 24 | tr -d "=" | tr -d "/+")
-supabase_postgres_pwd=$(openssl rand -base64 16 | tr -d "=" | tr -d "/+")
-supabase_anon_key=$(openssl rand -base64 24 | tr -d "=" | tr -d "/+")
-supabase_service_role_key=$(openssl rand -base64 24 | tr -d "=" | tr -d "/+")
-supabase_jwt_secret=$(openssl rand -base64 32 | tr -d "=" | tr -d "/+")
-minio_pwd=$(openssl rand -base64 16 | tr -d "=" | tr -d "/+")
-pgadmin_pwd=$(openssl rand -base64 16 | tr -d "=" | tr -d "/+")
-zep_api_secret=$(openssl rand -base64 48 | tr -d "=" | tr -d "/+")
-grafana_pwd=$(openssl rand -base64 16 | tr -d "=" | tr -d "/+")
-jupyter_ds_token=$(openssl rand -base64 24 | tr -d "=" | tr -d "/+")
+# Используем только алфавитно-цифровые символы
+postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+n8n_encryption_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+n8n_jwt_secret=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+supabase_postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+supabase_anon_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+supabase_service_role_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+supabase_jwt_secret=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+jwt_expiry="3600"
+logflare_api_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+secret_key_base=$(openssl rand -base64 96 | tr -cd '[:alnum:]' | cut -c1-64)
+vault_enc_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+pooler_tenant_id="n8n_$(openssl rand -hex 8)"
+pooler_default_pool_size="20"
+pooler_max_client_conn="100"
+pooler_proxy_port_transaction="6543"
+minio_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+pgadmin_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+zep_api_secret=$(openssl rand -base64 64 | tr -cd '[:alnum:]' | cut -c1-48)
+grafana_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+jupyter_ds_token=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+dashboard_password=$(openssl rand -base64 24 | tr -cd '[:alnum:]' | cut -c1-12)
 
 # Генерация хэша пароля для Traefik Dashboard
 read -p "Введите пароль для панели управления Traefik (оставьте пустым для автогенерации): " traefik_pwd
-# Проверка на пустой пароль
 if [ -z "$traefik_pwd" ]; then
   print_info "Внимание: Пароль не указан. Установка безопасного пароля..."
-  traefik_pwd=$(openssl rand -base64 12 | tr -d "=" | tr -d "/+")
+  traefik_pwd=$(openssl rand -base64 24 | tr -cd '[:alnum:]' | cut -c1-12)
   print_info "Сгенерирован случайный пароль: ${BOLD}$traefik_pwd${NC} (сохраните его в безопасном месте)"
 fi
-# Используем двойные кавычки для обработки спецсимволов в пароле
 traefik_pwd_hash=$(openssl passwd -apr1 "$traefik_pwd")
-# Проверка успешности генерации хэша
 if [ -z "$traefik_pwd_hash" ]; then
-  print_error "Ошибка: Не удалось сгенерировать хэш пароля."
-  print_info "Пробуем альтернативный метод генерации хэша..."
-  
-  # Альтернативный метод с использованием htpasswd, если он доступен
+  print_error "Ошибка: Не удалось сгенерировать хэш пароля. Пробуем альтернативный метод..."
   if command -v htpasswd &> /dev/null; then
     traefik_pwd_hash=$(htpasswd -nbB admin "$traefik_pwd" | cut -d ":" -f 2)
   else
-    # Простая резервная опция без хеширования (не рекомендуется)
-    print_warning "Не удалось создать хэш пароля. Возможно, потребуется установить apache2-utils."
-    print_error "Установка продолжится, но безопасность Traefik может быть скомпрометирована."
-    traefik_pwd_hash="$traefik_pwd"
+    print_error "Не удалось сгенерировать безопасный хэш пароля. Установите htpasswd или openssl."
+    exit 1
   fi
 fi
 print_info "Сгенерированный хэш пароля: $traefik_pwd_hash"
@@ -802,7 +849,7 @@ cat > .env << EOF
 # N8N AI Starter Kit - Конфигурация окружения
 # =============================================
 # Создано автоматически $(date)
-# Версия: 1.0.1
+# Версия: 1.5.2
 
 # ---- БАЗОВЫЕ НАСТРОЙКИ ----
 DOMAIN_NAME=${domain_name}
@@ -812,6 +859,8 @@ DOMAIN_NAME=${domain_name}
 POSTGRES_USER=root
 POSTGRES_PASSWORD=${postgres_pwd}
 POSTGRES_DB=n8n
+POSTGRES_HOST=supabase-db
+POSTGRES_PORT=5432
 
 # ---- N8N НАСТРОЙКИ ----
 N8N_ENCRYPTION_KEY=${n8n_encryption_key}
@@ -823,6 +872,50 @@ SUPABASE_POSTGRES_PASSWORD=${supabase_postgres_pwd}
 SUPABASE_ANON_KEY=${supabase_anon_key}
 SUPABASE_SERVICE_ROLE_KEY=${supabase_service_role_key}
 SUPABASE_JWT_SECRET=${supabase_jwt_secret}
+JWT_SECRET=${supabase_jwt_secret}
+JWT_EXPIRY=${jwt_expiry}
+SECRET_KEY_BASE=${secret_key_base}
+VAULT_ENC_KEY=${vault_enc_key}
+POOLER_TENANT_ID=${pooler_tenant_id}
+POOLER_DEFAULT_POOL_SIZE=${pooler_default_pool_size}
+POOLER_MAX_CLIENT_CONN=${pooler_max_client_conn}
+POOLER_PROXY_PORT_TRANSACTION=${pooler_proxy_port_transaction}
+LOGFLARE_API_KEY=${logflare_api_key}
+IMGPROXY_ENABLE_WEBP_DETECTION=true
+KONG_HTTP_PORT=8000
+KONG_HTTPS_PORT=8443
+DASHBOARD_USERNAME=admin
+DASHBOARD_PASSWORD=${dashboard_password}
+FUNCTIONS_VERIFY_JWT=false
+SUPABASE_PUBLIC_URL=http://localhost:8000
+
+# ---- SUPABASE STUDIO НАСТРОЙКИ ----
+STUDIO_DEFAULT_ORGANIZATION=n8n
+STUDIO_DEFAULT_PROJECT=n8n-ai-project
+
+# ---- REST API НАСТРОЙКИ ----
+PGRST_DB_SCHEMAS=public,storage,graphql_public
+
+# ---- НАСТРОЙКИ АУТЕНТИФИКАЦИИ ----
+SMTP_ADMIN_EMAIL=${email}
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=smtp_user
+SMTP_PASS=$(openssl rand -base64 12 | tr -d "=" | tr -d "/+")
+SMTP_SENDER_NAME=N8N AI Starter Kit
+SITE_URL=http://localhost:8000
+API_EXTERNAL_URL=http://localhost:8000
+ADDITIONAL_REDIRECT_URLS=
+DISABLE_SIGNUP=false
+ENABLE_EMAIL_SIGNUP=true
+ENABLE_EMAIL_AUTOCONFIRM=true
+ENABLE_PHONE_SIGNUP=false
+ENABLE_PHONE_AUTOCONFIRM=false
+ENABLE_ANONYMOUS_USERS=false
+MAILER_URLPATHS_INVITE=/auth/v1/verify
+MAILER_URLPATHS_CONFIRMATION=/auth/v1/verify
+MAILER_URLPATHS_RECOVERY=/auth/v1/verify
+MAILER_URLPATHS_EMAIL_CHANGE=/auth/v1/verify
 
 # ---- MINIO НАСТРОЙКИ ----
 MINIO_ROOT_USER=minioadmin
@@ -879,20 +972,41 @@ LANGSMITH_DOMAIN=langsmith.${domain_name}
 WANDB_DOMAIN=wandb.${domain_name}
 EOF
 
-print_success "Файл .env успешно создан!"
+# Добавляем дополнительные переменные окружения, необходимые для Supabase
+print_info "Добавление дополнительных переменных окружения для Supabase..."
+# Убедиться, что строки не добавляются повторно
+if ! grep -q "^ANON_KEY=" .env; then
+  echo "# ---- SUPABASE ВНУТРЕННИЕ ПЕРЕМЕННЫЕ ----" >> .env
+  echo "ANON_KEY=${supabase_anon_key}" >> .env
+  print_success "Добавлена переменная ANON_KEY на основе SUPABASE_ANON_KEY"
+fi
+if ! grep -q "^SERVICE_ROLE_KEY=" .env; then
+  echo "SERVICE_ROLE_KEY=${supabase_service_role_key}" >> .env
+  print_success "Добавлена переменная SERVICE_ROLE_KEY на основе SUPABASE_SERVICE_ROLE_KEY"
+fi
+
+print_success "Файл .env успешно создан и дополнен необходимыми переменными!"
 print_warning "ВАЖНО: Сохраните копию файла .env в безопасном месте!"
 
 # Создаем файл с советами по устранению неполадок
 create_troubleshooting_file
 
+# ВАЖНО: Ограничиваем параллелизм Docker Compose для предотвращения ошибок concurrent map writes
+export COMPOSE_PARALLEL_LIMIT=1
+
 # Запуск сервисов
 print_info "Теперь вы можете запустить N8N AI Starter Kit с помощью команды:"
-print_info "${BOLD}$DC_CMD up -d${NC}"
+print_info "${BOLD}COMPOSE_PARALLEL_LIMIT=1 $DC_CMD up -d${NC}"
 
-print_info "\nДополнительные команды:"
-print_info "${BOLD}$DC_CMD --profile cpu up -d${NC} - Запуск с процессорными AI-сервисами"
-print_info "${BOLD}$DC_CMD --profile gpu up -d${NC} - Запуск с GPU-ускоренными AI-сервисами"
-print_info "${BOLD}$DC_CMD --profile minimal up -d${NC} - Запуск только базовых сервисов"
+print_info "\nДополнительные команды с ограничением параллелизма:"
+print_info "${BOLD}COMPOSE_PARALLEL_LIMIT=1 $DC_CMD --profile cpu up -d${NC} - Запуск с процессорными AI-сервисами"
+print_info "${BOLD}COMPOSE_PARALLEL_LIMIT=1 $DC_CMD --profile gpu up -d${NC} - Запуск с GPU-ускоренными AI-сервисами"
+print_info "${BOLD}COMPOSE_PARALLEL_LIMIT=1 $DC_CMD --profile minimal up -d${NC} - Запуск только базовых сервисов"
+
+print_info "\nИли используйте скрипт start.sh для безопасного запуска:"
+print_info "${BOLD}./scripts/start.sh cpu${NC} - Запуск с процессорными AI-сервисами"
+print_info "${BOLD}./scripts/start.sh gpu${NC} - Запуск с GPU-ускоренными AI-сервисами"
+print_info "${BOLD}./scripts/start.sh minimal${NC} - Запуск только базовых сервисов"
 
 print_info "\nПосле запуска, доступ к сервисам будет по адресам:"
 print_info "N8N: https://n8n.${domain_name}"

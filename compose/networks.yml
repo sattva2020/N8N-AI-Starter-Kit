@@ -1,0 +1,8 @@
+# Общие сети для всех сервисов системы
+
+networks:
+  frontend:
+  backend:
+  database:
+  zep-network:
+    driver: bridge

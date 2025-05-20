@@ -11,7 +11,7 @@ services:
 
   studio:
     container_name: supabase-studio
-    image: supabase/studio:2025.04.21-sha-173cc56
+    image: supabase/studio:20250331-156e8fd
     restart: unless-stopped
     healthcheck:
       test:
@@ -79,7 +79,7 @@ services:
 
   auth:
     container_name: supabase-auth
-    image: supabase/gotrue:v2.171.0
+    image: supabase/gotrue:v2.164.0
     restart: unless-stopped
     healthcheck:
       test:
@@ -95,7 +95,7 @@ services:
       interval: 5s
       retries: 3
     depends_on:
-      db:
+      supabase-db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
       analytics:
@@ -162,10 +162,10 @@ services:
 
   rest:
     container_name: supabase-rest
-    image: postgrest/postgrest:v12.2.11
+    image: postgrest/postgrest:v12.2.0
     restart: unless-stopped
     depends_on:
-      db:
+      supabase-db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
       analytics:
@@ -186,10 +186,10 @@ services:
   realtime:
     # This container name looks inconsistent but is correct because realtime constructs tenant id by parsing the subdomain
     container_name: realtime-dev.supabase-realtime
-    image: supabase/realtime:v2.34.47
+    image: supabase/realtime:latest
     restart: unless-stopped
     depends_on:
-      db:
+      supabase-db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
       analytics:
@@ -231,7 +231,7 @@ services:
   # To use S3 backed storage: docker compose -f docker-compose.yml -f docker-compose.s3.yml up
   storage:
     container_name: supabase-storage
-    image: supabase/storage-api:v1.22.7
+    image: supabase/storage-api:v1.11.13
     restart: unless-stopped
     volumes:
       - ./volumes/storage:/var/lib/storage:z
@@ -249,7 +249,7 @@ services:
       interval: 5s
       retries: 3
     depends_on:
-      db:
+      supabase-db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
       rest:
@@ -296,10 +296,10 @@ services:
 
   meta:
     container_name: supabase-meta
-    image: supabase/postgres-meta:v0.88.9
+    image: supabase/postgres-meta:v0.84.2
     restart: unless-stopped
     depends_on:
-      db:
+      supabase-db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
       analytics:
@@ -314,7 +314,7 @@ services:
 
   functions:
     container_name: supabase-edge-functions
-    image: supabase/edge-runtime:v1.67.4
+    image: supabase/edge-runtime:v1.65.3
     restart: unless-stopped
     volumes:
       - ./volumes/functions:/home/deno/functions:Z
@@ -338,7 +338,7 @@ services:
 
   analytics:
     container_name: supabase-analytics
-    image: supabase/logflare:1.12.0
+    image: supabase/logflare:1.4.0
     restart: unless-stopped
     ports:
       - 4000:4000
@@ -359,7 +359,7 @@ services:
       interval: 5s
       retries: 10
     depends_on:
-      db:
+      supabase-db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
     environment:
@@ -384,9 +384,9 @@ services:
       # GOOGLE_PROJECT_NUMBER: ${GOOGLE_PROJECT_NUMBER}
 
   # Comment out everything below this point if you are using an external Postgres database
-  db:
+  supabase-db:
     container_name: supabase-db
-    image: supabase/postgres:15.8.1.060
+    image: supabase/postgres:15.6.1.146
     restart: unless-stopped
     volumes:
       - ./volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
@@ -447,7 +447,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./volumes/logs/vector.yml:/etc/vector/vector.yml:ro,z
-      - ${DOCKER_SOCKET_LOCATION}:/var/run/docker.sock:ro,z
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     healthcheck:
       test:
         [
@@ -474,7 +474,7 @@ services:
   # Update the DATABASE_URL if you are using an external Postgres database
   supavisor:
     container_name: supabase-pooler
-    image: supabase/supavisor:2.5.1
+    image: supabase/supavisor:1.1.56
     restart: unless-stopped
     ports:
       - ${POSTGRES_PORT}:5432
@@ -496,7 +496,7 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
-      db:
+      supabase-db:
         condition: service_healthy
       analytics:
         condition: service_healthy
@@ -505,7 +505,7 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      DATABASE_URL: ecto://supabase_admin:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/_supabase
+      DATABASE_URL: ecto://supabase_admin:${POSTGRES_PASSWORD}@supabase-db:${POSTGRES_PORT}/_supabase
       CLUSTER_POSTGRES: true
       SECRET_KEY_BASE: ${SECRET_KEY_BASE}
       VAULT_ENC_KEY: ${VAULT_ENC_KEY}
@@ -526,3 +526,5 @@ services:
 
 volumes:
   db-config:
+
+# Сети определены в общем файле networks.yml

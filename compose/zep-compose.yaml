@@ -18,7 +18,7 @@ services:
     depends_on:
       graphiti:
         condition: service_healthy
-      db:
+      zep-db:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
@@ -33,7 +33,7 @@ services:
         reservations:
           memory: 512M
 
-  db:
+  zep-db:
     image: ankane/pgvector:v0.5.1
     container_name: zep-ce-postgres
     restart: unless-stopped
@@ -119,12 +119,4 @@ volumes:
   neo4j_data:
   zep-db:
 
-networks:
-  zep-network:
-    driver: bridge
-  backend:
-    external: true
-    name: backend-network
-  database:
-    external: true
-    name: database-network
+# Сети определены в общем файле networks.yml

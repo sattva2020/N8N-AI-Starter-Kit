@@ -1,5 +1,3 @@
-version: "3.8"
-
 volumes:
   n8n_storage:
   postgres_storage:
@@ -12,18 +10,8 @@ volumes:
   traefik_letsencrypt:
   jupyter_data:
 
-# Определяем сети, которые будут использоваться во всех файлах композиции
-# Важно отметить, что импортируемые файлы должны использовать эти сети как внешние
-networks:
-  frontend:
-    external: false
-    name: frontend-network
-  backend:
-    external: false
-    name: backend-network
-  database:
-    external: false
-    name: database-network
+# Сети определены в отдельном файле compose/networks.yml
+# и импортируются через директиву include
 
 # Общие конфигурации сервисов
 x-service-defaults: &service-defaults
@@ -32,7 +20,7 @@ x-service-defaults: &service-defaults
     - backend
 
 x-n8n: &service-n8n
-  image: n8nio/n8n:1.15.1 # Последняя стабильная версия на май 2025
+  image: n8nio/n8n:latest # latest для упрощения поддержки
   <<: *service-defaults
   environment:
     - DB_TYPE=postgresdb
@@ -60,7 +48,7 @@ x-n8n: &service-n8n
     - database
 
 x-ollama: &service-ollama
-  image: ollama/ollama:0.1.29 # Стабильная версия на май 2025
+  image: ollama/ollama:latest # latest для упрощения поддержки
   restart: unless-stopped
   volumes:
     - ollama_storage:/root/.ollama
@@ -75,7 +63,7 @@ x-ollama: &service-ollama
     start_period: 10s
 
 x-init-ollama: &init-ollama
-  image: ollama/ollama:0.1.29 # Соответствует основной версии Ollama
+  image: ollama/ollama:latest # Соответствует основной версии Ollama
   entrypoint: ["/bin/sh", "-c"]
   command:
     - |
@@ -104,7 +92,7 @@ x-init-ollama: &init-ollama
 
 services:
   traefik:
-    image: traefik:v2.10.4 # Последняя стабильная версия на май 2025
+    image: traefik:latest # latest для упрощения поддержки
     restart: unless-stopped
     command:
       - "--api.dashboard=true"
@@ -161,7 +149,7 @@ services:
           memory: 1G
 
   postgres:
-    image: postgres:16.1-alpine # Фиксированная стабильная версия
+    image: postgres:latest # latest для упрощения поддержки
     restart: unless-stopped
     profiles: [default, cpu, minimal, developer]
     environment:
@@ -186,7 +174,7 @@ services:
           memory: 256M
 
   pgadmin:
-    image: dpage/pgadmin4:7.8 # Фиксированная версия
+    image: dpage/pgadmin4:latest # latest для упрощения поддержки
     restart: unless-stopped
     profiles: [developer]
     environment:
@@ -206,7 +194,7 @@ services:
       - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
 
   minio:
-    image: minio/minio:RELEASE.2025-03-01T02-19-20Z # Фиксированная версия
+    image: minio/minio:latest # latest для упрощения поддержки
     restart: unless-stopped
     profiles: [default, cpu, developer]
     command: server /data --console-address ":9001"
@@ -238,7 +226,7 @@ services:
       - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
 
   qdrant:
-    image: qdrant/qdrant:v1.5.1 # Фиксированная версия
+    image: qdrant/qdrant:latest # latest для упрощения поддержки
     restart: unless-stopped
     profiles: [default, cpu, developer]
     volumes:
@@ -289,7 +277,7 @@ services:
       - "traefik.enable=false"
 
   jupyterlab:
-    image: jupyter/minimal-notebook:lab-4.0.7 # Фиксированная версия
+    image: jupyter/minimal-notebook:latest # latest для упрощения поддержки
     restart: unless-stopped
     profiles: [developer]
     volumes:
@@ -313,6 +301,7 @@ services:
           memory: 1G
 
 include:
+  - path: ./compose/networks.yml
   - path: ./compose/zep-compose.yaml
   - path: ./compose/supabase-compose.yml
   - path: ./compose/optional-services.yml

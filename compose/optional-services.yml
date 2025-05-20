@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Общие конфигурации для мониторинга и аналитики
 x-monitoring-defaults: &monitoring-defaults
   restart: unless-stopped
@@ -14,14 +12,7 @@ volumes:
   elasticsearch_data:
   kibana_data:
 
-# Используем сети, определенные в основном файле docker-compose.yml
-networks:
-  frontend:
-    external: true
-    name: frontend-network
-  backend:
-    external: true
-    name: backend-network
+# Сети определены в отдельном файле compose/networks.yml
 
 services:
   # =========================================
@@ -70,7 +61,7 @@ services:
   # cAdvisor - мониторинг контейнеров
   cadvisor:
     <<: *monitoring-defaults
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: google/cadvisor:latest
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
@@ -123,7 +114,7 @@ services:
   # Elasticsearch - поисковый движок и база данных для аналитики
   elasticsearch:
     <<: *monitoring-defaults
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     environment:
@@ -138,7 +129,7 @@ services:
   # Kibana - визуализация данных из Elasticsearch
   kibana:
     <<: *monitoring-defaults
-    image: docker.elastic.co/kibana/kibana:8.8.0
+    image: docker.elastic.co/kibana/kibana:8.12.2
     volumes:
       - ./config/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
     environment:
