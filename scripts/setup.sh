@@ -797,7 +797,7 @@ while [ -z "$email" ] || ! validate_email "$email"; do
 done
 
 # Генерация паролей и ключей
-print_info "Генерация безопасных паролей и ключей..."
+echo "Генерация безопасных паролей и ключей..."
 # Используем только алфавитно-цифровые символы
 postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
 n8n_encryption_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
@@ -817,8 +817,6 @@ pooler_proxy_port_transaction="6543"
 minio_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
 pgadmin_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
 zep_api_secret=$(openssl rand -base64 64 | tr -cd '[:alnum:]' | cut -c1-48)
-grafana_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
-jupyter_ds_token=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
 dashboard_password=$(openssl rand -base64 24 | tr -cd '[:alnum:]' | cut -c1-12)
 
 # Генерация хэша пароля для Traefik Dashboard
@@ -940,13 +938,6 @@ ZEP_API_SECRET=${zep_api_secret}
 # ---- GRAPHITI НАСТРОЙКИ ----
 OPENAI_API_KEY=${openai_key}
 
-# ---- GRAFANA НАСТРОЙКИ ----
-GRAFANA_ADMIN_USER=admin
-GRAFANA_ADMIN_PASSWORD=${grafana_pwd}
-
-# ---- JUPYTER DATA SCIENCE НАСТРОЙКИ ----
-JUPYTER_DS_TOKEN=${jupyter_ds_token}
-
 # ---- ДОМЕНЫ СЕРВИСОВ ----
 N8N_DOMAIN=n8n.${domain_name}
 OLLAMA_DOMAIN=ollama.${domain_name}
@@ -956,20 +947,9 @@ SUPABASE_API_DOMAIN=api.supabase.${domain_name}
 MINIO_API_DOMAIN=minio.${domain_name}
 MINIO_CONSOLE_DOMAIN=minio-console.${domain_name}
 PGADMIN_DOMAIN=pgadmin.${domain_name}
-JUPYTER_DOMAIN=jupyter.${domain_name}
 TRAEFIK_DASHBOARD_DOMAIN=traefik.${domain_name}
 ZEP_DOMAIN=zep.${domain_name}
 GRAPHITI_DOMAIN=graphiti.${domain_name}
-
-# ---- ДОПОЛНИТЕЛЬНЫЕ ДОМЕНЫ СЕРВИСОВ ----
-PROMETHEUS_DOMAIN=prometheus.${domain_name}
-GRAFANA_DOMAIN=grafana.${domain_name}
-CADVISOR_DOMAIN=cadvisor.${domain_name}
-LOKI_DOMAIN=loki.${domain_name}
-KIBANA_DOMAIN=kibana.${domain_name}
-JUPYTER_DS_DOMAIN=jupyter-ds.${domain_name}
-LANGSMITH_DOMAIN=langsmith.${domain_name}
-WANDB_DOMAIN=wandb.${domain_name}
 EOF
 
 # Добавляем дополнительные переменные окружения, необходимые для Supabase
