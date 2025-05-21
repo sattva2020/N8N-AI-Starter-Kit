@@ -3,13 +3,18 @@ data_dir: /var/lib/vector
 sources:
   docker_logs:
     type: docker_logs
-    include_containers: ["*"]
+    include_containers: ["supabase-*", "n8n-*", "ollama-*"]
+
+transforms:
+  parse_logs:
+    type: remap
+    inputs: ["docker_logs"]
+    source: |
+      . = parse_json!(string!(.message)) ?? .message
 
 sinks:
   console:
     type: console
-    inputs:
-      - docker_logs
+    inputs: ["parse_logs"]
     encoding:
       codec: json
-      

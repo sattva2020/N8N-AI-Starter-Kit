@@ -32,18 +32,39 @@ services:
           memory: 1G
         reservations:
           memory: 512M
-
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
   zep-db:
-    image: ankane/pgvector:v0.5.1
+    image: postgres:15-bookworm
     container_name: zep-ce-postgres
     restart: unless-stopped
-    shm_size: "128mb"
+    shm_size: "256mb"
     environment:
       - POSTGRES_USER=${ZEP_POSTGRES_USER}
       - POSTGRES_PASSWORD=${ZEP_POSTGRES_PASSWORD}
       - POSTGRES_DB=${ZEP_POSTGRES_DB}
+      # Vector search optimization settings
+      - POSTGRES_INITDB_ARGS=--data-checksums
     volumes:
       - zep-db:/var/lib/postgresql/data
+      # Add pgvector initialization script
+      - ./scripts/init-pgvector.sql:/docker-entrypoint-initdb.d/10-init-pgvector.sql
+    command: 
+      - "postgres"
+      - "-c"
+      - "shared_buffers=512MB"
+      - "-c"
+      - "max_connections=200"
+      - "-c"
+      - "maintenance_work_mem=256MB"
+      - "-c"
+      - "effective_cache_size=1GB"
+      - "-c"
+      - "work_mem=16MB"
     networks:
       - zep-network
       - database
@@ -55,9 +76,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 768M
         reservations:
-          memory: 256M
+          memory: 384M
 
   graphiti:
     image: zepai/graphiti:0.3
@@ -100,6 +121,9 @@ services:
       - neo4j_data:/data
     environment:
       - NEO4J_AUTH=neo4j/zepzepzep
+      - NEO4J_dbms_memory_pagecache_size=512M
+      - NEO4J_dbms_memory_heap_initial__size=512M
+      - NEO4J_dbms_memory_heap_max__size=1G
     networks:
       - zep-network
       - database

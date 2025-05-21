@@ -1,0 +1,1321 @@
+zep-ce-postgres  | 
+zep-ce-postgres  | PostgreSQL Database directory appears to contain a database; Skipping initialization
+neo4j-zep        | Changed password for user 'neo4j'. IMPORTANT: this change will only take effect if performed before the database is started for the first time.
+zep-ce-postgres  | 
+zep-ce-postgres  | 2025-05-21 12:22:30.908 UTC [1] LOG:  starting PostgreSQL 15.4 (Debian 15.4-2.pgdg120+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+zep-ce-postgres  | 2025-05-21 12:22:30.908 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+zep-ce-postgres  | 2025-05-21 12:22:30.908 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+neo4j-zep        | 2025-05-21 12:22:47.254+0000 INFO  Logging config in use: File '/var/lib/neo4j/conf/user-logs.xml'
+zep-ce-postgres  | 2025-05-21 12:22:31.108 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+graphiti         | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti         | 
+graphiti         | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+graphiti         |   warnings.warn(
+graphiti         | INFO:     Started server process [7]
+graphiti         | INFO:     Waiting for application startup.
+graphiti         | ERROR:    Traceback (most recent call last):
+graphiti         |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+graphiti         |     async with self.lifespan_context(app) as maybe_state:
+graphiti         |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti         |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+zep-ce-postgres  | 2025-05-21 12:22:31.173 UTC [29] LOG:  database system was shut down at 2025-05-21 12:04:33 UTC
+zep-ce-postgres  | 2025-05-21 12:22:31.501 UTC [1] LOG:  database system is ready to accept connections
+zep-ce-postgres  | 2025-05-21 12:27:31.270 UTC [27] LOG:  checkpoint starting: time
+graphiti         |     return await anext(self.gen)
+zep-ce-postgres  | 2025-05-21 12:27:31.276 UTC [27] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.002 s, sync=0.001 s, total=0.006 s; sync files=2, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=0 kB
+neo4j-zep        | 2025-05-21 12:22:47.311+0000 INFO  Starting...
+neo4j-zep        | 2025-05-21 12:22:49.410+0000 INFO  This instance is ServerId{8c2968c9} (8c2968c9-f92e-4182-9065-2c9883d4b15d)
+neo4j-zep        | 2025-05-21 12:22:51.985+0000 INFO  ======== Neo4j 5.22.0 ========
+neo4j-zep        | 2025-05-21 12:22:57.120+0000 INFO  Anonymous Usage Data is being sent to Neo4j, see https://neo4j.com/docs/usage-data/
+neo4j-zep        | 2025-05-21 12:22:57.345+0000 INFO  Bolt enabled on 0.0.0.0:7687.
+neo4j-zep        | 2025-05-21 12:22:58.501+0000 INFO  HTTP enabled on 0.0.0.0:7474.
+neo4j-zep        | 2025-05-21 12:22:58.503+0000 INFO  Remote interface available at http://localhost:7474/
+neo4j-zep        | 2025-05-21 12:22:58.509+0000 INFO  id: C75BAC027A95EDFBFEA402C74128F3FD4E2C07CDEFAEEC3836F83086C01A0592
+supabase-imgproxy  | [33mWARNING[0m [2025-05-21T12:22:31Z] No keys defined, so signature checking is disabled 
+neo4j-zep          | 2025-05-21 12:22:58.510+0000 INFO  name: system
+supabase-imgproxy  | [33mWARNING[0m [2025-05-21T12:22:31Z] No salts defined, so signature checking is disabled 
+traefik-1          | [90m2025-05-21T12:22:35Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:22:35Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+neo4j-zep          | 2025-05-21 12:22:58.510+0000 INFO  creationDate: 2025-05-20T12:01:47.369Z
+neo4j-zep          | 2025-05-21 12:22:58.510+0000 INFO  Started.
+supabase-vector    | 2025-05-21T12:22:30.715908Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+supabase-imgproxy  | [33mWARNING[0m [2025-05-21T12:22:31Z] Exposing root via IMGPROXY_LOCAL_FILESYSTEM_ROOT is unsafe 
+supabase-vector    | 2025-05-21T12:22:30.716445Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+supabase-vector    | 2025-05-21T12:22:30.716624Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+traefik-1          | [90m2025-05-21T12:22:36Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:22:36Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-vector    | 2025-05-21T12:22:30.716742Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:22:31Z] Starting server at :5001 
+supabase-vector    | 2025-05-21T12:22:31.931956Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+traefik-1          | [90m2025-05-21T12:22:36Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-vector    | 2025-05-21T12:22:31.932938Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+traefik-1          | [90m2025-05-21T12:22:36Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-vector    | 2025-05-21T12:22:31.933330Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:22:35Z] Started /health  [1mrequest_id[0m=Z4Gbqwp0ffvkKaPkYENHZ [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-vector    | 2025-05-21T12:22:31.933615Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+traefik-1          | [90m2025-05-21T12:22:36Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-vector    | 2025-05-21T12:22:32.754651Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+traefik-1          | [90m2025-05-21T12:22:36Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:22:35Z] Completed in 118.545µs /health  [1mrequest_id[0m=Z4Gbqwp0ffvkKaPkYENHZ [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:22:36Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:22:41Z] Started /health  [1mrequest_id[0m=AQ8Syh6I_7y2ThXfrXKrw [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:22:41Z] Completed in 202.654µs /health  [1mrequest_id[0m=AQ8Syh6I_7y2ThXfrXKrw [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:22:46Z] Started /health  [1mrequest_id[0m=bttAiCKATm6pkKZco8IxQ [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:22:46Z] Completed in 140.995µs /health  [1mrequest_id[0m=bttAiCKATm6pkKZco8IxQ [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:22:51Z] Started /health  [1mrequest_id[0m=JJ7Hbv6MWYvqxhZSP7ERI [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:22:51Z] Completed in 117.2µs /health  [1mrequest_id[0m=JJ7Hbv6MWYvqxhZSP7ERI [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:22:36Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:22:37Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:22:56Z] Started /health  [1mrequest_id[0m=wLGA4I-u0hj1N0nSvKbIQ [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:22:37Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:22:56Z] Completed in 255.407µs /health  [1mrequest_id[0m=wLGA4I-u0hj1N0nSvKbIQ [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:22:40Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+traefik-1          | [90m2025-05-21T12:22:40Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:01Z] Started /health  [1mrequest_id[0m=Ifoh6W9Ur1qLqY2so0MqJ [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-vector    | 2025-05-21T12:22:32.755541Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+supabase-vector    | 2025-05-21T12:22:32.755886Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+supabase-vector    | 2025-05-21T12:22:32.756110Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+traefik-1          | [90m2025-05-21T12:22:40Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:22:40Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:22:41Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:22:41Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-vector    | 2025-05-21T12:22:33.624498Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+supabase-vector    | 2025-05-21T12:22:33.625313Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+supabase-vector    | 2025-05-21T12:22:33.625692Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+supabase-vector    | 2025-05-21T12:22:33.626051Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+supabase-vector    | 2025-05-21T12:22:34.918806Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+supabase-vector    | 2025-05-21T12:22:34.919553Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+traefik-1          | [90m2025-05-21T12:22:47Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:01Z] Completed in 182.368µs /health  [1mrequest_id[0m=Ifoh6W9Ur1qLqY2so0MqJ [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:22:47Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+traefik-1          | [90m2025-05-21T12:22:47Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+traefik-1          | [90m2025-05-21T12:22:47Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+traefik-1          | [90m2025-05-21T12:22:49Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:06Z] Started /health  [1mrequest_id[0m=kbicjopvmK8YVyjhP40af [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:22:49Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:06Z] Completed in 161.208µs /health  [1mrequest_id[0m=kbicjopvmK8YVyjhP40af [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:22:49Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:22:49Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:22:56Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:22:56Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:22:59Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |     return await anext(self.gen)
+supabase-vector    | 2025-05-21T12:22:34.919811Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+supabase-vector    | 2025-05-21T12:22:34.920051Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:12Z] Started /health  [1mrequest_id[0m=DKnVKLfJPij8DMXEPFf3u [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-vector    | 2025-05-21T12:22:36.948555Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+graphiti           |     settings = get_settings()
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:12Z] Completed in 157.544µs /health  [1mrequest_id[0m=DKnVKLfJPij8DMXEPFf3u [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:17Z] Started /health  [1mrequest_id[0m=i_HHYWMMcH7DQoYtYKHgW [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |                ^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+traefik-1          | [90m2025-05-21T12:22:59Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |     return Settings()
+supabase-vector    | 2025-05-21T12:22:36.949126Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+supabase-vector    | 2025-05-21T12:22:36.949352Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+traefik-1          | [90m2025-05-21T12:22:59Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |            ^^^^^^^^^^
+traefik-1          | [90m2025-05-21T12:22:59Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:23:00Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:17Z] Completed in 109.587µs /health  [1mrequest_id[0m=i_HHYWMMcH7DQoYtYKHgW [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:23:00Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:23:00Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:00Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:23:01Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:01Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-vector    | 2025-05-21T12:22:36.949519Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+supabase-vector    | 2025-05-21T12:22:40.478961Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+supabase-vector    | 2025-05-21T12:22:40.479334Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+supabase-vector    | 2025-05-21T12:22:40.479478Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:22Z] Started /health  [1mrequest_id[0m=OxUFha8-U-KVUiUNntnn1 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:23:02Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:02Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:22Z] Completed in 194.258µs /health  [1mrequest_id[0m=OxUFha8-U-KVUiUNntnn1 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:27Z] Started /health  [1mrequest_id[0m=MX7xI5KHXBaNa6C3G9ZGk [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |     super().__init__(
+traefik-1          | [90m2025-05-21T12:23:07Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+traefik-1          | [90m2025-05-21T12:23:07Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+traefik-1          | [90m2025-05-21T12:23:07Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+graphiti           | neo4j_uri
+traefik-1          | [90m2025-05-21T12:23:07Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+traefik-1          | [90m2025-05-21T12:23:07Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:23:08Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-vector    | 2025-05-21T12:22:40.479578Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+traefik-1          | [90m2025-05-21T12:23:08Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:08Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-vector    | 2025-05-21T12:22:47.263999Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+supabase-vector    | 2025-05-21T12:22:47.264557Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+supabase-vector    | 2025-05-21T12:22:47.264790Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+supabase-vector    | 2025-05-21T12:22:47.264987Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+supabase-vector    | 2025-05-21T12:23:00.586236Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+supabase-vector    | 2025-05-21T12:23:00.586777Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+graphiti           | neo4j_user
+supabase-vector    | 2025-05-21T12:23:00.587025Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+supabase-vector    | 2025-05-21T12:23:00.587162Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+supabase-vector    | 2025-05-21T12:23:26.503919Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+supabase-vector    | 2025-05-21T12:23:26.504305Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+traefik-1          | [90m2025-05-21T12:23:08Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-vector    | 2025-05-21T12:23:26.504463Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+traefik-1          | [90m2025-05-21T12:23:12Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+traefik-1          | [90m2025-05-21T12:23:12Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:23:12Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           | neo4j_password
+traefik-1          | [90m2025-05-21T12:23:12Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-vector    | 2025-05-21T12:23:26.504570Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+supabase-vector    | 2025-05-21T12:24:18.132655Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+traefik-1          | [90m2025-05-21T12:23:15Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-vector    | 2025-05-21T12:24:18.133402Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+traefik-1          | [90m2025-05-21T12:23:15Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:16Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+traefik-1          | [90m2025-05-21T12:23:16Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-vector    | 2025-05-21T12:24:18.133768Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+traefik-1          | [90m2025-05-21T12:23:16Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:23:16Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+supabase-vector    | 2025-05-21T12:24:18.134037Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+traefik-1          | [90m2025-05-21T12:23:16Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-vector    | 2025-05-21T12:25:18.586668Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+traefik-1          | [90m2025-05-21T12:23:16Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-vector    | 2025-05-21T12:25:18.587301Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+supabase-vector    | 2025-05-21T12:25:18.587547Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+supabase-vector    | 2025-05-21T12:25:18.587709Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+supabase-vector    | 2025-05-21T12:26:19.056380Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+traefik-1          | [90m2025-05-21T12:23:16Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-vector    | 2025-05-21T12:26:19.057121Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+graphiti           | 
+graphiti           | ERROR:    Application startup failed. Exiting.
+graphiti           | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti           | 
+traefik-1          | [90m2025-05-21T12:23:16Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-vector    | 2025-05-21T12:26:19.057368Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+traefik-1          | [90m2025-05-21T12:23:18Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:18Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-vector    | 2025-05-21T12:26:19.057539Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+supabase-vector    | 2025-05-21T12:27:19.510789Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+supabase-vector    | 2025-05-21T12:27:19.511490Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:27Z] Completed in 141.436µs /health  [1mrequest_id[0m=MX7xI5KHXBaNa6C3G9ZGk [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:32Z] Started /health  [1mrequest_id[0m=UVxAQFcXqxwfotRZvFe9p [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:32Z] Completed in 178.155µs /health  [1mrequest_id[0m=UVxAQFcXqxwfotRZvFe9p [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:38Z] Started /health  [1mrequest_id[0m=U56OHsH6rS8dIUVex28db [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:38Z] Completed in 140.718µs /health  [1mrequest_id[0m=U56OHsH6rS8dIUVex28db [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-vector    | 2025-05-21T12:27:19.511814Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+supabase-vector    | 2025-05-21T12:27:19.512008Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+supabase-vector    | 2025-05-21T12:28:19.980715Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:43Z] Started /health  [1mrequest_id[0m=FQXyVo8Q9Ei-ZfIgpoQpJ [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:43Z] Completed in 244.212µs /health  [1mrequest_id[0m=FQXyVo8Q9Ei-ZfIgpoQpJ [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:48Z] Started /health  [1mrequest_id[0m=WGBnPk_dNPv-7o5dmyrZn [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-vector    | 2025-05-21T12:28:19.981407Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+supabase-vector    | 2025-05-21T12:28:19.981725Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+supabase-vector    | 2025-05-21T12:28:19.981954Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:48Z] Completed in 110.987µs /health  [1mrequest_id[0m=WGBnPk_dNPv-7o5dmyrZn [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:53Z] Started /health  [1mrequest_id[0m=l3JP3PKmRcrvfqfcoQQDk [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |   warnings.warn(
+traefik-1          | [90m2025-05-21T12:23:19Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           | INFO:     Started server process [7]
+traefik-1          | [90m2025-05-21T12:23:19Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           | INFO:     Waiting for application startup.
+graphiti           | ERROR:    Traceback (most recent call last):
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:53Z] Completed in 209.697µs /health  [1mrequest_id[0m=l3JP3PKmRcrvfqfcoQQDk [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+supabase-vector    | 2025-05-21T12:29:20.448973Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+supabase-vector    | 2025-05-21T12:29:20.449578Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+traefik-1          | [90m2025-05-21T12:23:22Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:23:22Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:22Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |     async with self.lifespan_context(app) as maybe_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+supabase-vector    | 2025-05-21T12:29:20.449865Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+supabase-vector    | 2025-05-21T12:29:20.450028Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+supabase-vector    | 2025-05-21T12:30:20.900368Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+supabase-vector    | 2025-05-21T12:30:20.901179Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+supabase-vector    | 2025-05-21T12:30:20.901438Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:58Z] Started /health  [1mrequest_id[0m=QicmlxkLu6UMnJEJxBd6o [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-vector    | 2025-05-21T12:30:20.901621Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:23:58Z] Completed in 149.225µs /health  [1mrequest_id[0m=QicmlxkLu6UMnJEJxBd6o [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:23:22Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:04Z] Started /health  [1mrequest_id[0m=FHKGsSYs4f5GVYwZGCQeW [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:04Z] Completed in 180.486µs /health  [1mrequest_id[0m=FHKGsSYs4f5GVYwZGCQeW [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+traefik-1          | [90m2025-05-21T12:23:22Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-vector    | 2025-05-21T12:31:21.356114Z  INFO vector::app: Internal log rate limit configured. internal_log_rate_secs=10
+traefik-1          | [90m2025-05-21T12:23:22Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:23:24Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-vector    | 2025-05-21T12:31:21.356557Z  INFO vector::app: Log level is enabled. level="vector=info,codec=info,vrl=info,file_source=info,tower_limit=trace,rdkafka=info,buffers=info,lapin=info,kube=info"
+supabase-vector    | 2025-05-21T12:31:21.356731Z  INFO vector::app: Loading configs. paths=["/etc/vector/vector.yml"]
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+supabase-vector    | 2025-05-21T12:31:21.356823Z ERROR vector::cli: Configuration error. error=Is a directory (os error 21)
+traefik-1          | [90m2025-05-21T12:23:24Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:09Z] Started /health  [1mrequest_id[0m=L87v56RiHgZJPwgN-gvae [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:09Z] Completed in 115.917µs /health  [1mrequest_id[0m=L87v56RiHgZJPwgN-gvae [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:14Z] Started /health  [1mrequest_id[0m=9v8fHiiaWgXf9G3gfBFR- [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:14Z] Completed in 186.215µs /health  [1mrequest_id[0m=9v8fHiiaWgXf9G3gfBFR- [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+graphiti           |     settings = get_settings()
+traefik-1          | [90m2025-05-21T12:23:24Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:19Z] Started /health  [1mrequest_id[0m=lOCfTXjm_n_Xm5kpXkRAv [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:23:24Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:23:26Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:26Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:23:26Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:26Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |                ^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+traefik-1          | [90m2025-05-21T12:23:27Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |     return Settings()
+traefik-1          | [90m2025-05-21T12:23:27Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:23:30Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:30Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |            ^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+traefik-1          | [90m2025-05-21T12:23:31Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:23:31Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:23:31Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:33Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:23:33Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:33Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |     super().__init__(
+traefik-1          | [90m2025-05-21T12:23:35Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:35Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:19Z] Completed in 120.152µs /health  [1mrequest_id[0m=lOCfTXjm_n_Xm5kpXkRAv [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:24Z] Started /health  [1mrequest_id[0m=tN1LiCG-HAy8vxVINUKbu [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:24Z] Completed in 189.039µs /health  [1mrequest_id[0m=tN1LiCG-HAy8vxVINUKbu [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:30Z] Started /health  [1mrequest_id[0m=Up7p3tX-7jazT1d89vcL3 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           | neo4j_uri
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:30Z] Completed in 175.952µs /health  [1mrequest_id[0m=Up7p3tX-7jazT1d89vcL3 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:35Z] Started /health  [1mrequest_id[0m=dxy0SO31JK8EFUJLFGZjG [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:35Z] Completed in 302.375µs /health  [1mrequest_id[0m=dxy0SO31JK8EFUJLFGZjG [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:40Z] Started /health  [1mrequest_id[0m=0WrhmT48DI9HBd_8HxEpY [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:40Z] Completed in 134.568µs /health  [1mrequest_id[0m=0WrhmT48DI9HBd_8HxEpY [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:45Z] Started /health  [1mrequest_id[0m=D9uIriaMkvMMNkC1oOqBi [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           | neo4j_user
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_password
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:45Z] Completed in 251.15µs /health  [1mrequest_id[0m=D9uIriaMkvMMNkC1oOqBi [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:50Z] Started /health  [1mrequest_id[0m=IpMMnZP7xhr1lA73tW2KO [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:50Z] Completed in 122.124µs /health  [1mrequest_id[0m=IpMMnZP7xhr1lA73tW2KO [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:55Z] Started /health  [1mrequest_id[0m=jmGRzABc9GhgtWCDurXbM [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:24:55Z] Completed in 148.785µs /health  [1mrequest_id[0m=jmGRzABc9GhgtWCDurXbM [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:01Z] Started /health  [1mrequest_id[0m=HzsOu5JLh_wxO0bsehvOL [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:01Z] Completed in 127.847µs /health  [1mrequest_id[0m=HzsOu5JLh_wxO0bsehvOL [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | 
+graphiti           | ERROR:    Application startup failed. Exiting.
+graphiti           | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti           | 
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:06Z] Started /health  [1mrequest_id[0m=z0iRleEujbB4Nk-d96yQ2 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:06Z] Completed in 161.203µs /health  [1mrequest_id[0m=z0iRleEujbB4Nk-d96yQ2 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:11Z] Started /health  [1mrequest_id[0m=7oguw-xkYH5NefXAYCTtU [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:11Z] Completed in 145.932µs /health  [1mrequest_id[0m=7oguw-xkYH5NefXAYCTtU [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:16Z] Started /health  [1mrequest_id[0m=hJjkpXbJcbQC4ib4-NQne [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:16Z] Completed in 255.184µs /health  [1mrequest_id[0m=hJjkpXbJcbQC4ib4-NQne [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:22Z] Started /health  [1mrequest_id[0m=aCn9gZTc7qBA6xWva2iB7 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:22Z] Completed in 239.629µs /health  [1mrequest_id[0m=aCn9gZTc7qBA6xWva2iB7 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:27Z] Started /health  [1mrequest_id[0m=luVJNtaXyi9v4beclhI-B [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:27Z] Completed in 102.684µs /health  [1mrequest_id[0m=luVJNtaXyi9v4beclhI-B [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:32Z] Started /health  [1mrequest_id[0m=I5CKyzHuIv73JxCkGFqhr [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:32Z] Completed in 315.009µs /health  [1mrequest_id[0m=I5CKyzHuIv73JxCkGFqhr [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:37Z] Started /health  [1mrequest_id[0m=MLKC4YXleEanPjgCV1MJf [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:23:40Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:40Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:23:41Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:23:41Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:41Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:37Z] Completed in 159.539µs /health  [1mrequest_id[0m=MLKC4YXleEanPjgCV1MJf [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:42Z] Started /health  [1mrequest_id[0m=LH9yzObY6d33Wt3E1uMxg [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:42Z] Completed in 162.245µs /health  [1mrequest_id[0m=LH9yzObY6d33Wt3E1uMxg [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:48Z] Started /health  [1mrequest_id[0m=fUWJfiK0lY2NGqIE9BJfO [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:48Z] Completed in 120.205µs /health  [1mrequest_id[0m=fUWJfiK0lY2NGqIE9BJfO [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:53Z] Started /health  [1mrequest_id[0m=GD5txJFN9GDcebFnldwId [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:53Z] Completed in 331.665µs /health  [1mrequest_id[0m=GD5txJFN9GDcebFnldwId [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |   warnings.warn(
+traefik-1          | [90m2025-05-21T12:23:41Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           | INFO:     Started server process [7]
+graphiti           | INFO:     Waiting for application startup.
+graphiti           | ERROR:    Traceback (most recent call last):
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:58Z] Started /health  [1mrequest_id[0m=0LF0CLbRdH7VO-dF27QzO [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:25:58Z] Completed in 107.25µs /health  [1mrequest_id[0m=0LF0CLbRdH7VO-dF27QzO [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:03Z] Started /health  [1mrequest_id[0m=eErUOk1DgLLQP4keclTLN [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:03Z] Completed in 163.363µs /health  [1mrequest_id[0m=eErUOk1DgLLQP4keclTLN [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:08Z] Started /health  [1mrequest_id[0m=ru3WnFK5xTwobLceq-AC8 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |     async with self.lifespan_context(app) as maybe_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:08Z] Completed in 139.077µs /health  [1mrequest_id[0m=ru3WnFK5xTwobLceq-AC8 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:23:41Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:14Z] Started /health  [1mrequest_id[0m=eM4KatAvRIi3qiJ8sBMwZ [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:14Z] Completed in 172.321µs /health  [1mrequest_id[0m=eM4KatAvRIi3qiJ8sBMwZ [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |     async with original_context(app) as maybe_original_state:
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:19Z] Started /health  [1mrequest_id[0m=85rO1xrrR2nSOE7Vvchmk [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:23:41Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:19Z] Completed in 242.914µs /health  [1mrequest_id[0m=85rO1xrrR2nSOE7Vvchmk [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:23:42Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:23:42Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:42Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+traefik-1          | [90m2025-05-21T12:23:47Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:47Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+traefik-1          | [90m2025-05-21T12:23:53Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           |     return await anext(self.gen)
+traefik-1          | [90m2025-05-21T12:23:53Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+traefik-1          | [90m2025-05-21T12:23:53Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:24Z] Started /health  [1mrequest_id[0m=xq2c6C9tGSYDF8OoIo05o [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |     settings = get_settings()
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:24Z] Completed in 318.623µs /health  [1mrequest_id[0m=xq2c6C9tGSYDF8OoIo05o [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |                ^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+graphiti           |     return Settings()
+graphiti           |            ^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+graphiti           |     super().__init__(
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:29Z] Started /health  [1mrequest_id[0m=eK5Ykopwobni7oIo3aEIG [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:29Z] Completed in 155.523µs /health  [1mrequest_id[0m=eK5Ykopwobni7oIo3aEIG [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:34Z] Started /health  [1mrequest_id[0m=Vhs-HHEhX3Qod9tS2gX_D [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:34Z] Completed in 254.892µs /health  [1mrequest_id[0m=Vhs-HHEhX3Qod9tS2gX_D [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+graphiti           | neo4j_uri
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_user
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:40Z] Started /health  [1mrequest_id[0m=Uw0q7wIsd-MRsDK_X2i0g [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:40Z] Completed in 204.451µs /health  [1mrequest_id[0m=Uw0q7wIsd-MRsDK_X2i0g [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_password
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | 
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:45Z] Started /health  [1mrequest_id[0m=MCfhsY8QelhI1UYOrcwkv [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:45Z] Completed in 236.706µs /health  [1mrequest_id[0m=MCfhsY8QelhI1UYOrcwkv [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:50Z] Started /health  [1mrequest_id[0m=eSh-swQjhanGfw8j9SDn2 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:50Z] Completed in 148.461µs /health  [1mrequest_id[0m=eSh-swQjhanGfw8j9SDn2 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:55Z] Started /health  [1mrequest_id[0m=PKfqsUdcoSMTB-Sq82z5K [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:26:55Z] Completed in 235.978µs /health  [1mrequest_id[0m=PKfqsUdcoSMTB-Sq82z5K [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           | ERROR:    Application startup failed. Exiting.
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:01Z] Started /health  [1mrequest_id[0m=6Mp7MwPJt6tp5cMqjcBLN [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:01Z] Completed in 219.949µs /health  [1mrequest_id[0m=6Mp7MwPJt6tp5cMqjcBLN [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:06Z] Started /health  [1mrequest_id[0m=gPzasWSD4iIZMVlCsILsq [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:06Z] Completed in 209.663µs /health  [1mrequest_id[0m=gPzasWSD4iIZMVlCsILsq [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:11Z] Started /health  [1mrequest_id[0m=iONGos587NWAXasloXQ5Y [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:11Z] Completed in 137.184µs /health  [1mrequest_id[0m=iONGos587NWAXasloXQ5Y [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:16Z] Started /health  [1mrequest_id[0m=5gFRzyl1yU_KbafHpLEJd [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:16Z] Completed in 195.799µs /health  [1mrequest_id[0m=5gFRzyl1yU_KbafHpLEJd [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:22Z] Started /health  [1mrequest_id[0m=QSngxzYHHFgBz7TfCeo9K [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:22Z] Completed in 240.49µs /health  [1mrequest_id[0m=QSngxzYHHFgBz7TfCeo9K [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:27Z] Started /health  [1mrequest_id[0m=KsQ_2vwyk4D39CL2ItWFj [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:27Z] Completed in 130.759µs /health  [1mrequest_id[0m=KsQ_2vwyk4D39CL2ItWFj [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:32Z] Started /health  [1mrequest_id[0m=eZCFnpfZerjW1j2DdEQTT [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:32Z] Completed in 213.975µs /health  [1mrequest_id[0m=eZCFnpfZerjW1j2DdEQTT [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:37Z] Started /health  [1mrequest_id[0m=V1r0NU14op9DFC9F24sro [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:37Z] Completed in 149.683µs /health  [1mrequest_id[0m=V1r0NU14op9DFC9F24sro [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:42Z] Started /health  [1mrequest_id[0m=u9U7bdUjE1nmzTea9Eg5r [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:42Z] Completed in 292.044µs /health  [1mrequest_id[0m=u9U7bdUjE1nmzTea9Eg5r [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:48Z] Started /health  [1mrequest_id[0m=vZy6BJKuU8OnAJTXZKng1 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:48Z] Completed in 112.188µs /health  [1mrequest_id[0m=vZy6BJKuU8OnAJTXZKng1 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:53Z] Started /health  [1mrequest_id[0m=6NWbkBtl7soifoljTvW16 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:53Z] Completed in 211.239µs /health  [1mrequest_id[0m=6NWbkBtl7soifoljTvW16 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:58Z] Started /health  [1mrequest_id[0m=VYIB8n3vYLDf9BMvwaVpQ [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:27:58Z] Completed in 154.273µs /health  [1mrequest_id[0m=VYIB8n3vYLDf9BMvwaVpQ [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:03Z] Started /health  [1mrequest_id[0m=zCI7QjgwwABqablM1XuCz [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:03Z] Completed in 204.384µs /health  [1mrequest_id[0m=zCI7QjgwwABqablM1XuCz [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:08Z] Started /health  [1mrequest_id[0m=yUQLFFvf3cNglqcohxjp8 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:08Z] Completed in 137.884µs /health  [1mrequest_id[0m=yUQLFFvf3cNglqcohxjp8 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:14Z] Started /health  [1mrequest_id[0m=z-KMfRVhlE_Ptj_bPhnYF [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:14Z] Completed in 250.612µs /health  [1mrequest_id[0m=z-KMfRVhlE_Ptj_bPhnYF [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:19Z] Started /health  [1mrequest_id[0m=EbwkJ3S1l1UBYhTTqVl1B [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:19Z] Completed in 164.14µs /health  [1mrequest_id[0m=EbwkJ3S1l1UBYhTTqVl1B [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:24Z] Started /health  [1mrequest_id[0m=pMmijv0OJqd4CyJFIy_v7 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:24Z] Completed in 257.395µs /health  [1mrequest_id[0m=pMmijv0OJqd4CyJFIy_v7 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:29Z] Started /health  [1mrequest_id[0m=J4W1gJHrZC5FljeK-d5-S [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:29Z] Completed in 121.529µs /health  [1mrequest_id[0m=J4W1gJHrZC5FljeK-d5-S [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:35Z] Started /health  [1mrequest_id[0m=92_5mIKxedYTr3BAZXfga [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:35Z] Completed in 176.259µs /health  [1mrequest_id[0m=92_5mIKxedYTr3BAZXfga [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:23:55Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:23:55Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:23:55Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:23:58Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:23:58Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:40Z] Started /health  [1mrequest_id[0m=hJb1DORobz_uHnXiyjJGI [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:40Z] Completed in 118.853µs /health  [1mrequest_id[0m=hJb1DORobz_uHnXiyjJGI [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:45Z] Started /health  [1mrequest_id[0m=8stAZImy-NY2E5gHjCrL9 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:45Z] Completed in 258.955µs /health  [1mrequest_id[0m=8stAZImy-NY2E5gHjCrL9 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:50Z] Started /health  [1mrequest_id[0m=Yrl-gYTs8TACrYPLK3i29 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:50Z] Completed in 99.952µs /health  [1mrequest_id[0m=Yrl-gYTs8TACrYPLK3i29 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:55Z] Started /health  [1mrequest_id[0m=q3cS5mimTvlAVUnsgCR-y [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:23:58Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:24:06Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:24:06Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:24:12Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti           | 
+graphiti           | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+traefik-1          | [90m2025-05-21T12:24:12Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |   warnings.warn(
+traefik-1          | [90m2025-05-21T12:24:12Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:24:18Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:24:18Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           | INFO:     Started server process [7]
+traefik-1          | [90m2025-05-21T12:24:18Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           | INFO:     Waiting for application startup.
+graphiti           | ERROR:    Traceback (most recent call last):
+traefik-1          | [90m2025-05-21T12:24:18Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:28:55Z] Completed in 325.811µs /health  [1mrequest_id[0m=q3cS5mimTvlAVUnsgCR-y [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:01Z] Started /health  [1mrequest_id[0m=91bBTEGPnd9j9zpYE5SDS [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:01Z] Completed in 165.931µs /health  [1mrequest_id[0m=91bBTEGPnd9j9zpYE5SDS [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:24:18Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:24:18Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:06Z] Started /health  [1mrequest_id[0m=Bd8Ycn1WTOu7OAUBJ-1e2 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:24:24Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:06Z] Completed in 179.141µs /health  [1mrequest_id[0m=Bd8Ycn1WTOu7OAUBJ-1e2 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:11Z] Started /health  [1mrequest_id[0m=BlTr6rI_g05p6-YinsX4- [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+graphiti           |     async with self.lifespan_context(app) as maybe_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+traefik-1          | [90m2025-05-21T12:24:24Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:24:24Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:24:27Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:11Z] Completed in 131.74µs /health  [1mrequest_id[0m=BlTr6rI_g05p6-YinsX4- [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:24:27Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:24:27Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:24:38Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+traefik-1          | [90m2025-05-21T12:24:38Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |     return await anext(self.gen)
+traefik-1          | [90m2025-05-21T12:24:43Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:24:43Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:24:43Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:25:18Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:25:18Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:25:18Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+traefik-1          | [90m2025-05-21T12:25:18Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:16Z] Started /health  [1mrequest_id[0m=z6V-mWdtYsOsdqDNhdxIk [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:25:18Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:16Z] Completed in 168.776µs /health  [1mrequest_id[0m=z6V-mWdtYsOsdqDNhdxIk [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+traefik-1          | [90m2025-05-21T12:25:18Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:25:18Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:25:18Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |     return await anext(self.gen)
+traefik-1          | [90m2025-05-21T12:25:18Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:25:21Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:22Z] Started /health  [1mrequest_id[0m=8lS34yljc4CVXzpwFmafu [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+graphiti           |     settings = get_settings()
+graphiti           |                ^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+graphiti           |     return Settings()
+graphiti           |            ^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+graphiti           |     super().__init__(
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+graphiti           | neo4j_uri
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:22Z] Completed in 242.7µs /health  [1mrequest_id[0m=8lS34yljc4CVXzpwFmafu [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:27Z] Started /health  [1mrequest_id[0m=kwOmvgSuGsbztyy5SdG2a [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:27Z] Completed in 129.973µs /health  [1mrequest_id[0m=kwOmvgSuGsbztyy5SdG2a [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:32Z] Started /health  [1mrequest_id[0m=kZkd-ul_HuEZvTBlgrIXA [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_user
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:32Z] Completed in 161.813µs /health  [1mrequest_id[0m=kZkd-ul_HuEZvTBlgrIXA [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:37Z] Started /health  [1mrequest_id[0m=OJ3D2bwrxldOgcosx5mzp [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:37Z] Completed in 197.218µs /health  [1mrequest_id[0m=OJ3D2bwrxldOgcosx5mzp [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:25:21Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:42Z] Started /health  [1mrequest_id[0m=qYhcoFfbpQbQo3JID30Zn [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:42Z] Completed in 360.894µs /health  [1mrequest_id[0m=qYhcoFfbpQbQo3JID30Zn [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_password
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:48Z] Started /health  [1mrequest_id[0m=de6XYbvYiVvBW3EYlOaYv [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:48Z] Completed in 320.221µs /health  [1mrequest_id[0m=de6XYbvYiVvBW3EYlOaYv [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:53Z] Started /health  [1mrequest_id[0m=Yd1f6z2FhmLnbOm7pwHRI [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:53Z] Completed in 244.672µs /health  [1mrequest_id[0m=Yd1f6z2FhmLnbOm7pwHRI [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:58Z] Started /health  [1mrequest_id[0m=ifHP7a9AfrUDBF6Loj8qm [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:29:58Z] Completed in 175.16µs /health  [1mrequest_id[0m=ifHP7a9AfrUDBF6Loj8qm [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:03Z] Started /health  [1mrequest_id[0m=g1EO5FFUrcHxLzvBg3FUf [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | 
+graphiti           | ERROR:    Application startup failed. Exiting.
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:03Z] Completed in 215.724µs /health  [1mrequest_id[0m=g1EO5FFUrcHxLzvBg3FUf [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti           | 
+traefik-1          | [90m2025-05-21T12:25:21Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:25:35Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:25:35Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+graphiti           |   warnings.warn(
+graphiti           | INFO:     Started server process [7]
+traefik-1          | [90m2025-05-21T12:25:41Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:25:41Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:08Z] Started /health  [1mrequest_id[0m=uOxVbEb4NUZmXEdz6Qtzs [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:08Z] Completed in 223.387µs /health  [1mrequest_id[0m=uOxVbEb4NUZmXEdz6Qtzs [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:14Z] Started /health  [1mrequest_id[0m=AP6gHCKemEsXPqZ3chRaL [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:25:41Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:26:19Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:26:19Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:26:19Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:26:19Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:26:19Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:26:19Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:14Z] Completed in 203.319µs /health  [1mrequest_id[0m=AP6gHCKemEsXPqZ3chRaL [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:19Z] Started /health  [1mrequest_id[0m=7N2NQxBUXulXS4Cqfqn6c [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:19Z] Completed in 179.911µs /health  [1mrequest_id[0m=7N2NQxBUXulXS4Cqfqn6c [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:24Z] Started /health  [1mrequest_id[0m=xwH-XuZCr09s_5COnNjrt [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:24Z] Completed in 163.664µs /health  [1mrequest_id[0m=xwH-XuZCr09s_5COnNjrt [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           | INFO:     Waiting for application startup.
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:29Z] Started /health  [1mrequest_id[0m=eeH_yB4Gy5t5bb8jpmnNd [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:26:21Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:26:21Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           | ERROR:    Traceback (most recent call last):
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+graphiti           |     async with self.lifespan_context(app) as maybe_state:
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:29Z] Completed in 125.444µs /health  [1mrequest_id[0m=eeH_yB4Gy5t5bb8jpmnNd [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:34Z] Started /health  [1mrequest_id[0m=bbkRKE5qhUXRinqjrwMM6 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:34Z] Completed in 156.588µs /health  [1mrequest_id[0m=bbkRKE5qhUXRinqjrwMM6 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |     return await anext(self.gen)
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:39Z] Started /health  [1mrequest_id[0m=U2iNG1zLOksSOxgfERdEV [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:39Z] Completed in 145.46µs /health  [1mrequest_id[0m=U2iNG1zLOksSOxgfERdEV [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:45Z] Started /health  [1mrequest_id[0m=JtpS4pp56xyqADtvnDg_m [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:45Z] Completed in 155.076µs /health  [1mrequest_id[0m=JtpS4pp56xyqADtvnDg_m [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:50Z] Started /health  [1mrequest_id[0m=wbBkshL0lf1cdAI6YPQSx [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:50Z] Completed in 154.545µs /health  [1mrequest_id[0m=wbBkshL0lf1cdAI6YPQSx [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:55Z] Started /health  [1mrequest_id[0m=VZoZ0EPbEO04EfCma0RS5 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:30:55Z] Completed in 262.668µs /health  [1mrequest_id[0m=VZoZ0EPbEO04EfCma0RS5 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:26:21Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+traefik-1          | [90m2025-05-21T12:26:24Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:26:24Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:31:00Z] Started /health  [1mrequest_id[0m=ibbCSvh47ggjsSoHqsjVx [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:31:00Z] Completed in 201.138µs /health  [1mrequest_id[0m=ibbCSvh47ggjsSoHqsjVx [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:31:06Z] Started /health  [1mrequest_id[0m=duJ0mUHs_Cu8zQ0UlC4rM [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:31:06Z] Completed in 158.503µs /health  [1mrequest_id[0m=duJ0mUHs_Cu8zQ0UlC4rM [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:31:11Z] Started /health  [1mrequest_id[0m=z12RCUp5g14noaJE1zqx6 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:26:24Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:31:11Z] Completed in 180.093µs /health  [1mrequest_id[0m=z12RCUp5g14noaJE1zqx6 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:31:16Z] Started /health  [1mrequest_id[0m=mHpG8QgL-cq0bvy2Sz3qJ [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+graphiti           |     return await anext(self.gen)
+traefik-1          | [90m2025-05-21T12:26:41Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:26:41Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+traefik-1          | [90m2025-05-21T12:26:47Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+graphiti           |     settings = get_settings()
+traefik-1          | [90m2025-05-21T12:26:47Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:31:16Z] Completed in 205.258µs /health  [1mrequest_id[0m=mHpG8QgL-cq0bvy2Sz3qJ [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+traefik-1          | [90m2025-05-21T12:26:47Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:27:19Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           |                ^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+graphiti           |     return Settings()
+traefik-1          | [90m2025-05-21T12:27:19Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:31:21Z] Started /health  [1mrequest_id[0m=25RuUDVZv13JthTPKMMpP [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:31:21Z] Completed in 163.48µs /health  [1mrequest_id[0m=25RuUDVZv13JthTPKMMpP [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:31:26Z] Started /health  [1mrequest_id[0m=43FCzUSDsj_O9syjIb7kO [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:31:26Z] Completed in 180.406µs /health  [1mrequest_id[0m=43FCzUSDsj_O9syjIb7kO [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:31:32Z] Started /health  [1mrequest_id[0m=5bus3X5Xzxiu2RE_3w0C1 [1mmethod[0m=GET [1mclient_ip[0m=127.0.0.1
+supabase-imgproxy  | [36mINFO   [0m [2025-05-21T12:31:32Z] Completed in 247.632µs /health  [1mrequest_id[0m=5bus3X5Xzxiu2RE_3w0C1 [1mmethod[0m=GET [1mstatus[0m=200 [1mclient_ip[0m=127.0.0.1
+graphiti           |            ^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+graphiti           |     super().__init__(
+traefik-1          | [90m2025-05-21T12:27:19Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:27:19Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:27:19Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:27:19Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:27:24Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:27:24Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+graphiti           | neo4j_uri
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+traefik-1          | [90m2025-05-21T12:27:24Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:27:27Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:27:27Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:27:27Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:27:47Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:27:47Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:27:53Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:27:53Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:27:53Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:28:19Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:28:19Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:28:19Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:28:20Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:28:20Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:28:20Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:28:27Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_user
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+traefik-1          | [90m2025-05-21T12:28:27Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:28:27Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:28:30Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:28:30Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:28:30Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:28:53Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:28:53Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           | neo4j_password
+traefik-1          | [90m2025-05-21T12:28:59Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | 
+graphiti           | ERROR:    Application startup failed. Exiting.
+graphiti           | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti           | 
+graphiti           | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+traefik-1          | [90m2025-05-21T12:28:59Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:28:59Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:29:20Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:29:20Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:29:20Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |   warnings.warn(
+graphiti           | INFO:     Started server process [7]
+graphiti           | INFO:     Waiting for application startup.
+traefik-1          | [90m2025-05-21T12:29:20Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           | ERROR:    Traceback (most recent call last):
+traefik-1          | [90m2025-05-21T12:29:20Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+graphiti           |     async with self.lifespan_context(app) as maybe_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+traefik-1          | [90m2025-05-21T12:29:20Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |     return await anext(self.gen)
+traefik-1          | [90m2025-05-21T12:29:31Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+traefik-1          | [90m2025-05-21T12:29:31Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+traefik-1          | [90m2025-05-21T12:29:31Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+traefik-1          | [90m2025-05-21T12:29:33Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+graphiti           |     settings = get_settings()
+graphiti           |                ^^^^^^^^^^^^^^
+traefik-1          | [90m2025-05-21T12:29:33Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+traefik-1          | [90m2025-05-21T12:29:33Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:29:59Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:29:59Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:30:05Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           |     return Settings()
+graphiti           |            ^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+graphiti           |     super().__init__(
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+traefik-1          | [90m2025-05-21T12:30:05Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:30:05Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:30:20Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:30:20Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:30:20Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           | neo4j_uri
+traefik-1          | [90m2025-05-21T12:30:21Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+traefik-1          | [90m2025-05-21T12:30:21Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:30:21Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:30:33Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:30:33Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:30:33Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:30:36Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:30:36Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:30:36Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-console-service" "minio-api-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:31:05Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           | neo4j_user
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_password
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | 
+graphiti           | ERROR:    Application startup failed. Exiting.
+graphiti           | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti           | 
+graphiti           | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+graphiti           |   warnings.warn(
+graphiti           | INFO:     Started server process [7]
+graphiti           | INFO:     Waiting for application startup.
+graphiti           | ERROR:    Traceback (most recent call last):
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+graphiti           |     async with self.lifespan_context(app) as maybe_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+traefik-1          | [90m2025-05-21T12:31:05Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:31:11Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+traefik-1          | [90m2025-05-21T12:31:11Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:31:11Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:31:21Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:31:21Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+traefik-1          | [90m2025-05-21T12:31:21Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+traefik-1          | [90m2025-05-21T12:31:21Z[0m [31mERR[0m [36merror=[0m[31m[1m"service \"n8n\" error: unable to find the IP address for the container \"/n8n-ai-starter-kit-n8n-1\": the server is ignored"[0m[0m [36mcontainer=[0mn8n-n8n-ai-starter-kit-f9deec44dff3a892fd06a40fbd6e91a81830b76fd047aec8c6818eb12156152c [36mproviderName=[0mdocker
+traefik-1          | [90m2025-05-21T12:31:21Z[0m [31mERR[0m [1mRouter minio-api cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-api
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+graphiti           |     settings = get_settings()
+graphiti           |                ^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+traefik-1          | [90m2025-05-21T12:31:21Z[0m [31mERR[0m [1mRouter minio-console cannot be linked automatically with multiple Services: ["minio-api-service" "minio-console-service"][0m [36mproviderName=[0mdocker [36mrouterName=[0mminio-console
+graphiti           |     return Settings()
+graphiti           |            ^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+graphiti           |     super().__init__(
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+graphiti           | neo4j_uri
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_user
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_password
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | 
+graphiti           | ERROR:    Application startup failed. Exiting.
+graphiti           | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti           | 
+graphiti           | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+graphiti           |   warnings.warn(
+graphiti           | INFO:     Started server process [7]
+graphiti           | INFO:     Waiting for application startup.
+graphiti           | ERROR:    Traceback (most recent call last):
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+graphiti           |     async with self.lifespan_context(app) as maybe_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+graphiti           |     settings = get_settings()
+graphiti           |                ^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+graphiti           |     return Settings()
+graphiti           |            ^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+graphiti           |     super().__init__(
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+graphiti           | neo4j_uri
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_user
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_password
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | 
+graphiti           | ERROR:    Application startup failed. Exiting.
+graphiti           | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti           | 
+graphiti           | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+graphiti           |   warnings.warn(
+graphiti           | INFO:     Started server process [7]
+graphiti           | INFO:     Waiting for application startup.
+graphiti           | ERROR:    Traceback (most recent call last):
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+graphiti           |     async with self.lifespan_context(app) as maybe_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+graphiti           |     settings = get_settings()
+graphiti           |                ^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+graphiti           |     return Settings()
+graphiti           |            ^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+graphiti           |     super().__init__(
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+graphiti           | neo4j_uri
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_user
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_password
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | 
+graphiti           | ERROR:    Application startup failed. Exiting.
+graphiti           | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti           | 
+graphiti           | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+graphiti           |   warnings.warn(
+graphiti           | INFO:     Started server process [7]
+graphiti           | INFO:     Waiting for application startup.
+graphiti           | ERROR:    Traceback (most recent call last):
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+graphiti           |     async with self.lifespan_context(app) as maybe_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+graphiti           |     settings = get_settings()
+graphiti           |                ^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+graphiti           |     return Settings()
+graphiti           |            ^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+graphiti           |     super().__init__(
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+graphiti           | neo4j_uri
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_user
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_password
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | 
+graphiti           | ERROR:    Application startup failed. Exiting.
+graphiti           | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti           | 
+graphiti           | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+graphiti           |   warnings.warn(
+graphiti           | INFO:     Started server process [7]
+graphiti           | INFO:     Waiting for application startup.
+graphiti           | ERROR:    Traceback (most recent call last):
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+graphiti           |     async with self.lifespan_context(app) as maybe_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+graphiti           |     settings = get_settings()
+graphiti           |                ^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+graphiti           |     return Settings()
+graphiti           |            ^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+graphiti           |     super().__init__(
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+graphiti           | neo4j_uri
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_user
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_password
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | 
+graphiti           | ERROR:    Application startup failed. Exiting.
+graphiti           | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti           | 
+graphiti           | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+graphiti           |   warnings.warn(
+graphiti           | INFO:     Started server process [7]
+graphiti           | INFO:     Waiting for application startup.
+graphiti           | ERROR:    Traceback (most recent call last):
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+graphiti           |     async with self.lifespan_context(app) as maybe_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+graphiti           |     settings = get_settings()
+graphiti           |                ^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+graphiti           |     return Settings()
+graphiti           |            ^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+graphiti           |     super().__init__(
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+graphiti           | neo4j_uri
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_user
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_password
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | 
+graphiti           | ERROR:    Application startup failed. Exiting.
+graphiti           | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti           | 
+graphiti           | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+graphiti           |   warnings.warn(
+graphiti           | INFO:     Started server process [8]
+graphiti           | INFO:     Waiting for application startup.
+graphiti           | ERROR:    Traceback (most recent call last):
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+graphiti           |     async with self.lifespan_context(app) as maybe_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+graphiti           |     settings = get_settings()
+graphiti           |                ^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+graphiti           |     return Settings()
+graphiti           |            ^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+graphiti           |     super().__init__(
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+graphiti           | neo4j_uri
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_user
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_password
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | 
+graphiti           | ERROR:    Application startup failed. Exiting.
+graphiti           | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti           | 
+graphiti           | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+graphiti           |   warnings.warn(
+graphiti           | INFO:     Started server process [7]
+graphiti           | INFO:     Waiting for application startup.
+graphiti           | ERROR:    Traceback (most recent call last):
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+graphiti           |     async with self.lifespan_context(app) as maybe_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+graphiti           |     settings = get_settings()
+graphiti           |                ^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+graphiti           |     return Settings()
+graphiti           |            ^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+graphiti           |     super().__init__(
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+graphiti           | neo4j_uri
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_user
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_password
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | 
+graphiti           | ERROR:    Application startup failed. Exiting.
+graphiti           | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti           | 
+graphiti           | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+graphiti           |   warnings.warn(
+graphiti           | INFO:     Started server process [7]
+graphiti           | INFO:     Waiting for application startup.
+graphiti           | ERROR:    Traceback (most recent call last):
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+graphiti           |     async with self.lifespan_context(app) as maybe_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+graphiti           |     settings = get_settings()
+graphiti           |                ^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+graphiti           |     return Settings()
+graphiti           |            ^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+graphiti           |     super().__init__(
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+graphiti           | neo4j_uri
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_user
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_password
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | 
+graphiti           | ERROR:    Application startup failed. Exiting.
+graphiti           | /usr/local/lib/python3.12/site-packages/pydantic/_internal/_fields.py:132: UserWarning: Field "model_name" in Settings has conflict with protected namespace "model_".
+graphiti           | 
+graphiti           | You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+graphiti           |   warnings.warn(
+graphiti           | INFO:     Started server process [7]
+graphiti           | INFO:     Waiting for application startup.
+graphiti           | ERROR:    Traceback (most recent call last):
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/starlette/routing.py", line 693, in lifespan
+graphiti           |     async with self.lifespan_context(app) as maybe_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 133, in merged_lifespan
+graphiti           |     async with original_context(app) as maybe_original_state:
+graphiti           |                ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+graphiti           |     return await anext(self.gen)
+graphiti           |            ^^^^^^^^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/main.py", line 13, in lifespan
+graphiti           |     settings = get_settings()
+graphiti           |                ^^^^^^^^^^^^^^
+graphiti           |   File "/app/graph_service/config.py", line 23, in get_settings
+graphiti           |     return Settings()
+graphiti           |            ^^^^^^^^^^
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic_settings/main.py", line 144, in __init__
+graphiti           |     super().__init__(
+graphiti           |   File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 211, in __init__
+graphiti           |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+graphiti           |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+graphiti           | pydantic_core._pydantic_core.ValidationError: 3 validation errors for Settings
+graphiti           | neo4j_uri
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_user
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | neo4j_password
+graphiti           |   Field required [type=missing, input_value={'openai_api_key': ''}, input_type=dict]
+graphiti           |     For further information visit https://errors.pydantic.dev/2.9/v/missing
+graphiti           | 
+graphiti           | ERROR:    Application startup failed. Exiting.

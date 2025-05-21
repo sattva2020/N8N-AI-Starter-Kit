@@ -843,13 +843,20 @@ print_info "Сгенерированный хэш пароля: $traefik_pwd_has
 # Запрос API ключа OpenAI
 read -p "Введите ваш OpenAI API ключ (или оставьте пустым, чтобы настроить позже): " openai_key
 
+# Генерация дополнительных параметров для Supabase/Storage
+storage_region="us-east-1"
+storage_bucket="n8n-storage"
+storage_backend="file"
+file_storage_path="/var/lib/storage"
+file_size_limit="52428800"
+
 # Создание файла .env
 cat > .env << EOF
 # =============================================
 # N8N AI Starter Kit - Конфигурация окружения
 # =============================================
 # Создано автоматически $(date)
-# Версия: 1.5.2
+# Версия: 1.0.3
 
 # ---- БАЗОВЫЕ НАСТРОЙКИ ----
 DOMAIN_NAME=${domain_name}
@@ -939,6 +946,9 @@ ZEP_API_SECRET=${zep_api_secret}
 
 # ---- GRAPHITI НАСТРОЙКИ ----
 OPENAI_API_KEY=${openai_key}
+NEO4J_URI=bolt://neo4j-zep:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=zepzepzep
 
 # ---- GRAFANA НАСТРОЙКИ ----
 GRAFANA_ADMIN_USER=admin
@@ -970,6 +980,18 @@ KIBANA_DOMAIN=kibana.${domain_name}
 JUPYTER_DS_DOMAIN=jupyter-ds.${domain_name}
 LANGSMITH_DOMAIN=langsmith.${domain_name}
 WANDB_DOMAIN=wandb.${domain_name}
+
+# ---- SUPABASE VECTOR/STORAGE НАСТРОЙКИ ----
+STORAGE_REGION=${storage_region}
+STORAGE_BUCKET=${storage_bucket}
+STORAGE_BACKEND=${storage_backend}
+FILE_STORAGE_BACKEND_PATH=${file_storage_path}
+FILE_SIZE_LIMIT=${file_size_limit}
+
+# ---- VECTOR НАСТРОЙКИ ----
+VECTOR_CONFIG_PATH=${vector_config_path}
+VECTOR_LOG_LEVEL=${vector_log_level}
+VECTOR_DATA_DIR=${vector_data_dir}
 EOF
 
 # Добавляем дополнительные переменные окружения, необходимые для Supabase
@@ -992,7 +1014,7 @@ print_warning "ВАЖНО: Сохраните копию файла .env в бе
 create_troubleshooting_file
 
 # ВАЖНО: Ограничиваем параллелизм Docker Compose для предотвращения ошибок concurrent map writes
-export COMPOSE_PARALLEL_LIMIT=1
+#export COMPOSE_PARALLEL_LIMIT=1
 
 # Запуск сервисов
 print_info "Теперь вы можете запустить N8N AI Starter Kit с помощью команды:"

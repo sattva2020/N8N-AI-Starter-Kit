@@ -1,9 +1,9 @@
 # Общие конфигурации для мониторинга и аналитики
-x-monitoring-defaults: &monitoring-defaults
-  restart: unless-stopped
-  networks:
-    - frontend
-    - backend
+#x-monitoring-defaults: &monitoring-defaults
+#  restart: unless-stopped
+#  networks:
+#    - frontend
+#    - backend
 
 # volumes:
 #   prometheus_data:
