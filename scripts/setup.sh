@@ -292,7 +292,7 @@ check_memory_requirements() {
     
     if [ "$total_mem" -lt 4000 ]; then
       print_warning "У вас меньше 4 ГБ памяти. Это может вызвать проблемы при запуске нескольких сервисов."
-      print_info "Рекомендуется выбрать минимальный профиль: --profile minimal"
+      print_info "Рекомендуется использовать базовый профиль: --profile cpu"
     elif [ "$total_mem" -lt 8000 ]; then
       print_info "У вас 4-8 ГБ памяти. Это достаточно для основных сервисов."
       print_info "Рекомендуется стандартный профиль: --profile cpu"
@@ -306,7 +306,7 @@ check_memory_requirements() {
     
     if [ "$total_mem" -lt 4000 ]; then
       print_warning "У вас меньше 4 ГБ памяти. Это может вызвать проблемы при запуске нескольких сервисов."
-      print_info "Рекомендуется выбрать минимальный профиль: --profile minimal"
+      print_info "Рекомендуется использовать базовый профиль: --profile cpu"
     elif [ "$total_mem" -lt 8000 ]; then
       print_info "У вас 4-8 ГБ памяти. Это достаточно для основных сервисов."
       print_info "Рекомендуется стандартный профиль: --profile cpu"
@@ -330,7 +330,7 @@ check_cpu_resources() {
     
     if [ "$cpu_cores" -lt 2 ]; then
       print_warning "У вас менее 2 ядер CPU. Это может вызвать проблемы с производительностью."
-      print_info "Рекомендуется выбрать минимальный профиль: --profile minimal"
+      print_info "Рекомендуется использовать базовый профиль: --profile cpu"
     elif [ "$cpu_cores" -lt 4 ]; then
       print_info "У вас 2-3 ядра CPU. Это достаточно для основных сервисов."
       print_info "Рекомендуется стандартный профиль: --profile cpu"
@@ -344,7 +344,7 @@ check_cpu_resources() {
     
     if [ "$cpu_cores" -lt 2 ]; then
       print_warning "У вас менее 2 ядер CPU. Это может вызвать проблемы с производительностью."
-      print_info "Рекомендуется выбрать минимальный профиль: --profile minimal"
+      print_info "Рекомендуется использовать базовый профиль: --profile cpu"
     elif [ "$cpu_cores" -lt 4 ]; then
       print_info "У вас 2-3 ядра CPU. Это достаточно для основных сервисов."
       print_info "Рекомендуется стандартный профиль: --profile cpu"
@@ -406,7 +406,7 @@ create_troubleshooting_file() {
   - Для больших моделей увеличьте лимиты памяти в docker-compose.override.yml
 
 - **Недостаточно памяти или CPU**
-  - Используйте минимальный профиль: \`docker compose --profile minimal up -d\`
+  - Используйте базовый профиль: \`docker compose --profile cpu up -d\`
   - Закройте другие ресурсоемкие программы
   - Увеличьте размер swap-файла в Linux
 
@@ -797,7 +797,7 @@ while [ -z "$email" ] || ! validate_email "$email"; do
 done
 
 # Генерация паролей и ключей
-echo "Генерация безопасных паролей и ключей..."
+print_info "Генерация безопасных паролей и ключей..."
 # Используем только алфавитно-цифровые символы
 postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
 n8n_encryption_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
@@ -817,6 +817,8 @@ pooler_proxy_port_transaction="6543"
 minio_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
 pgadmin_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
 zep_api_secret=$(openssl rand -base64 64 | tr -cd '[:alnum:]' | cut -c1-48)
+grafana_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+jupyter_ds_token=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
 dashboard_password=$(openssl rand -base64 24 | tr -cd '[:alnum:]' | cut -c1-12)
 
 # Генерация хэша пароля для Traefik Dashboard
@@ -938,6 +940,13 @@ ZEP_API_SECRET=${zep_api_secret}
 # ---- GRAPHITI НАСТРОЙКИ ----
 OPENAI_API_KEY=${openai_key}
 
+# ---- GRAFANA НАСТРОЙКИ ----
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=${grafana_pwd}
+
+# ---- JUPYTER DATA SCIENCE НАСТРОЙКИ ----
+JUPYTER_DS_TOKEN=${jupyter_ds_token}
+
 # ---- ДОМЕНЫ СЕРВИСОВ ----
 N8N_DOMAIN=n8n.${domain_name}
 OLLAMA_DOMAIN=ollama.${domain_name}
@@ -947,9 +956,20 @@ SUPABASE_API_DOMAIN=api.supabase.${domain_name}
 MINIO_API_DOMAIN=minio.${domain_name}
 MINIO_CONSOLE_DOMAIN=minio-console.${domain_name}
 PGADMIN_DOMAIN=pgadmin.${domain_name}
+JUPYTER_DOMAIN=jupyter.${domain_name}
 TRAEFIK_DASHBOARD_DOMAIN=traefik.${domain_name}
 ZEP_DOMAIN=zep.${domain_name}
 GRAPHITI_DOMAIN=graphiti.${domain_name}
+
+# ---- ДОПОЛНИТЕЛЬНЫЕ ДОМЕНЫ СЕРВИСОВ ----
+PROMETHEUS_DOMAIN=prometheus.${domain_name}
+GRAFANA_DOMAIN=grafana.${domain_name}
+CADVISOR_DOMAIN=cadvisor.${domain_name}
+LOKI_DOMAIN=loki.${domain_name}
+KIBANA_DOMAIN=kibana.${domain_name}
+JUPYTER_DS_DOMAIN=jupyter-ds.${domain_name}
+LANGSMITH_DOMAIN=langsmith.${domain_name}
+WANDB_DOMAIN=wandb.${domain_name}
 EOF
 
 # Добавляем дополнительные переменные окружения, необходимые для Supabase
@@ -980,13 +1000,13 @@ print_info "${BOLD}COMPOSE_PARALLEL_LIMIT=1 $DC_CMD up -d${NC}"
 
 print_info "\nДополнительные команды с ограничением параллелизма:"
 print_info "${BOLD}COMPOSE_PARALLEL_LIMIT=1 $DC_CMD --profile cpu up -d${NC} - Запуск с процессорными AI-сервисами"
-print_info "${BOLD}COMPOSE_PARALLEL_LIMIT=1 $DC_CMD --profile gpu up -d${NC} - Запуск с GPU-ускоренными AI-сервисами"
-print_info "${BOLD}COMPOSE_PARALLEL_LIMIT=1 $DC_CMD --profile minimal up -d${NC} - Запуск только базовых сервисов"
+print_info "${BOLD}COMPOSE_PARALLEL_LIMIT=1 $DC_CMD --profile gpu-nvidia up -d${NC} - Запуск с NVIDIA GPU AI-сервисами"
+print_info "${BOLD}COMPOSE_PARALLEL_LIMIT=1 $DC_CMD --profile gpu-amd up -d${NC} - Запуск с AMD GPU AI-сервисами"
 
 print_info "\nИли используйте скрипт start.sh для безопасного запуска:"
 print_info "${BOLD}./scripts/start.sh cpu${NC} - Запуск с процессорными AI-сервисами"
-print_info "${BOLD}./scripts/start.sh gpu${NC} - Запуск с GPU-ускоренными AI-сервисами"
-print_info "${BOLD}./scripts/start.sh minimal${NC} - Запуск только базовых сервисов"
+print_info "${BOLD}./scripts/start.sh gpu-nvidia${NC} - Запуск с NVIDIA GPU AI-сервисами"
+print_info "${BOLD}./scripts/start.sh gpu-amd${NC} - Запуск с AMD GPU AI-сервисами"
 
 print_info "\nПосле запуска, доступ к сервисам будет по адресам:"
 print_info "N8N: https://n8n.${domain_name}"

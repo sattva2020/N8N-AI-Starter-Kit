@@ -116,7 +116,7 @@ bash scripts/setup.sh
 После успешного завершения тестирования проверьте запуск сервисов:
 
 ```bash
-docker compose --profile minimal up -d
+docker compose --profile cpu up -d
 ```
 
 Проверьте, работают ли сервисы:

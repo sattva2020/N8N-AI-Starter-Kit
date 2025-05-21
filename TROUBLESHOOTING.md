@@ -201,9 +201,9 @@
    echo 'OLLAMA_NUM_THREADS=4' >> .env
    ```
 
-3. Используйте профиль minimal для запуска только необходимых сервисов:
+3. Используйте базовый профиль cpu для запуска только необходимых сервисов:
    ```bash
-   docker compose --profile minimal up -d
+   docker compose --profile cpu up -d
    ```
 
 ### Медленный отклик LLM моделей

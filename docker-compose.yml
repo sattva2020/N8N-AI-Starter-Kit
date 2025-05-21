@@ -132,7 +132,7 @@ services:
 
   n8n:
     <<: *service-n8n
-    profiles: [default, cpu, minimal, developer]
+    profiles: [default, cpu, developer]
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`)"
@@ -151,7 +151,7 @@ services:
   postgres:
     image: postgres:latest # latest для упрощения поддержки
     restart: unless-stopped
-    profiles: [default, cpu, minimal, developer]
+    profiles: [default, cpu, developer]
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -249,7 +249,7 @@ services:
 
   ollama:
     <<: *service-ollama
-    profiles: [default, cpu, minimal]
+    profiles: [default, cpu]
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ollama.rule=Host(`${OLLAMA_DOMAIN}`)"
@@ -266,7 +266,7 @@ services:
           memory: 4G
 
   ollama-pull:
-    profiles: [default, cpu, minimal]
+    profiles: [default, cpu]
     <<: *init-ollama
     environment:
       - OLLAMA_HOST=ollama

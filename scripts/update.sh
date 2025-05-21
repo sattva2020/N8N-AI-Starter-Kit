@@ -36,7 +36,6 @@ docker compose --profile $PROFILE up -d
 echo "Обновление успешно завершено!"
 echo ""
 echo "Доступные профили:"
-echo "- minimal    : Минимальный набор сервисов (n8n, postgres, ollama)"
 echo "- cpu        : Стандартный набор на CPU (по умолчанию)"
 echo "- developer  : Расширенный набор инструментов для разработки с pgAdmin, JupyterLab и др."
 echo "- gpu-nvidia : Стандартный набор с поддержкой NVIDIA GPU"
