@@ -14,7 +14,7 @@ x-monitoring-defaults: &monitoring-defaults
 
 # Сети определены в отдельном файле compose/networks.yml
 
-services:
+#services:
   # =========================================
   # МОНИТОРИНГ СИСТЕМЫ
   # =========================================

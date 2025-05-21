@@ -1,0 +1,15 @@
+data_dir: /var/lib/vector
+
+sources:
+  docker_logs:
+    type: docker_logs
+    include_containers: ["*"]
+
+sinks:
+  console:
+    type: console
+    inputs:
+      - docker_logs
+    encoding:
+      codec: json
+      
