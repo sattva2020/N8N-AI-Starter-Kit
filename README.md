@@ -372,12 +372,28 @@ docker run --rm -v ${PWD}:/app -w /app bash ./scripts/setup.sh
 
 #### После успешного выполнения скрипта установки вы можете запустить проект с нужным профилем:
 
+```bash
+# Универсальный скрипт запуска (Linux/macOS)
+# Выберите один из доступных профилей: cpu, gpu-nvidia, gpu-amd, developer
+./scripts/start.sh cpu
+```
+
 ```powershell
+# Универсальный скрипт запуска (Windows)
+# Выберите один из доступных профилей: cpu, gpu-nvidia, gpu-amd, developer
+.\scripts\start.ps1 cpu
+```
+
+```bash
+# Альтернативный метод запуска через Docker Compose
 # Для стандартной конфигурации на CPU (по умолчанию)
 docker compose --profile cpu up -d
 
 # Для конфигурации с NVIDIA GPU
 docker compose --profile gpu-nvidia up -d
+
+# Для конфигурации с AMD GPU
+docker compose --profile gpu-amd up -d
 
 # Для расширенной конфигурации разработчика (с JupyterLab, pgAdmin и др.)
 docker compose --profile developer up -d
