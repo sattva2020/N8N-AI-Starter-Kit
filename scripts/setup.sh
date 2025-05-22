@@ -1,6 +1,6 @@
 #!/bin/bash
 # filepath: scripts/setup.sh
-# Версия: 1.5.3 - Исправленная версия с лимитом параллельной загрузки контейнеров для решения ошибки concurrent map writes
+# Версия: 1.0.4
 
 # Set parallel container limit to prevent concurrent map writes error
 export COMPOSE_PARALLEL_LIMIT=1
@@ -856,7 +856,7 @@ cat > .env << EOF
 # N8N AI Starter Kit - Конфигурация окружения
 # =============================================
 # Создано автоматически $(date)
-# Версия: 1.0.3
+# Версия: 1.0.4
 
 # ---- БАЗОВЫЕ НАСТРОЙКИ ----
 DOMAIN_NAME=${domain_name}

@@ -9,6 +9,7 @@ backups/
 logs/
 volumes/db/data/
 n8n/
+storage-master
 
 # Кэш и временные файлы
 *.tmp

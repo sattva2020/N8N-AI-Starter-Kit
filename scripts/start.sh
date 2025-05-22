@@ -91,3 +91,8 @@ fi
     
 echo_color "$CYAN" "To check the logs, run: $DOCKER_COMPOSE_CMD logs -f"
 echo_color "$CYAN" "To stop the application, run: $DOCKER_COMPOSE_CMD down"
+
+if [ ! -f .env ]; then
+  echo "Ошибка: файл .env не найден. Запустите ./scripts/setup.sh"
+  exit 1
+fi
