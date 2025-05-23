@@ -21,3 +21,20 @@ storage-master
 .DS_Store
 Thumbs.db
 error.txt
+
+# Внутренние документы (только для локального использования)
+AI_AGENT_GUIDE.md
+docs/PUBLICATION_GUIDE.md
+docs/PRE_PUBLISH_CHECKLIST.md
+docs/FINAL_REPORT.md
+docs/IMPROVEMENTS_SUMMARY*.md
+
+# Локальные заметки и черновики
+*DRAFT*.md
+*TODO*.md
+*NOTES*.md
+LOCAL_*.md
+MY_*.md
+*_local.md
+*_temp.md
+*_draft.md

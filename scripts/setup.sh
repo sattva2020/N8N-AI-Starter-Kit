@@ -1,6 +1,6 @@
 #!/bin/bash
 # filepath: scripts/setup.sh
-# Версия: 1.0.4
+# Версия: 1.0.5
 
 # Set parallel container limit to prevent concurrent map writes error
 export COMPOSE_PARALLEL_LIMIT=1
@@ -856,7 +856,7 @@ cat > .env << EOF
 # N8N AI Starter Kit - Конфигурация окружения
 # =============================================
 # Создано автоматически $(date)
-# Версия: 1.0.4
+# Версия: 1.0.5
 
 # ---- БАЗОВЫЕ НАСТРОЙКИ ----
 DOMAIN_NAME=${domain_name}
@@ -1012,6 +1012,19 @@ print_warning "ВАЖНО: Сохраните копию файла .env в бе
 
 # Создаем файл с советами по устранению неполадок
 create_troubleshooting_file
+
+# Предложение предзагрузки моделей
+echo -e "\n${BLUE}===============================================${NC}"
+echo -e "${BOLD}Предварительная загрузка моделей для Ollama${NC}"
+echo -e "${BLUE}===============================================${NC}"
+echo -e "Загрузка моделей сейчас позволит избежать ожидания при первом запуске системы."
+
+read -p "Хотите загрузить модели Ollama сейчас? (y/n): " preload_models
+
+if [[ "$preload_models" =~ ^[Yy]$ ]]; then
+  chmod +x ./scripts/preload-models.sh
+  ./scripts/preload-models.sh
+fi
 
 # ВАЖНО: Ограничиваем параллелизм Docker Compose для предотвращения ошибок concurrent map writes
 #export COMPOSE_PARALLEL_LIMIT=1

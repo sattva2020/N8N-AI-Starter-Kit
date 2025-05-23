@@ -1,0 +1,24 @@
+services:
+  # Конфигурация для локального Ollama без промежуточного NGINX
+  ollama-config:
+    image: alpine:latest
+    container_name: ollama-config
+    restart: "no"
+    command: sh -c "echo 'Ollama настроен на использование локального API: ${OLLAMA_HOST}:11434' && sleep 2"
+    networks:
+      - frontend
+      - backend
+      - mac-host-bridge
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ollama.rule=Host(`${OLLAMA_DOMAIN}`)"
+      - "traefik.http.routers.ollama.entrypoints=websecure"
+      - "traefik.http.routers.ollama.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.ollama-forward.forwardauth.address=http://${OLLAMA_HOST}:11434"
+      - "traefik.http.services.ollama.loadbalancer.server.url=http://${OLLAMA_HOST}:11434"
+    environment:
+      - OLLAMA_HOST=${OLLAMA_HOST:-localhost}
+
+networks:
+  mac-host-bridge:
+    external: true
