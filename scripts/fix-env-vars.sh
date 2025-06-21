@@ -69,6 +69,38 @@ add_if_missing "FUNCTIONS_VERIFY_JWT" "true" "Проверка JWT для фун
 
 echo ""
 echo "✅ Все необходимые переменные окружения добавлены в файл .env"
+
+# Улучшенная версия скрипта исправления переменных
+echo -e "${BLUE}Расширенная проверка переменных окружения...${NC}"
+
+# Проверка обязательных переменных
+required_vars=(
+    "N8N_ENCRYPTION_KEY"
+    "POSTGRES_PASSWORD" 
+    "TRAEFIK_PASSWORD_HASHED"
+    "SUPABASE_JWT_SECRET"
+    "SUPABASE_ANON_KEY"
+    "SUPABASE_SERVICE_ROLE_KEY"
+)
+
+missing_vars=()
+for var in "${required_vars[@]}"; do
+    if grep -q "^${var}=" .env; then
+        echo -e "   ${GREEN}✅ $var${NC}"
+    else
+        echo -e "   ${RED}❌ $var отсутствует${NC}"
+        missing_vars+=("$var")
+    fi
+done
+
+# Финальная проверка на проблемы
+echo -e "${BLUE}=== Итоговая проверка ===${NC}"
+if grep -q '\$[^{]' .env; then
+    echo -e "${RED}❌ Все еще есть незакавыченные символы $${NC}"
+else
+    echo -e "${GREEN}✅ Все символы $ корректно экранированы${NC}"
+fi
+
 echo "ℹ️ Для применения изменений перезапустите систему с помощью:"
 echo "   docker compose down && docker compose --profile cpu up -d"
 echo ""

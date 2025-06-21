@@ -1,75 +1,5 @@
 version: '3.8'
 services:
-
-  # ===== ANCHOR DEFINITIONS =====
-  # Базовые настройки для init-ollama
-  x-init-ollama: &init-ollama
-    restart: unless-stopped
-    networks:
-      - backend
-
-  # Общие настройки для N8N
-  x-service-n8n: &service-n8n
-    image: n8nio/n8n:latest
-    restart: unless-stopped
-    environment:
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=${POSTGRES_HOST}
-      - DB_POSTGRESDB_PORT=${POSTGRES_PORT}
-      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
-      - DB_POSTGRESDB_USER=${POSTGRES_USER}
-      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
-      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
-      - N8N_HOST=${N8N_HOST}
-      - N8N_PORT=5678
-      - N8N_PROTOCOL=${N8N_PROTOCOL}
-      - NODE_ENV=production
-      - WEBHOOK_URL=${WEBHOOK_URL}
-      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
-    volumes:
-      - n8n_storage:/home/node/.n8n
-    depends_on:
-      - postgres
-    networks:
-      - frontend
-      - backend
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-
-  # Базовые настройки для service-ollama
-  x-service-ollama: &service-ollama
-    restart: unless-stopped
-    networks:
-      - backend
-
-  # ===== END ANCHOR DEFINITIONS =====
-
-
-  # Общие настройки для всех сервисов
-  x-common: &common
-    restart: unless-stopped
-    networks:
-      - frontend
-      - backend
-
-  # Общие настройки для AI сервисов
-  x-ai-common: &ai-common
-    <<: *common
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-
-  # Общие настройки для баз данных
-  x-db-common: &db-common
-    <<: *common
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-
   traefik:
     image: traefik:latest # latest для упрощения поддержки
     restart: unless-stopped
@@ -213,6 +143,13 @@ services:
       - "traefik.http.routers.minio-console.rule=Host(`${MINIO_CONSOLE_DOMAIN}`)"
       - "traefik.http.services.minio-console-service.loadbalancer.server.port=9001"
       - "traefik.http.routers.minio-console.service=minio-console-service"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9001/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
   qdrant:
     image: qdrant/qdrant:latest # latest для упрощения поддержки
     restart: unless-stopped
@@ -306,8 +243,3 @@ include:
   - path: ./compose/supabase-compose.yml
   - path: ./compose/ollama-compose.yml
   - path: ./compose/optional-services.yml
-
-volumes:
-  n8n_storage:
-  postgres_storage:
-  ollama_data:

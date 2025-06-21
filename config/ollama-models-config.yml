@@ -1,0 +1,150 @@
+# Конфигурация моделей Ollama для N8N AI Starter Kit
+# Версия: 1.0.6
+
+models:
+  # Рекомендуемые модели для начального использования
+  recommended:
+    - name: "phi4:14b"
+      description: "Быстрая модель для общих задач"
+      size: "8GB"
+      use_cases: 
+        - "chat"
+        - "text-generation"
+        - "simple-reasoning"
+      memory_requirement: "8GB"
+      cpu_cores: "4+"
+      
+    - name: "llama3:8b"
+      description: "Сбалансированная модель для большинства задач"
+      size: "4.7GB"
+      use_cases:
+        - "chat"
+        - "text-generation"
+        - "summarization"
+        - "translation"
+      memory_requirement: "6GB"
+      cpu_cores: "2+"
+
+  # Продвинутые модели для сложных задач
+  advanced:
+    - name: "llama3:70b"
+      description: "Мощная модель для сложных задач"
+      size: "40GB"
+      use_cases:
+        - "complex-reasoning"
+        - "code-generation"
+        - "research-assistance"
+        - "advanced-analysis"
+      memory_requirement: "64GB"
+      cpu_cores: "16+"
+      gpu_recommended: true
+      
+    - name: "codellama:34b"
+      description: "Специализированная модель для программирования"
+      size: "19GB"
+      use_cases:
+        - "code-generation"
+        - "code-review"
+        - "debugging"
+        - "code-explanation"
+      memory_requirement: "32GB"
+      cpu_cores: "8+"
+
+  # Легкие модели для ограниченных ресурсов
+  lightweight:
+    - name: "gemma:2b"
+      description: "Легкая модель для слабых систем"
+      size: "1.4GB"
+      use_cases:
+        - "basic-chat"
+        - "simple-qa"
+      memory_requirement: "2GB"
+      cpu_cores: "1+"
+      
+    - name: "tinyllama:1.1b"
+      description: "Минимальная модель для тестирования"
+      size: "637MB"
+      use_cases:
+        - "testing"
+        - "basic-completion"
+      memory_requirement: "1GB"
+      cpu_cores: "1+"
+
+  # Специализированные модели
+  specialized:
+    - name: "nomic-embed-text"
+      description: "Модель для создания эмбеддингов"
+      size: "274MB"
+      use_cases:
+        - "text-embeddings"
+        - "similarity-search"
+        - "rag-applications"
+      memory_requirement: "1GB"
+      cpu_cores: "1+"
+      
+    - name: "dolphin-mistral:7b"
+      description: "Модель с улучшенным следованием инструкциям"
+      size: "4.1GB"
+      use_cases:
+        - "instruction-following"
+        - "structured-output"
+        - "task-completion"
+      memory_requirement: "6GB"
+      cpu_cores: "4+"
+
+# Профили автоматического выбора моделей
+profiles:
+  minimal:
+    description: "Минимальный набор для ограниченных ресурсов"
+    models:
+      - "gemma:2b"
+      - "nomic-embed-text"
+    total_size: "1.7GB"
+    memory_requirement: "3GB"
+    
+  standard:
+    description: "Стандартный набор для большинства пользователей"
+    models:
+      - "phi4:14b"
+      - "nomic-embed-text"
+      - "llama3:8b"
+    total_size: "13GB"
+    memory_requirement: "12GB"
+    
+  advanced:
+    description: "Расширенный набор для профессионального использования"
+    models:
+      - "llama3:70b"
+      - "codellama:34b"
+      - "phi4:14b"
+      - "nomic-embed-text"
+    total_size: "62GB"
+    memory_requirement: "80GB"
+
+# Рекомендации по использованию
+recommendations:
+  system_requirements:
+    minimal:
+      memory: "4GB"
+      storage: "5GB"
+      cpu_cores: "2"
+    recommended:
+      memory: "16GB"
+      storage: "50GB"
+      cpu_cores: "8"
+    professional:
+      memory: "64GB"
+      storage: "200GB"
+      cpu_cores: "16"
+      gpu: "NVIDIA RTX 3090 или лучше"
+
+  performance_tips:
+    - "Используйте SSD для хранения моделей"
+    - "Закройте другие приложения при работе с большими моделями"
+    - "Рассмотрите использование GPU для ускорения"
+    - "Мониторьте использование памяти и диска"
+    
+  troubleshooting:
+    out_of_memory: "Попробуйте модель меньшего размера или увеличьте swap"
+    slow_performance: "Проверьте использование CPU и рассмотрите GPU"
+    model_not_found: "Убедитесь, что модель загружена: ollama list"

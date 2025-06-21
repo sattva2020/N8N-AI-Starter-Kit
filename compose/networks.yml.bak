@@ -1,6 +1,7 @@
 # Общие сети для всех сервисов системы
 
-networks:  #frontend:
+networks:
+  frontend:
   backend:
   database:
   zep-network:

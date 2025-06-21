@@ -1,3 +1,4 @@
+version: '3.8'
 
 services:
   # Основной сервис Ollama с оптимизированной конфигурацией
@@ -45,4 +46,3 @@ networks:
 
 volumes:
   ollama_data:
-

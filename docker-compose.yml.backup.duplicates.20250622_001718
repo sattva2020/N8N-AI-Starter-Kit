@@ -213,6 +213,13 @@ services:
       - "traefik.http.routers.minio-console.rule=Host(`${MINIO_CONSOLE_DOMAIN}`)"
       - "traefik.http.services.minio-console-service.loadbalancer.server.port=9001"
       - "traefik.http.routers.minio-console.service=minio-console-service"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9001/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
   qdrant:
     image: qdrant/qdrant:latest # latest для упрощения поддержки
     restart: unless-stopped
