@@ -60,9 +60,22 @@ pre_flight_check() {
     
     # Проверка .env файла
     if [ ! -f .env ]; then
-        echo -e "  ${RED}❌ Файл .env не найден${NC}"
-        echo -e "  ${YELLOW}   Запустите: ./scripts/setup.sh${NC}"
-        ((issues++))
+        echo -e "  ${YELLOW}⚠️ Файл .env не найден${NC}"
+        
+        # Попытка создать .env из template.env
+        if [ -f "template.env" ]; then
+            echo -e "  ${BLUE}📋 Создание .env из template.env...${NC}"
+            cp "template.env" ".env"
+            echo -e "  ${GREEN}✅ Файл .env создан из шаблона${NC}"
+        elif [ -f "scripts/template.env" ]; then
+            echo -e "  ${BLUE}📋 Создание .env из scripts/template.env...${NC}"
+            cp "scripts/template.env" ".env"
+            echo -e "  ${GREEN}✅ Файл .env создан из шаблона${NC}"
+        else
+            echo -e "  ${RED}❌ Шаблон .env не найден${NC}"
+            echo -e "  ${YELLOW}   Создайте файл .env или запустите: ./scripts/setup.sh${NC}"
+            ((issues++))
+        fi
     else
         echo -e "  ${GREEN}✅ Файл .env найден${NC}"
     fi
@@ -78,9 +91,44 @@ pre_flight_check() {
     return $issues
 }
 
+# Функция для генерации безопасного пароля
+generate_password() {
+    local length=${1:-24}
+    openssl rand -base64 $length 2>/dev/null | tr -d '=/+' | cut -c1-$length || \
+    cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w $length | head -n 1 2>/dev/null || \
+    echo "$(date +%s)_$(whoami)_$(hostname)" | sha256sum | cut -c1-$length
+}
+
 # Функция автоматического исправления проблем
 auto_fix_issues() {
     echo -e "${YELLOW}Попытка автоматического исправления проблем...${NC}"
+    
+    # Создание .env файла если отсутствует
+    if [ ! -f .env ]; then
+        echo -e "  📋 Создание файла .env..."
+        if [ -f "template.env" ]; then
+            cp "template.env" ".env"
+            echo -e "  ${GREEN}✅ Файл .env создан из template.env${NC}"
+            
+            # Замена placeholder'ов на безопасные значения
+            echo -e "  🔐 Генерация безопасных паролей..."
+            sed -i "s/change_this_secure_password_123/$(generate_password 16)/g" .env
+            sed -i "s/your_32_char_encryption_key_here_/$(generate_password 32)/g" .env
+            sed -i "s/your_jwt_secret_key_here_min_32_chars/$(generate_password 32)/g" .env
+            sed -i "s/supabase_secure_password_123/$(generate_password 16)/g" .env
+            sed -i "s/your_supabase_jwt_secret_32_chars_min/$(generate_password 32)/g" .env
+            sed -i "s/minio_secure_password_123/$(generate_password 16)/g" .env
+            sed -i "s/pgadmin_secure_password_123/$(generate_password 16)/g" .env
+            sed -i "s/zep_secure_password_123/$(generate_password 16)/g" .env
+            
+            echo -e "  ${GREEN}✅ Безопасные пароли сгенерированы${NC}"
+        elif [ -f "scripts/template.env" ]; then
+            cp "scripts/template.env" ".env"
+            echo -e "  ${GREEN}✅ Файл .env создан из scripts/template.env${NC}"
+        else
+            echo -e "  ${RED}❌ Шаблон .env не найден${NC}"
+        fi
+    fi
     
     # Исправление переменных окружения
     if [ -f ./scripts/fix-env-vars.sh ]; then
