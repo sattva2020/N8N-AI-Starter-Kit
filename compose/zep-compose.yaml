@@ -101,7 +101,7 @@ services:
       - "traefik.http.routers.graphiti.tls.certresolver=myresolver"
       - "traefik.http.services.graphiti.loadbalancer.server.port=8000"
     healthcheck:
-      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/').read()"]
+      test: ["CMD", "/usr/local/bin/python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/').read()"]
       interval: 10s
       timeout: 5s
       retries: 5
