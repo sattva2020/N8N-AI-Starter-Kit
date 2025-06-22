@@ -201,3 +201,48 @@ docker system prune -f
 ```
 
 После выполнения этих команд все сервисы должны работать корректно!
+
+## 🏥 ПРОБЛЕМЫ С HEALTH CHECK СЕРВИСОВ
+
+### Qdrant Health Check
+**Проблема:** Qdrant показывает статус `unhealthy`
+**Решение:** 
+```bash
+# Проверить правильный endpoint
+curl http://localhost:6333/
+
+# НЕ используйте (возвращает 404):
+curl http://localhost:6333/health
+
+# Проверить dashboard
+curl http://localhost:6333/dashboard
+```
+
+**Исправление:** В `docker-compose.yml` health check должен использовать `/`:
+```yaml
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:6333/"]
+```
+
+### Graphiti Health Check
+**Проблема:** Graphiti показывает статус `unhealthy`
+**Решение:**
+```bash
+# Проверить правильный endpoint
+curl http://localhost:8000/health
+
+# Также проверить основной endpoint
+curl http://localhost:8000/
+```
+
+### Универсальная диагностика Health Check
+```bash
+# Проверить все сервисы
+docker compose ps
+
+# Посмотреть логи конкретного сервиса
+docker compose logs [SERVICE_NAME]
+
+# Принудительная проверка health check
+docker exec [CONTAINER_NAME] curl -f http://localhost:[PORT]/[ENDPOINT]
+```
