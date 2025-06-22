@@ -17,7 +17,7 @@ services:
       - backend
     depends_on:
       graphiti:
-        condition: service_healthy
+        condition: service_started
       zep-db:
         condition: service_healthy
     labels:
@@ -100,12 +100,12 @@ services:
       - "traefik.http.routers.graphiti.entrypoints=websecure"
       - "traefik.http.routers.graphiti.tls.certresolver=myresolver"
       - "traefik.http.services.graphiti.loadbalancer.server.port=8000"
-    healthcheck:
-      test: ["CMD", "/usr/local/bin/python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/').read()"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+    # healthcheck:
+    #   test: ["CMD", "/usr/local/bin/python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/').read()"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    #   start_period: 30s
     deploy:
       resources:
         limits:
