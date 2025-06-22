@@ -1087,8 +1087,8 @@ sudo sh get-docker.sh
 sudo usermod -aG docker $USER
 
 # 2. Клонирование проекта
-git clone https://github.com/YOUR_USERNAME/n8n-ai-starter-kit.git
-cd n8n-ai-starter-kit
+git clone https://github.com/sattva2020/N8N-AI-Starter-Kit.git
+cd N8N-AI-Starter-Kit
 
 # 3. Запуск автоматической настройки
 chmod +x scripts/*.sh start.sh

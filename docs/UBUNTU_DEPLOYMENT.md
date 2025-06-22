@@ -74,10 +74,10 @@ sudo apt install -y git curl wget htop tree
 cd ~
 
 # Клонирование проекта
-git clone https://github.com/YOUR_USERNAME/n8n-ai-starter-kit.git
+git clone https://github.com/sattva2020/N8N-AI-Starter-Kit.git
 
 # Переход в директорию проекта
-cd n8n-ai-starter-kit
+cd N8N-AI-Starter-Kit
 
 # Проверка структуры
 ls -la

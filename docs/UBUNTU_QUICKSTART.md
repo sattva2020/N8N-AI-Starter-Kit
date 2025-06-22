@@ -3,10 +3,10 @@
 ## ⚡ Одна команда - полная установка
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/n8n-ai-starter-kit/main/scripts/ubuntu-install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/sattva2020/N8N-AI-Starter-Kit/main/scripts/ubuntu-install.sh | bash
 ```
 
-> ⚠️ **Примечание**: Замените `YOUR_USERNAME` на ваше имя пользователя GitHub
+> ⚠️ **Примечание**: Проект доступен в репозитории https://github.com/sattva2020/N8N-AI-Starter-Kit
 
 ## 📋 Пошаговая установка (рекомендуется)
 
@@ -29,8 +29,8 @@ docker compose version
 ### 2. Получение проекта
 ```bash
 # Клонирование
-git clone https://github.com/YOUR_USERNAME/n8n-ai-starter-kit.git
-cd n8n-ai-starter-kit
+git clone https://github.com/sattva2020/N8N-AI-Starter-Kit.git
+cd N8N-AI-Starter-Kit
 
 # Права доступа
 chmod +x scripts/*.sh start.sh

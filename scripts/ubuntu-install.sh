@@ -91,7 +91,7 @@ fi
 log "Docker Compose найден: $(docker compose version --short)"
 
 # Клонирование проекта
-PROJECT_DIR="$HOME/n8n-ai-starter-kit"
+PROJECT_DIR="$HOME/N8N-AI-Starter-Kit"
 
 if [ -d "$PROJECT_DIR" ]; then
     warn "Папка $PROJECT_DIR уже существует. Обновляем проект..."
@@ -100,8 +100,8 @@ if [ -d "$PROJECT_DIR" ]; then
 else
     log "Клонирование проекта..."
     cd "$HOME"
-    git clone https://github.com/YOUR_USERNAME/n8n-ai-starter-kit.git
-    cd n8n-ai-starter-kit
+    git clone https://github.com/sattva2020/N8N-AI-Starter-Kit.git
+    cd N8N-AI-Starter-Kit
 fi
 
 # Установка прав выполнения
