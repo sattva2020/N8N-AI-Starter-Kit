@@ -75,6 +75,8 @@ services:
   n8n:
     <<: *service-n8n
     profiles: [default, cpu, developer]
+    ports:
+      - "5678:5678"
     depends_on:
       - postgres
     labels:

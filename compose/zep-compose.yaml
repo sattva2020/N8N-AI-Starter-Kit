@@ -79,11 +79,12 @@ services:
           memory: 768M
         reservations:
           memory: 384M
-
   graphiti:
     image: zepai/graphiti:0.3
     container_name: graphiti
     restart: unless-stopped
+    ports:
+      - "8001:8000"
     env_file:
       - ../.env
     environment:
