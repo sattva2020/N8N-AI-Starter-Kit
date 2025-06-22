@@ -68,9 +68,9 @@ git pull origin main
 ./scripts/quick-check.sh                    # Быстрая проверка
 
 # Запуск с профилем (выберите нужный):
-docker-compose --profile cpu up -d          # Основные сервисы + CPU Ollama
-docker-compose --profile default up -d      # Основные сервисы без Ollama
-docker-compose --profile developer up -d    # Все сервисы для разработки
+docker compose --profile cpu up -d          # Основные сервисы + CPU Ollama
+docker compose --profile default up -d      # Основные сервисы без Ollama
+docker compose --profile developer up -d    # Все сервисы для разработки
 ```
 
 ### **Windows:**
@@ -79,9 +79,9 @@ git pull origin main
 scripts\quick-check-windows.bat             # Проверка контейнеров
 
 REM Запуск с профилем (выберите нужный):
-docker-compose --profile cpu up -d          
-docker-compose --profile default up -d      
-docker-compose --profile developer up -d    
+docker compose --profile cpu up -d          
+docker compose --profile default up -d      
+docker compose --profile developer up -d    
 ```
 
 ### **Проверенные сервисы (ПРОТЕСТИРОВАНО ПОЛЬЗОВАТЕЛЕМ):**
@@ -91,11 +91,12 @@ docker-compose --profile developer up -d
 - ✅ **PostgreSQL** - подключение к N8N стабильное
 
 ### **📋 Рекомендуемые профили:**
-- **Production:** `docker-compose --profile cpu up -d` (основные + Ollama)
-- **Development:** `docker-compose --profile developer up -d` (все инструменты)
-- **Testing:** `docker-compose --profile default up -d` (минимальный набор)
+- **Production:** `docker compose --profile cpu up -d` (основные + Ollama)
+- **Development:** `docker compose --profile developer up -d` (все инструменты)
+- **Testing:** `docker compose --profile default up -d` (минимальный набор)
 
-> 📖 **Подробности:** См. `docs/DOCKER_PROFILES_GUIDE.md`
+> 📖 **Подробности:** См. `docs/DOCKER_PROFILES_GUIDE.md`  
+> ⚠️  **Ubuntu:** Используйте `docker compose` (без дефиса)
 
 ## 🏆 **ИТОГ:**
 
