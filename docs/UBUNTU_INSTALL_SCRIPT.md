@@ -39,8 +39,29 @@ curl -fsSL https://raw.githubusercontent.com/sattva2020/N8N-AI-Starter-Kit/main/
 После успешной установки сервисы будут доступны по адресам:
 
 - **n8n**: http://localhost:5678
-- **Qdrant**: http://localhost:6333  
-- **Traefik**: http://localhost:8080
+- **Qdrant**: http://localhost:6333/dashboard
+- **Ollama**: http://localhost:11434
+- **Traefik Dashboard**: http://localhost:8080
+
+Если настроены домены:
+- **n8n**: https://n8n.yourdomain.com
+- **Qdrant**: https://qdrant.yourdomain.com  
+- **Traefik**: https://traefik.yourdomain.com
+
+## Профили запуска
+
+Скрипт поддерживает различные профили:
+
+```bash
+# Профиль CPU (рекомендуется для серверов без GPU)
+./start.sh cpu
+
+# Профиль GPU (требует NVIDIA GPU)
+./start.sh gpu
+
+# Полный профиль (все сервисы)
+./start.sh developer
+```
 
 ## Полезные команды
 
@@ -70,7 +91,54 @@ docker compose down
 
 ## Решение проблем
 
-Если что-то пошло не так:
+### Частые проблемы и их решение:
+
+#### 1. Ошибки Docker образов
+```bash
+# Ошибка: "manifest not found" 
+# Решение: обновите образы
+docker compose pull
+```
+
+#### 2. Предупреждение об OpenAI API ключе
+```bash
+# WARN: The "OPENAI_API_KEY" variable is not set
+# Решение: настройте API ключ в .env файле
+echo "OPENAI_API_KEY=your_api_key_here" >> .env
+```
+
+#### 3. Права Docker
+```bash
+# Ошибка: "permission denied while trying to connect to the Docker daemon"
+# Решение: перезапустите сессию или выполните
+newgrp docker
+# или перелогиньтесь в систему
+```
+
+#### 4. Занятые порты
+```bash
+# Ошибка: "port is already allocated"
+# Проверьте какие процессы используют порты
+sudo netstat -tulpn | grep :5678
+sudo netstat -tulpn | grep :6333
+
+# Остановите конфликтующие сервисы
+sudo systemctl stop nginx  # если используется nginx
+```
+
+#### 5. Недостаток памяти
+```bash
+# Для серверов с ограниченной памятью используйте профиль cpu
+./start.sh cpu
+
+# Или настройте swap
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
+
+### Общее решение проблем:
 
 1. Проверьте логи: `docker compose logs -f`
 2. Запустите диагностику: `./scripts/diagnose.sh`
