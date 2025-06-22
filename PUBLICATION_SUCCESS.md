@@ -3,7 +3,7 @@
 ## ✅ **Все изменения опубликованы в репозитории**
 
 **Дата публикации:** 22 декабря 2024  
-**Последний коммит:** `01453ed` - 🔧 FIX: Ollama health check endpoint + Ubuntu update guide  
+**Последний коммит:** `1e4fd3e` - 🔧 FIX: Health checks для Graphiti и Zep без curl  
 **Статус:** Production Ready ✅
 
 ---
@@ -11,9 +11,11 @@
 ## 📦 **Что опубликовано:**
 
 ### 🔧 **Критические исправления:**
-- **Ollama health check** - исправлен endpoint `/api/version` вместо `/api/health`
-- **Таймауты** увеличены для стабильности (timeout: 15s, start_period: 60s)
-- **Соответствие API** - теперь следует официальной спецификации Ollama
+- **Ollama health check** - заменен curl на `/bin/ollama ps`
+- **Graphiti health check** - заменен curl на python3 urllib
+- **Zep health check** - заменен curl на python3 urllib
+- **YAML синтаксис** исправлен во всех compose файлах
+- **Причина проблем** - curl отсутствует в контейнерах
 
 ### 📚 **Обновленная документация:**
 - **`UBUNTU_UPDATE_SUCCESS.md`** - быстрые инструкции по обновлению
@@ -31,19 +33,24 @@
 
 ### **До исправления:**
 ```yaml
+# Ollama health check:
 healthcheck:
-  test: ["CMD", "curl", "-sf", "http://localhost:11434/api/health"]  # ❌ Неверный endpoint
-  timeout: 10s   # ❌ Недостаточно времени
-  retries: 3     # ❌ Мало попыток
+  test: ["CMD", "curl", "-sf", "http://localhost:11434/api/version"]  # ❌ curl отсутствует
+
+# Graphiti health check:
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:8000/health"]  # ❌ curl отсутствует
 ```
 
 ### **После исправления:**
 ```yaml
+# Ollama health check:
 healthcheck:
-  test: ["CMD", "curl", "-sf", "http://localhost:11434/api/version"]  # ✅ Правильный endpoint
-  timeout: 15s   # ✅ Достаточно времени
-  retries: 5     # ✅ Больше попыток для стабильности
-  start_period: 60s  # ✅ Больше времени на запуск
+  test: ["CMD", "/bin/ollama", "ps"]  # ✅ Встроенная команда
+
+# Graphiti health check:
+healthcheck:
+  test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]  # ✅ Встроенный python3
 ```
 
 ---
