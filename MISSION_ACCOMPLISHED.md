@@ -26,6 +26,7 @@
 ### 📚 **Документация:**
 - `docs/N8N_POSTGRES_MANAGEMENT.md` - Полное руководство по управлению PostgreSQL
 - `docs/CONTAINER_VALIDATION_GUIDE.md` - Комплексное руководство по валидации контейнеров
+- `docs/DOCKER_PROFILES_GUIDE.md` - **НОВЫЙ!** Руководство по профилям Docker Compose
 - `FINAL_PUBLICATION_REPORT.md` - **НОВЫЙ!** Чистый отчёт о публикации
 - `UBUNTU_TEST_PLAN.md` - Обновлён с актуальными результатами тестирования
 
@@ -65,14 +66,22 @@
 git pull origin main
 ./scripts/comprehensive-container-check.sh  # Полная проверка
 ./scripts/quick-check.sh                    # Быстрая проверка
-docker-compose up -d                        # Запуск
+
+# Запуск с профилем (выберите нужный):
+docker-compose --profile cpu up -d          # Основные сервисы + CPU Ollama
+docker-compose --profile default up -d      # Основные сервисы без Ollama
+docker-compose --profile developer up -d    # Все сервисы для разработки
 ```
 
 ### **Windows:**
 ```cmd
 git pull origin main
 scripts\quick-check-windows.bat             # Проверка контейнеров
-docker-compose up -d                        # Запуск
+
+REM Запуск с профилем (выберите нужный):
+docker-compose --profile cpu up -d          
+docker-compose --profile default up -d      
+docker-compose --profile developer up -d    
 ```
 
 ### **Проверенные сервисы (ПРОТЕСТИРОВАНО ПОЛЬЗОВАТЕЛЕМ):**
@@ -80,6 +89,13 @@ docker-compose up -d                        # Запуск
 - ✅ **Ollama** (localhost:11434) - API отвечает "Ollama is running"
 - ✅ **Qdrant** (localhost:6333) - vector search engine v1.14.1 работает
 - ✅ **PostgreSQL** - подключение к N8N стабильное
+
+### **📋 Рекомендуемые профили:**
+- **Production:** `docker-compose --profile cpu up -d` (основные + Ollama)
+- **Development:** `docker-compose --profile developer up -d` (все инструменты)
+- **Testing:** `docker-compose --profile default up -d` (минимальный набор)
+
+> 📖 **Подробности:** См. `docs/DOCKER_PROFILES_GUIDE.md`
 
 ## 🏆 **ИТОГ:**
 
