@@ -9,8 +9,6 @@ services:
     volumes:
       - ollama_data:/root/.ollama
       - ./config/ollama-models.txt:/config/ollama-models.txt:ro
-      - ./scripts/entrypoint.sh:/entrypoint.sh:ro
-    entrypoint: ["/bin/bash", "/entrypoint.sh"]
     environment:
       - OLLAMA_HOST=0.0.0.0:11434
       - OLLAMA_MODELS=/root/.ollama/models
