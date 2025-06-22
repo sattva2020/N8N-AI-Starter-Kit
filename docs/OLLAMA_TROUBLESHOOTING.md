@@ -246,3 +246,34 @@ docker compose logs [SERVICE_NAME]
 # Принудительная проверка health check
 docker exec [CONTAINER_NAME] curl -f http://localhost:[PORT]/[ENDPOINT]
 ```
+
+### 🛠️ Исправление Health Check для Ollama (Декабрь 2024):
+
+**Проблема**: Docker health check для Ollama использовал неверный endpoint `/api/health` вместо `/api/version`
+
+**Симптомы**:
+- Контейнер Ollama помечен как `unhealthy` в `docker ps`
+- API работает корректно при прямых запросах
+- Другие сервисы могут падать из-за dependency на unhealthy Ollama
+
+**Решение**:
+```yaml
+healthcheck:
+  test: ["CMD", "curl", "-sf", "http://localhost:11434/api/version"]
+  interval: 30s
+  timeout: 15s
+  retries: 5
+  start_period: 60s
+```
+
+**Проверка исправления**:
+```bash
+# Перезапустить сервисы
+docker compose down && docker compose --profile cpu up -d
+
+# Проверить health status (должен быть healthy)
+docker ps | grep ollama
+
+# Проверить health check логи
+docker inspect ollama | grep -A 10 Health
+```

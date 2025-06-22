@@ -15,11 +15,11 @@ services:
       - OLLAMA_HOST=0.0.0.0:11434
       - OLLAMA_MODELS=/root/.ollama/models
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:11434/api/health"]
+      test: ["CMD", "curl", "-sf", "http://localhost:11434/api/version"]
       interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      timeout: 15s
+      retries: 5
+      start_period: 60s
     deploy:
       resources:
         limits:
@@ -40,4 +40,3 @@ services:
 # volumes are defined here
 volumes:
   ollama_data:
-
