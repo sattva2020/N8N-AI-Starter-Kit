@@ -78,7 +78,8 @@ services:
     ports:
       - "5678:5678"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`)"
@@ -94,11 +95,11 @@ services:
           cpus: '1'
           memory: 1G
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5678/healthz"]
+      test: ["CMD-SHELL", "curl -f http://localhost:5678/healthz || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 40s
+      retries: 5
+      start_period: 60s
 
   postgres:
     image: postgres:latest # latest для упрощения поддержки
@@ -108,17 +109,20 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_INITDB_ARGS="--encoding=UTF8 --lc-collate=C --lc-ctype=C"
     volumes:
       - postgres_storage:/var/lib/postgresql/data
+      - ./scripts/init-pgvector.sql:/docker-entrypoint-initdb.d/01-init-pgvector.sql:ro
+      - ./scripts/init-n8n-user.sql:/docker-entrypoint-initdb.d/02-init-n8n-user.sql:ro
     networks:
       - database
       - backend
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} || pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 5s
+      start_period: 10s
     deploy:
       resources:
         limits:
