@@ -112,6 +112,7 @@ services:
       - postgres_storage:/var/lib/postgresql/data
     networks:
       - database
+      - backend
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
       interval: 10s
