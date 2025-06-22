@@ -1,182 +1,206 @@
-# filepath: e:\AI\n8n-ai-starter-kit\scripts\diagnose.sh
-# Скрипт диагностики N8N AI Starter Kit
-# Версия: 1.0.6
+#!/bin/bash
 
-# Цвета для вывода
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+echo "=== Диагностика N8N AI Starter Kit ==="
 
-echo -e "${BLUE}=== Диагностика N8N AI Starter Kit ===${NC}"
-echo ""
-
-# 1. Проверка Docker
-echo -e "${BLUE}1. Проверка Docker...${NC}"
+# Проверка Docker
+echo "1. Проверка Docker..."
 if command -v docker &> /dev/null; then
-    docker_version=$(docker --version)
-    echo -e "   ${GREEN}✅ Docker найден: ${docker_version}${NC}"
+    echo "✅ Docker найден: $(docker --version)"
     
-    # Проверка статуса Docker daemon
+    # Проверка запуска демона Docker
     if docker info &> /dev/null; then
-        echo -e "   ${GREEN}✅ Docker daemon запущен${NC}"
+        echo "✅ Docker демон запущен"
     else
-        echo -e "   ${RED}❌ Docker daemon не запущен${NC}"
+        echo "❌ Docker демон не запущен или нет прав доступа"
+        echo "   Попробуйте: sudo systemctl start docker"
+        echo "   Или добавьте пользователя в группу: sudo usermod -aG docker $USER"
     fi
 else
-    echo -e "   ${RED}❌ Docker не найден${NC}"
+    echo "❌ Docker не найден"
 fi
 
-# 2. Проверка Docker Compose
-echo -e "${BLUE}2. Проверка Docker Compose...${NC}"
-if command -v docker-compose &> /dev/null; then
-    compose_version=$(docker-compose --version)
-    echo -e "   ${GREEN}✅ Docker Compose найден: ${compose_version}${NC}"
-elif docker compose version &> /dev/null; then
-    compose_version=$(docker compose version)
-    echo -e "   ${GREEN}✅ Docker Compose (плагин) найден: ${compose_version}${NC}"
+# Проверка Docker Compose
+echo ""
+echo "2. Проверка Docker Compose..."
+if docker compose version &> /dev/null; then
+    echo "✅ Docker Compose (новый формат) найден: $(docker compose version --short 2>/dev/null || echo 'версия неизвестна')"
+elif command -v docker-compose &> /dev/null; then
+    echo "✅ Docker Compose (старый формат) найден: $(docker-compose --version)"
 else
-    echo -e "   ${RED}❌ Docker Compose не найден${NC}"
+    echo "❌ Docker Compose не найден"
 fi
 
-# 3. Проверка конфигурации Docker Compose
-echo -e "${BLUE}3. Проверка конфигурации Docker Compose...${NC}"
+# Проверка конфигурации docker-compose
+echo ""
+echo "3. Проверка конфигурации docker-compose..."
 if docker compose config &>/dev/null; then
-    echo -e "   ${GREEN}✅ Конфигурация корректна${NC}"
+    echo "✅ Конфигурация корректна"
 else
-    echo -e "   ${RED}❌ Найдены ошибки в конфигурации${NC}"
-    echo -e "   ${YELLOW}Детали ошибок:${NC}"
-    docker compose config 2>&1 | head -10 | sed 's/^/      /'
+    echo "❌ Найдены ошибки в конфигурации:"
+    echo "--- Детали ошибок ---"
+    docker compose config 2>&1 | head -20
+    echo "--- Конец ошибок ---"
 fi
 
-# 4. Проверка .env файла
-echo -e "${BLUE}4. Проверка .env файла...${NC}"
+# Проверка переменных окружения
+echo ""
+echo "4. Проверка .env файла..."
 if [ -f .env ]; then
-    echo -e "   ${GREEN}✅ Файл .env найден${NC}"
+    echo "✅ Файл .env найден"
     
-    # Проверка на незакавыченные $
+    # Проверка на проблемные символы
     if grep -q '\$[^{]' .env; then
-        echo -e "   ${YELLOW}⚠️ Найдены неэкранированные символы $ в .env${NC}"
-        echo -e "   ${YELLOW}   Рекомендуется запустить: ./scripts/fix-env-vars.sh${NC}"
-    else
-        echo -e "   ${GREEN}✅ Переменные окружения корректно экранированы${NC}"
+        echo "⚠️ Найдены неэкранированные символы $ в .env"
+        echo "Проблемные строки:"
+        grep -n '\$[^{]' .env | head -5
     fi
     
-    # Проверка обязательных переменных
-    required_vars=("N8N_ENCRYPTION_KEY" "POSTGRES_PASSWORD" "TRAEFIK_PASSWORD_HASHED")
-    for var in "${required_vars[@]}"; do
-        if grep -q "^${var}=" .env; then
-            echo -e "   ${GREEN}✅ ${var} установлена${NC}"
+    # Проверка ключевых переменных
+    echo ""
+    echo "Проверка ключевых переменных:"
+    for var in "N8N_ENCRYPTION_KEY" "POSTGRES_PASSWORD" "TRAEFIK_PASSWORD_HASHED" "DOMAIN_NAME"; do
+        if grep -q "^$var=" .env; then
+            echo "✅ $var найден"
         else
-            echo -e "   ${RED}❌ ${var} не найдена${NC}"
+            echo "❌ $var отсутствует или закомментирован"
         fi
     done
+    
+    # Проверка API ключей
+    echo ""
+    echo "Проверка API ключей:"
+    if grep -q "^OPENAI_API_KEY=" .env && ! grep -q "^# OPENAI_API_KEY=" .env; then
+        echo "✅ OpenAI API ключ настроен"
+    else
+        echo "⚠️ OpenAI API ключ не настроен"
+    fi
+    
+    if grep -q "^ANTHROPIC_API_KEY=" .env && ! grep -q "^# ANTHROPIC_API_KEY=" .env; then
+        echo "✅ Anthropic API ключ настроен"
+    else
+        echo "ℹ️ Anthropic API ключ не настроен (необязательно)"
+    fi
 else
-    echo -e "   ${RED}❌ Файл .env не найден${NC}"
-    echo -e "   ${YELLOW}   Запустите: ./scripts/setup.sh${NC}"
+    echo "❌ Файл .env не найден"
+    echo "   Запустите: ./scripts/setup.sh для создания"
 fi
 
-# 5. Проверка портов
-echo -e "${BLUE}5. Проверка занятых портов...${NC}"
-ports_to_check=(80 443 5678 6333 11434 8080)
-for port in "${ports_to_check[@]}"; do
-    if command -v netstat &> /dev/null; then
-        if netstat -tuln 2>/dev/null | grep -q ":$port "; then
-            echo -e "   ${YELLOW}⚠️ Порт $port уже используется${NC}"
+# Проверка портов
+echo ""
+echo "5. Проверка доступности портов..."
+for port in 5678 6333 8080 11434; do
+    if command -v ss &> /dev/null; then
+        if ss -tuln | grep -q ":$port "; then
+            echo "⚠️ Порт $port уже используется"
+            # Показываем какой процесс использует порт
+            ss -tulnp | grep ":$port " | head -1
         else
-            echo -e "   ${GREEN}✅ Порт $port свободен${NC}"
+            echo "✅ Порт $port доступен"
         fi
-    elif command -v ss &> /dev/null; then
-        if ss -tuln 2>/dev/null | grep -q ":$port "; then
-            echo -e "   ${YELLOW}⚠️ Порт $port уже используется${NC}"
+    elif command -v netstat &> /dev/null; then
+        if netstat -tuln | grep -q ":$port "; then
+            echo "⚠️ Порт $port уже используется"
         else
-            echo -e "   ${GREEN}✅ Порт $port свободен${NC}"
+            echo "✅ Порт $port доступен"
+        fi
+    elif command -v lsof &> /dev/null; then
+        if lsof -i :$port -sTCP:LISTEN &> /dev/null; then
+            echo "⚠️ Порт $port уже используется"
+        else
+            echo "✅ Порт $port доступен"
         fi
     else
-        echo -e "   ${YELLOW}⚠️ Команды netstat/ss не найдены, проверка портов пропущена${NC}"
-        break
+        echo "⚠️ Не удалось проверить порт $port (нет подходящих утилит)"
     fi
 done
 
-# 6. Проверка доступности GPU
-echo -e "${BLUE}6. Проверка GPU...${NC}"
-if command -v nvidia-smi &> /dev/null; then
-    if nvidia-smi &> /dev/null; then
-        gpu_info=$(nvidia-smi --query-gpu=name --format=csv,noheader,nounits | head -1)
-        echo -e "   ${GREEN}✅ NVIDIA GPU найден: ${gpu_info}${NC}"
-    else
-        echo -e "   ${YELLOW}⚠️ nvidia-smi найден, но GPU недоступен${NC}"
-    fi
-else
-    echo -e "   ${YELLOW}⚠️ NVIDIA GPU не обнаружен${NC}"
-fi
-
-# 7. Проверка дискового пространства
-echo -e "${BLUE}7. Проверка дискового пространства...${NC}"
-if command -v df &> /dev/null; then
-    available_space=$(df . | awk 'NR==2 {print $4}')
-    available_gb=$((available_space / 1024 / 1024))
-    
-    if [ "$available_gb" -gt 20 ]; then
-        echo -e "   ${GREEN}✅ Доступно: ${available_gb}GB${NC}"
-    elif [ "$available_gb" -gt 10 ]; then
-        echo -e "   ${YELLOW}⚠️ Доступно: ${available_gb}GB (рекомендуется >20GB)${NC}"
-    else
-        echo -e "   ${RED}❌ Доступно: ${available_gb}GB (критически мало места)${NC}"
-    fi
-else
-    echo -e "   ${YELLOW}⚠️ Не удалось проверить дисковое пространство${NC}"
-fi
-
-# 8. Проверка памяти
-echo -e "${BLUE}8. Проверка памяти...${NC}"
+# Проверка системных ресурсов
+echo ""
+echo "6. Проверка системных ресурсов..."
 if command -v free &> /dev/null; then
-    total_memory=$(free -m | awk 'NR==2{printf "%.0f", $2/1024}')
-    
-    if [ "$total_memory" -gt 16 ]; then
-        echo -e "   ${GREEN}✅ Доступно: ${total_memory}GB (отлично для developer профиля)${NC}"
-    elif [ "$total_memory" -gt 8 ]; then
-        echo -e "   ${GREEN}✅ Доступно: ${total_memory}GB (хорошо для cpu профиля)${NC}"
-    elif [ "$total_memory" -gt 4 ]; then
-        echo -e "   ${YELLOW}⚠️ Доступно: ${total_memory}GB (минимально для работы)${NC}"
+    memory_mb=$(free -m | awk 'NR==2{printf "%.0f", $2}')
+    echo "Доступная память: ${memory_mb}MB"
+    if [ "$memory_mb" -gt 8000 ]; then
+        echo "✅ Достаточно памяти для всех профилей"
+    elif [ "$memory_mb" -gt 4000 ]; then
+        echo "⚠️ Рекомендуется использовать профиль cpu (4-8GB памяти)"
     else
-        echo -e "   ${RED}❌ Доступно: ${total_memory}GB (недостаточно памяти)${NC}"
+        echo "❌ Недостаточно памяти (меньше 4GB). Возможны проблемы."
     fi
 else
-    echo -e "   ${YELLOW}⚠️ Не удалось проверить память${NC}"
+    echo "⚠️ Не удалось определить объем памяти"
 fi
 
-# 9. Проверка существующих контейнеров
-echo -e "${BLUE}9. Проверка состояния контейнеров...${NC}"
-if docker ps -a --filter "name=n8n-ai-starter-kit" --format "table {{.Names}}\t{{.Status}}" 2>/dev/null | grep -q "n8n-ai-starter-kit"; then
-    echo -e "   ${GREEN}✅ Найдены контейнеры проекта:${NC}"
-    docker ps -a --filter "name=n8n-ai-starter-kit" --format "      {{.Names}}: {{.Status}}" 2>/dev/null
+if command -v nproc &> /dev/null; then
+    cpu_cores=$(nproc)
+    echo "CPU ядер: $cpu_cores"
+    if [ "$cpu_cores" -ge 4 ]; then
+        echo "✅ Достаточно CPU ядер"
+    elif [ "$cpu_cores" -ge 2 ]; then
+        echo "⚠️ Минимальное количество CPU ядер (2-3)"
+    else
+        echo "❌ Недостаточно CPU ядер (меньше 2)"
+    fi
 else
-    echo -e "   ${YELLOW}⚠️ Контейнеры проекта не найдены${NC}"
+    echo "⚠️ Не удалось определить количество CPU ядер"
 fi
 
-# 10. Рекомендации по оптимизации
+# Проверка дискового пространства
 echo ""
-echo -e "${BLUE}=== Рекомендации ===${NC}"
-
-# Определение оптимального профиля
-if command -v nvidia-smi &> /dev/null && nvidia-smi &> /dev/null; then
-    echo -e "   ${GREEN}🚀 Рекомендуемый профиль: gpu-nvidia${NC}"
-elif [ "${total_memory:-0}" -gt 16 ]; then
-    echo -e "   ${GREEN}🚀 Рекомендуемый профиль: developer${NC}"
+echo "7. Проверка дискового пространства..."
+if command -v df &> /dev/null; then
+    available_gb=$(df -BG . | awk 'NR==2 {print $4}' | sed 's/G//')
+    echo "Доступное место: ${available_gb}GB"
+    if [ "$available_gb" -gt 10 ]; then
+        echo "✅ Достаточно места на диске"
+    elif [ "$available_gb" -gt 5 ]; then
+        echo "⚠️ Ограниченное место на диске ($available_gb GB)"
+    else
+        echo "❌ Недостаточно места на диске (меньше 5GB)"
+    fi
 else
-    echo -e "   ${GREEN}🚀 Рекомендуемый профиль: cpu${NC}"
+    echo "⚠️ Не удалось проверить дисковое пространство"
 fi
 
-# Дополнительные рекомендации
-if [ ! -f .env ]; then
-    echo -e "   ${YELLOW}📋 Запустите установку: ./scripts/setup.sh${NC}"
+# Проверка сети
+echo ""
+echo "8. Проверка сетевого подключения..."
+if command -v curl &> /dev/null; then
+    if curl -s --connect-timeout 5 https://registry.hub.docker.com/_ping > /dev/null; then
+        echo "✅ Подключение к Docker Hub работает"
+    else
+        echo "❌ Нет подключения к Docker Hub"
+    fi
+    
+    if curl -s --connect-timeout 5 https://api.github.com > /dev/null; then
+        echo "✅ Подключение к GitHub работает"
+    else
+        echo "❌ Нет подключения к GitHub"
+    fi
+else
+    echo "⚠️ curl не найден, проверка сети пропущена"
 fi
 
-if grep -q '\$[^{]' .env 2>/dev/null; then
-    echo -e "   ${YELLOW}🔧 Исправьте переменные: ./scripts/fix-env-vars.sh${NC}"
+# Проверка запущенных контейнеров
+echo ""
+echo "9. Проверка запущенных контейнеров..."
+if command -v docker &> /dev/null && docker ps &> /dev/null; then
+    containers=$(docker ps --filter "label=com.docker.compose.project=n8n-ai-starter-kit" --format "table {{.Names}}\t{{.Status}}" 2>/dev/null)
+    if [ -n "$containers" ]; then
+        echo "Запущенные контейнеры N8N AI Starter Kit:"
+        echo "$containers"
+    else
+        echo "ℹ️ Контейнеры N8N AI Starter Kit не запущены"
+    fi
+else
+    echo "⚠️ Не удалось проверить запущенные контейнеры"
 fi
 
 echo ""
-echo -e "${BLUE}Диагностика завершена!${NC}"
+echo "=== Диагностика завершена ==="
+echo ""
+echo "Рекомендации:"
+echo "• Если есть ошибки конфигурации - запустите: ./scripts/setup.sh"
+echo "• Если порты заняты - остановите конфликтующие сервисы"
+echo "• Если нет API ключей - добавьте их в файл .env"
+echo "• Для запуска системы используйте: ./start.sh"

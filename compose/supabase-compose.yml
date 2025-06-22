@@ -1,7 +1,5 @@
-version: '3.8'
-
 services:
-  storage:
+  supabase-storage:
     image: supabase/storage-api:latest
     container_name: supabase-storage
     restart: unless-stopped
@@ -10,8 +8,8 @@ services:
         condition: service_healthy
       pg_bouncer:
         condition: service_started
-      minio_setup:
-        condition: service_completed_successfully
+      # minio_setup:  # Commented out as minio_setup service is not available
+      #   condition: service_completed_successfully
     environment:
       SERVER_PORT: 5000
       AUTH_JWT_SECRET: ${JWT_SECRET}
@@ -61,31 +59,42 @@ services:
   tenant_db:
     extends:
       service: tenant_db
-      file: ./.config/supabase/docker-compose-infra.yml
+      file: ../config/supabase/docker-compose-infra.yml
 
   pg_bouncer:
     extends:
       service: pg_bouncer
-      file: ./.config/supabase/docker-compose-infra.yml
+      file: ../config/supabase/docker-compose-infra.yml
 
-  minio:
-    extends:
-      service: minio
-      file: ./.config/supabase/docker-compose-infra.yml
+  # minio already defined in main docker-compose.yml
+  # minio:
+  #   extends:
+  #     service: minio
+  #     file: ../config/supabase/docker-compose-infra.yml
 
-  minio_setup:
-    extends:
-      service: minio_setup
-      file: ./.config/supabase/docker-compose-infra.yml
+  # minio_setup also depends on minio - using main docker-compose minio instead
+  # minio_setup:
+  #   extends:
+  #     service: minio_setup
+  #     file: ../config/supabase/docker-compose-infra.yml
 
   imgproxy:
     extends:
       service: imgproxy
-      file: ./.config/supabase/docker-compose-infra.yml
+      file: ../config/supabase/docker-compose-infra.yml
 
   # Оставляем Kong и Studio из текущей конфигурации
   supabase-kong:
-    <<: *supabase-defaults
+    restart: unless-stopped
+    networks:
+      - supabase-internal
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
     image: kong:2.8.1
     container_name: supabase-kong
     depends_on:
@@ -106,7 +115,16 @@ services:
       - "traefik.http.services.supabase-api.loadbalancer.server.port=8000"
 
   supabase-studio:
-    <<: *supabase-defaults
+    restart: unless-stopped
+    networks:
+      - supabase-internal
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
     image: supabase/studio:20230227-df9677b
     container_name: supabase-studio
     healthcheck:
@@ -130,24 +148,10 @@ services:
       - "traefik.http.routers.supabase-studio.tls.certresolver=myresolver"
       - "traefik.http.services.supabase-studio.loadbalancer.server.port=3000"
 
-# Общие настройки для сервисов Supabase
-x-supabase-defaults: &supabase-defaults
-  restart: unless-stopped
-  networks:
-    - supabase-internal
-    - backend
-  deploy:
-    resources:
-      limits:
-        memory: 512M
-      reservations:
-        memory: 256M
-
 networks:
   supabase-internal:
     driver: bridge
-  backend:
-    external: true
+  # backend network is defined in networks.yml
 
 volumes:
   supabase_db_data:

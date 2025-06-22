@@ -1,6 +1,6 @@
 #!/bin/bash
 # filepath: scripts/setup.sh
-# Версия: 1.0.5
+# Версия: 1.0.6
 
 # Set parallel container limit to prevent concurrent map writes error
 export COMPOSE_PARALLEL_LIMIT=1
@@ -824,55 +824,101 @@ dashboard_password=$(openssl rand -base64 24 | tr -cd '[:alnum:]' | cut -c1-12)
 # Генерация хэша пароля для Traefik Dashboard
 read -p "Введите пароль для панели управления Traefik (оставьте пустым для автогенерации): " traefik_pwd
 if [ -z "$traefik_pwd" ]; then
-  print_info "Внимание: Пароль не указан. Установка безопасного пароля..."
-  traefik_pwd=$(openssl rand -base64 24 | tr -cd '[:alnum:]' | cut -c1-12)
+  traefik_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
   print_info "Сгенерирован случайный пароль: ${BOLD}$traefik_pwd${NC} (сохраните его в безопасном месте)"
 fi
-traefik_pwd_hash=$(openssl passwd -apr1 "$traefik_pwd")
+
+# Генерация хэша пароля с улучшенной обработкой ошибок
+# Используем простой MD5-хэш вместо сложного Apache-хэша для избежания проблем с экранированием
+traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1)
 if [ -z "$traefik_pwd_hash" ]; then
-  print_error "Ошибка: Не удалось сгенерировать хэш пароля. Пробуем альтернативный метод..."
-  if command -v htpasswd &> /dev/null; then
-    traefik_pwd_hash=$(htpasswd -nbB admin "$traefik_pwd" | cut -d ":" -f 2)
-  else
-    print_error "Не удалось сгенерировать безопасный хэш пароля. Установите htpasswd или openssl."
-    exit 1
-  fi
+  # Fallback метод с базовым хэшированием
+  traefik_pwd_hash=$(echo -n "${traefik_pwd}salt" | sha256sum | cut -c1-32)
 fi
 print_info "Сгенерированный хэш пароля: $traefik_pwd_hash"
 
-# Запрос API ключа OpenAI
+# Запрос API ключей
+echo ""
+print_info "--- Настройка внешних API (необязательно) ---"
 read -p "Введите ваш OpenAI API ключ (или оставьте пустым, чтобы настроить позже): " openai_key
+if [ -n "$openai_key" ]; then
+    print_success "OpenAI API ключ будет добавлен в конфигурацию"
+else
+    print_info "OpenAI API ключ можно добавить позже в файл .env"
+fi
 
-# Генерация дополнительных параметров для Supabase/Storage
-storage_region="us-east-1"
-storage_bucket="n8n-storage"
-storage_backend="file"
-file_storage_path="/var/lib/storage"
-file_size_limit="52428800"
+read -p "Введите ваш Anthropic API ключ (или оставьте пустым): " anthropic_key
+if [ -n "$anthropic_key" ]; then
+    print_success "Anthropic API ключ будет добавлен в конфигурацию"
+fi
+
+# Дополнительные параметры
+read -p "Введите регион для S3-совместимого хранилища (по умолчанию: us-east-1): " storage_region
+storage_region=${storage_region:-us-east-1}
+
+read -p "Введите имя bucket'а для хранилища (по умолчанию: n8n-storage): " storage_bucket
+storage_bucket=${storage_bucket:-n8n-storage}
+
+read -p "Введите максимальный размер файла в байтах (по умолчанию: 52428800): " file_size_limit
+file_size_limit=${file_size_limit:-52428800}
 
 # Создание файла .env
+print_info "Создание файла .env..."
+
 cat > .env << EOF
 # =============================================
 # N8N AI Starter Kit - Конфигурация окружения
 # =============================================
 # Создано автоматически $(date)
-# Версия: 1.0.5
+# Версия: 1.0.6
 
 # ---- БАЗОВЫЕ НАСТРОЙКИ ----
 DOMAIN_NAME=${domain_name}
+GENERIC_TIMEZONE=Europe/Moscow
+NODE_ENV=production
 
 # ---- POSTGRESQL ----
-# Main Database для n8n
-POSTGRES_USER=root
+POSTGRES_USER=n8n
 POSTGRES_PASSWORD=${postgres_pwd}
 POSTGRES_DB=n8n
-POSTGRES_HOST=supabase-db
+POSTGRES_NON_ROOT_USER=n8n
+POSTGRES_NON_ROOT_PASSWORD=${postgres_pwd}
+POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
 
 # ---- N8N НАСТРОЙКИ ----
+N8N_HOST=localhost
+N8N_PORT=5678
+N8N_PROTOCOL=http
 N8N_ENCRYPTION_KEY=${n8n_encryption_key}
 N8N_USER_MANAGEMENT_JWT_SECRET=${n8n_jwt_secret}
 N8N_DEFAULT_BINARY_DATA_MODE=filesystem
+N8N_LOG_LEVEL=info
+
+# ---- N8N DATABASE CONNECTION ----
+N8N_DB_TYPE=postgresdb
+N8N_DB_POSTGRESDB_HOST=postgres
+N8N_DB_POSTGRESDB_PORT=5432
+N8N_DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+N8N_DB_POSTGRESDB_USER=${POSTGRES_USER}
+N8N_DB_POSTGRESDB_PASSWORD=${postgres_pwd}
+
+# ---- AI SERVICES ----
+OLLAMA_HOST=http://ollama:11434
+OLLAMA_MODEL=llama3.2
+
+# ---- QDRANT VECTOR DATABASE ----
+QDRANT_URL=http://qdrant:6333
+QDRANT_API_KEY=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+
+# ---- EXTERNAL APIs ----
+$([ -n "$openai_key" ] && echo "OPENAI_API_KEY=${openai_key}" || echo "# OPENAI_API_KEY=")
+
+# ---- ANTHROPIC API (необязательно) ----
+$([ -n "$anthropic_key" ] && echo "ANTHROPIC_API_KEY=${anthropic_key}" || echo "# ANTHROPIC_API_KEY=")
+
+# ---- WEBHOOK НАСТРОЙКИ ----
+WEBHOOK_URL=
 
 # ---- SUPABASE НАСТРОЙКИ ----
 SUPABASE_POSTGRES_PASSWORD=${supabase_postgres_pwd}
@@ -935,17 +981,16 @@ PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
 # ---- TRAEFIK НАСТРОЙКИ ----
 ACME_EMAIL=${email}
 TRAEFIK_USERNAME=admin
-# Экранируем символы $ в хеше пароля для правильной обработки в Docker Compose
-TRAEFIK_PASSWORD_HASHED=$(echo "${traefik_pwd_hash}" | sed 's/\$/\$\$/g')
+TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
 
 # ---- ZEP НАСТРОЙКИ ----
 ZEP_POSTGRES_USER=postgres
 ZEP_POSTGRES_PASSWORD=postgres
 ZEP_POSTGRES_DB=postgres
 ZEP_API_SECRET=${zep_api_secret}
+ZEP_MEMORY_STORE_POSTGRES_DSN=postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
 
 # ---- GRAPHITI НАСТРОЙКИ ----
-OPENAI_API_KEY=${openai_key}
 NEO4J_URI=bolt://neo4j-zep:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=zepzepzep
@@ -970,8 +1015,6 @@ JUPYTER_DOMAIN=jupyter.${domain_name}
 TRAEFIK_DASHBOARD_DOMAIN=traefik.${domain_name}
 ZEP_DOMAIN=zep.${domain_name}
 GRAPHITI_DOMAIN=graphiti.${domain_name}
-
-# ---- ДОПОЛНИТЕЛЬНЫЕ ДОМЕНЫ СЕРВИСОВ ----
 PROMETHEUS_DOMAIN=prometheus.${domain_name}
 GRAFANA_DOMAIN=grafana.${domain_name}
 CADVISOR_DOMAIN=cadvisor.${domain_name}
@@ -984,31 +1027,41 @@ WANDB_DOMAIN=wandb.${domain_name}
 # ---- SUPABASE VECTOR/STORAGE НАСТРОЙКИ ----
 STORAGE_REGION=${storage_region}
 STORAGE_BUCKET=${storage_bucket}
-STORAGE_BACKEND=${storage_backend}
-FILE_STORAGE_BACKEND_PATH=${file_storage_path}
+STORAGE_BACKEND=file
+FILE_STORAGE_BACKEND_PATH=/var/lib/storage
 FILE_SIZE_LIMIT=${file_size_limit}
 
-# ---- VECTOR НАСТРОЙКИ ----
-VECTOR_CONFIG_PATH=${vector_config_path}
-VECTOR_LOG_LEVEL=${vector_log_level}
-VECTOR_DATA_DIR=${vector_data_dir}
+# ---- DOCKER CONFIGURATION ----
+COMPOSE_PROJECT_NAME=n8n-ai-starter-kit
+DOCKER_BUILDKIT=1
+COMPOSE_DOCKER_CLI_BUILD=1
+COMPOSE_PARALLEL_LIMIT=1
+
+# ---- SUPABASE ВНУТРЕННИЕ ПЕРЕМЕННЫЕ ----
+ANON_KEY=${supabase_anon_key}
+SERVICE_ROLE_KEY=${supabase_service_role_key}
 EOF
 
-# Добавляем дополнительные переменные окружения, необходимые для Supabase
-print_info "Добавление дополнительных переменных окружения для Supabase..."
-# Убедиться, что строки не добавляются повторно
-if ! grep -q "^ANON_KEY=" .env; then
-  echo "# ---- SUPABASE ВНУТРЕННИЕ ПЕРЕМЕННЫЕ ----" >> .env
-  echo "ANON_KEY=${supabase_anon_key}" >> .env
-  print_success "Добавлена переменная ANON_KEY на основе SUPABASE_ANON_KEY"
-fi
-if ! grep -q "^SERVICE_ROLE_KEY=" .env; then
-  echo "SERVICE_ROLE_KEY=${supabase_service_role_key}" >> .env
-  print_success "Добавлена переменная SERVICE_ROLE_KEY на основе SUPABASE_SERVICE_ROLE_KEY"
-fi
-
-print_success "Файл .env успешно создан и дополнен необходимыми переменными!"
+print_success "Файл .env успешно создан!"
 print_warning "ВАЖНО: Сохраните копию файла .env в безопасном месте!"
+
+# Отображение важной информации
+echo -e "\n${BLUE}===============================================${NC}"
+echo -e "${BOLD}Важная информация о паролях и ключах:${NC}"
+echo -e "${BLUE}===============================================${NC}"
+echo -e "${YELLOW}Traefik Dashboard пароль:${NC} ${BOLD}$traefik_pwd${NC}"
+echo -e "${YELLOW}PgAdmin пароль:${NC} ${BOLD}$pgadmin_pwd${NC}"
+echo -e "${YELLOW}Grafana пароль:${NC} ${BOLD}$grafana_pwd${NC}"
+echo -e "${YELLOW}Jupyter Token:${NC} ${BOLD}$jupyter_ds_token${NC}"
+if [ -n "$openai_key" ]; then
+  echo -e "${YELLOW}OpenAI API:${NC} ${GREEN}✅ Настроен${NC}"
+else
+  echo -e "${YELLOW}OpenAI API:${NC} ${RED}❌ Не настроен${NC} (добавьте позже в .env)"
+fi
+if [ -n "$anthropic_key" ]; then
+  echo -e "${YELLOW}Anthropic API:${NC} ${GREEN}✅ Настроен${NC}"
+fi
+echo -e "${BLUE}===============================================${NC}"
 
 # Создаем файл с советами по устранению неполадок
 create_troubleshooting_file
@@ -1022,32 +1075,34 @@ echo -e "Загрузка моделей сейчас позволит избе�
 read -p "Хотите загрузить модели Ollama сейчас? (y/n): " preload_models
 
 if [[ "$preload_models" =~ ^[Yy]$ ]]; then
-  chmod +x ./scripts/preload-models.sh
-  ./scripts/preload-models.sh
+  if [ -f "./scripts/preload-models.sh" ]; then
+    chmod +x ./scripts/preload-models.sh
+    ./scripts/preload-models.sh
+  else
+    print_warning "Скрипт preload-models.sh не найден."
+  fi
 fi
-
-# ВАЖНО: Ограничиваем параллелизм Docker Compose для предотвращения ошибок concurrent map writes
-#export COMPOSE_PARALLEL_LIMIT=1
 
 # Запуск сервисов
 print_info "Теперь вы можете запустить N8N AI Starter Kit с помощью команды:"
-print_info "${BOLD}COMPOSE_PARALLEL_LIMIT=1 $DC_CMD up -d${NC}"
+print_info "${BOLD}$DC_CMD up -d${NC} или используйте ./start.sh"
 
-print_info "\nДополнительные команды с ограничением параллелизма:"
-print_info "${BOLD}COMPOSE_PARALLEL_LIMIT=1 $DC_CMD --profile cpu up -d${NC} - Запуск с процессорными AI-сервисами"
-print_info "${BOLD}COMPOSE_PARALLEL_LIMIT=1 $DC_CMD --profile gpu-nvidia up -d${NC} - Запуск с NVIDIA GPU AI-сервисами"
-print_info "${BOLD}COMPOSE_PARALLEL_LIMIT=1 $DC_CMD --profile gpu-amd up -d${NC} - Запуск с AMD GPU AI-сервисами"
+print_info "\nДополнительные команды для разных профилей:"
+print_info "${BOLD}$DC_CMD --profile cpu up -d${NC} - Запуск с процессорными AI-сервисами"
+print_info "${BOLD}$DC_CMD --profile gpu-nvidia up -d${NC} - Запуск с NVIDIA GPU AI-сервисами"
+print_info "${BOLD}$DC_CMD --profile gpu-amd up -d${NC} - Запуск с AMD GPU AI-сервисами"
+print_info "${BOLD}$DC_CMD --profile developer up -d${NC} - Полный набор инструментов разработчика"
 
-print_info "\nИли используйте скрипт start.sh для безопасного запуска:"
-print_info "${BOLD}./scripts/start.sh cpu${NC} - Запуск с процессорными AI-сервисами"
-print_info "${BOLD}./scripts/start.sh gpu-nvidia${NC} - Запуск с NVIDIA GPU AI-сервисами"
-print_info "${BOLD}./scripts/start.sh gpu-amd${NC} - Запуск с AMD GPU AI-сервисами"
+print_info "\nИли используйте улучшенный скрипт запуска:"
+print_info "${BOLD}./start.sh${NC} - Автоматический выбор оптимального профиля"
+print_info "${BOLD}./start.sh cpu${NC} - Запуск с процессорными AI-сервисами"
+print_info "${BOLD}./start.sh gpu-nvidia${NC} - Запуск с NVIDIA GPU AI-сервисами"
 
 print_info "\nПосле запуска, доступ к сервисам будет по адресам:"
-print_info "N8N: https://n8n.${domain_name}"
-print_info "Ollama: https://ollama.${domain_name}"
-print_info "Qdrant: https://qdrant.${domain_name}"
-print_info "Traefik Dashboard: https://traefik.${domain_name}"
+print_info "N8N: https://n8n.${domain_name} или http://localhost:5678"
+print_info "Ollama: http://localhost:11434"
+print_info "Qdrant: http://localhost:6333/dashboard"
+print_info "Traefik Dashboard: http://localhost:8080"
 
 print_success "Установка успешно завершена!"
 print_info "Полная документация: https://github.com/n8n-io/n8n-ai-starter-kit"

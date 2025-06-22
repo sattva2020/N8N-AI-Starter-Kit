@@ -1,12 +1,6 @@
-version: '3.8'
 services:
 
   # ===== ANCHOR DEFINITIONS =====
-  # Базовые настройки для init-ollama
-  x-init-ollama: &init-ollama
-    restart: unless-stopped
-    networks:
-      - backend
 
   # Общие настройки для N8N
   x-service-n8n: &service-n8n
@@ -28,8 +22,6 @@ services:
       - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
     volumes:
       - n8n_storage:/home/node/.n8n
-    depends_on:
-      - postgres
     networks:
       - frontend
       - backend
@@ -38,37 +30,8 @@ services:
         limits:
           memory: 1G
 
-  # Базовые настройки для service-ollama
-  x-service-ollama: &service-ollama
-    restart: unless-stopped
-    networks:
-      - backend
-
   # ===== END ANCHOR DEFINITIONS =====
 
-
-  # Общие настройки для всех сервисов
-  x-common: &common
-    restart: unless-stopped
-    networks:
-      - frontend
-      - backend
-
-  # Общие настройки для AI сервисов
-  x-ai-common: &ai-common
-    <<: *common
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-
-  # Общие настройки для баз данных
-  x-db-common: &db-common
-    <<: *common
-    deploy:
-      resources:
-        limits:
-          memory: 2G
 
   traefik:
     image: traefik:latest # latest для упрощения поддержки
@@ -112,6 +75,8 @@ services:
   n8n:
     <<: *service-n8n
     profiles: [default, cpu, developer]
+    depends_on:
+      - postgres
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`)"
@@ -260,8 +225,11 @@ services:
   #         memory: 4G
 
   ollama-pull:
+    image: alpine/curl:latest
     profiles: [default, cpu]
-    <<: *init-ollama
+    restart: "no"
+    networks:
+      - backend
     environment:
       - OLLAMA_HOST=ollama
     depends_on:
@@ -311,3 +279,8 @@ volumes:
   n8n_storage:
   postgres_storage:
   ollama_data:
+  traefik_letsencrypt:
+  pgadmin_data:
+  minio_data:
+  qdrant_storage:
+  jupyter_data:

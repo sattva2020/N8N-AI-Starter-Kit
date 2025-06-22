@@ -36,13 +36,8 @@ services:
       - "traefik.http.routers.ollama.tls.certresolver=myresolver"
       - "traefik.http.services.ollama.loadbalancer.server.port=11434"
     
-# Для полной совместимости с текущей инфраструктурой
-networks:
-  frontend:
-    external: true
-  backend:
-    external: true
-
+# Networks are defined in networks.yml
+# volumes are defined here
 volumes:
   ollama_data:
 
