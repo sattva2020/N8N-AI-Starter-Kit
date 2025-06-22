@@ -125,7 +125,7 @@ services:
           memory: 512M
         reservations:
           memory: 256M
-    image: supabase/studio:latest
+    image: nginx:alpine
     container_name: supabase-studio
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/profile', (r) => {process.exit(r.statusCode !== 200)})"]

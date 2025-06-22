@@ -38,6 +38,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
+
   zep-db:
     image: postgres:15-bookworm
     container_name: zep-ce-postgres
@@ -79,6 +80,7 @@ services:
           memory: 768M
         reservations:
           memory: 384M
+
   graphiti:
     image: zepai/graphiti:0.3
     container_name: graphiti
@@ -89,6 +91,13 @@ services:
       - ../.env
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      # Graphiti specific configurations
+      - GRAPHITI_HOST=0.0.0.0
+      - GRAPHITI_PORT=8000
+      - PYTHONPATH=/app
     networks:
       - zep-network
       - backend
@@ -101,12 +110,12 @@ services:
       - "traefik.http.routers.graphiti.entrypoints=websecure"
       - "traefik.http.routers.graphiti.tls.certresolver=myresolver"
       - "traefik.http.services.graphiti.loadbalancer.server.port=8000"
-    # healthcheck:
-    #   test: ["CMD", "/usr/local/bin/python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/').read()"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 5
-    #   start_period: 30s
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     deploy:
       resources:
         limits:
@@ -118,6 +127,9 @@ services:
     image: neo4j:5.22.0
     container_name: neo4j-zep
     restart: unless-stopped
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
     volumes:
       - neo4j_data:/data
     environment:
@@ -125,6 +137,9 @@ services:
       - NEO4J_dbms_memory_pagecache_size=512M
       - NEO4J_dbms_memory_heap_initial__size=512M
       - NEO4J_dbms_memory_heap_max__size=1G
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
     networks:
       - zep-network
       - database
@@ -133,6 +148,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
     deploy:
       resources:
         limits:
