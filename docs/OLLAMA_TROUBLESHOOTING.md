@@ -261,13 +261,25 @@ healthcheck:
 
 ### Graphiti Health Check
 **Проблема:** Graphiti показывает статус `unhealthy`
+**Причина:** В контейнере отсутствует `curl` для health check
 **Решение:**
-```bash
-# Проверить правильный endpoint
-curl http://localhost:8000/health
+```yaml
+# БЫЛО (не работает):
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
 
-# Также проверить основной endpoint
-curl http://localhost:8000/
+# СТАЛО (работает):
+healthcheck:
+  test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+```
+
+**Проверка:**
+```bash
+# Проверить health check изнутри контейнера
+docker exec graphiti python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"
+
+# Проверить API напрямую (с хоста)
+curl http://localhost:8000/health
 ```
 
 ### Универсальная диагностика Health Check
