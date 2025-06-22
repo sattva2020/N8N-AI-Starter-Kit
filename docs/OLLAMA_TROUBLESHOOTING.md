@@ -1,5 +1,40 @@
 # Диагностика и решение проблемы с Ollama
 
+## 🚨 КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ (Июнь 2025): Health Check Ollama
+
+### ❌ **Обнаружена проблема:**
+- **Health check Ollama падает** с ошибкой `curl: executable file not found`
+- **Контейнер показывает `unhealthy`** статус
+- **API Ollama работает корректно** (`curl http://localhost:11434/api/version` отвечает)
+
+### ✅ **Решение применено:**
+```yaml
+# БЫЛО (не работает):
+healthcheck:
+  test: ["CMD", "curl", "-sf", "http://localhost:11434/api/version"]
+
+# СТАЛО (работает):
+healthcheck:
+  test: ["CMD", "/bin/ollama", "ps"]
+```
+
+### 🚀 **Команды для применения исправления:**
+```bash
+# 1. Получить исправления
+git pull origin main
+
+# 2. Перезапустить с новым health check
+docker compose down && docker compose --profile cpu up -d
+
+# 3. Проверить статус (должен стать healthy)
+docker ps | grep ollama
+
+# 4. Проверить health check изнутри
+docker exec ollama /bin/ollama ps
+```
+
+---
+
 ## 🎉 ОБНОВЛЕНИЕ: Проблема найдена и исправлена!
 
 ### ✅ Диагностика завершена:
@@ -247,19 +282,20 @@ docker compose logs [SERVICE_NAME]
 docker exec [CONTAINER_NAME] curl -f http://localhost:[PORT]/[ENDPOINT]
 ```
 
-### 🛠️ Исправление Health Check для Ollama (Декабрь 2024):
+### 🛠️ Исправление Health Check для Ollama (Июнь 2025):
 
-**Проблема**: Docker health check для Ollama использовал неверный endpoint `/api/health` вместо `/api/version`
+**Проблема**: Docker health check для Ollama использовал curl, который отсутствует в контейнере
 
 **Симптомы**:
 - Контейнер Ollama помечен как `unhealthy` в `docker ps`
+- Ошибка: `exec: "curl": executable file not found in $PATH`
 - API работает корректно при прямых запросах
 - Другие сервисы могут падать из-за dependency на unhealthy Ollama
 
 **Решение**:
 ```yaml
 healthcheck:
-  test: ["CMD", "curl", "-sf", "http://localhost:11434/api/version"]
+  test: ["CMD", "/bin/ollama", "ps"]
   interval: 30s
   timeout: 15s
   retries: 5
@@ -276,4 +312,39 @@ docker ps | grep ollama
 
 # Проверить health check логи
 docker inspect ollama | grep -A 10 Health
+
+# Проверить работу команды health check
+docker exec ollama /bin/ollama ps
+```
+
+### 🛠️ Исправление Health Check для Ollama (Декабрь 2024):
+
+**Проблема**: Docker health check для Ollama использовал `curl`, которая отсутствует в контейнере
+
+**Симптомы**:
+- Контейнер Ollama помечен как `unhealthy` в `docker ps`
+- Ошибка: `exec: "curl": executable file not found in $PATH`
+- API работает корректно при прямых запросах
+- Другие сервисы могут падать из-за dependency на unhealthy Ollama
+
+**Решение**:
+```yaml
+healthcheck:
+  test: ["CMD", "/bin/ollama", "ps"]
+  interval: 30s
+  timeout: 15s
+  retries: 5
+  start_period: 60s
+```
+
+**Проверка исправления**:
+```bash
+# Перезапустить сервисы
+docker compose down && docker compose --profile cpu up -d
+
+# Проверить health status (должен быть healthy)
+docker ps | grep ollama
+
+# Проверить health check изнутри контейнера
+docker exec ollama /bin/ollama ps
 ```
