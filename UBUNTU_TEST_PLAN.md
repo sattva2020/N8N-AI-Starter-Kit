@@ -21,6 +21,10 @@
 - **Проблема**: Поврежденный YAML в zep-compose.yaml
 - **Решение**: Исправлены отступы и структура файла
 
+### 5. Исправлена сеть PostgreSQL 
+- **Проблема**: N8N и PostgreSQL в разных сетях - `getaddrinfo ENOTFOUND postgres`
+- **Решение**: Добавлен PostgreSQL в сеть `backend` для связи с N8N
+
 ## Команды для тестирования на Ubuntu 24
 
 ```bash
