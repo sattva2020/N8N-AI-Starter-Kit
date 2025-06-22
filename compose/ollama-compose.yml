@@ -6,6 +6,8 @@ services:
     container_name: ollama
     restart: unless-stopped
     profiles: [default, cpu, gpu-nvidia]
+    ports:
+      - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
       - ./config/ollama-models.txt:/config/ollama-models.txt:ro
