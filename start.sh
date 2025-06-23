@@ -334,31 +334,31 @@ COMPOSE_PARALLEL_LIMIT=1 $DOCKER_COMPOSE_CMD --profile $PROFILE up -d
 # Проверка результата запуска
 if [ $? -eq 0 ]; then
     echo ""
-    echo -e "${GREEN}🎉 Система успешно запущена!${NC}"
+    printf "${GREEN}🎉 Система успешно запущена!${NC}\n"
     echo ""
-    echo -e "${BLUE}Полезные команды:${NC}"
-    echo -e "  📊 Мониторинг: ${YELLOW}./scripts/monitor.sh${NC}"
-    echo -e "  📋 Статус: ${YELLOW}docker ps${NC}"
-    echo -e "  📝 Логи: ${YELLOW}docker logs n8n-ai-starter-kit-n8n-1${NC}"
-    echo -e "  🛑 Остановка: ${YELLOW}$DOCKER_COMPOSE_CMD down${NC}"
+    printf "${BLUE}Полезные команды:${NC}\n"
+    printf "  📊 Мониторинг: ${YELLOW}./scripts/monitor.sh${NC}\n"
+    printf "  📋 Статус: ${YELLOW}docker ps${NC}\n"
+    printf "  📝 Логи: ${YELLOW}docker logs n8n-ai-starter-kit-n8n-1${NC}\n"
+    printf "  🛑 Остановка: ${YELLOW}$DOCKER_COMPOSE_CMD down${NC}\n"
     echo ""
-    echo -e "${BLUE}Доступ к сервисам:${NC}"
-    echo -e "  🌐 N8N: ${YELLOW}http://localhost:5678${NC}"
-    echo -e "  🔍 Qdrant: ${YELLOW}http://localhost:6333/dashboard${NC}"
-    echo -e "  🤖 Ollama: ${YELLOW}http://localhost:11434${NC}"
-    echo -e "  🚦 Traefik: ${YELLOW}http://localhost:8080${NC}"
+    printf "${BLUE}Доступ к сервисам:${NC}\n"
+    printf "  🌐 N8N: ${YELLOW}http://localhost:5678${NC}\n"
+    printf "  🔍 Qdrant: ${YELLOW}http://localhost:6333/dashboard${NC}\n"
+    printf "  🤖 Ollama: ${YELLOW}http://localhost:11434${NC}\n"
+    printf "  🚦 Traefik: ${YELLOW}http://localhost:8080${NC}\n"
     
     # Проверка OpenAI API Key
     if [ -f .env ] && (grep -q "^# OPENAI_API_KEY=" .env || ! grep -q "OPENAI_API_KEY=" .env); then
         echo ""
-        echo -e "${YELLOW}📝 Примечание: OpenAI API key не настроен${NC}"
-        echo -e "   ${CYAN}Для использования OpenAI моделей добавьте ключ в файл .env${NC}"
-        echo -e "   ${CYAN}или запустите: ./scripts/setup.sh для полной настройки${NC}"
+        printf "${YELLOW}📝 Примечание: OpenAI API key не настроен${NC}\n"
+        printf "   ${CYAN}Для использования OpenAI моделей добавьте ключ в файл .env${NC}\n"
+        printf "   ${CYAN}или запустите: ./scripts/setup.sh для полной настройки${NC}\n"
     fi
 else
     echo ""
-    echo -e "${RED}❌ Ошибка при запуске системы${NC}"
-    echo -e "${YELLOW}Запустите для диагностики: ./scripts/diagnose.sh${NC}"
-    echo -e "${YELLOW}Или запустите полную настройку: ./scripts/setup.sh${NC}"
+    printf "${RED}❌ Ошибка при запуске системы${NC}\n"
+    printf "${YELLOW}Запустите для диагностики: ./scripts/diagnose.sh${NC}\n"
+    printf "${YELLOW}Или запустите полную настройку: ./scripts/setup.sh${NC}\n"
     exit 1
 fi
