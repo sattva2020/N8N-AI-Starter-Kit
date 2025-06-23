@@ -18,21 +18,21 @@ detect_optimal_profile() {
     local memory=$(free -m 2>/dev/null | awk 'NR==2{printf "%.0f", $2/1024}' || echo "0")
     local cpu_cores=$(nproc 2>/dev/null || echo "1")
     
-    echo -e "${BLUE}Анализ системы:${NC}"
-    echo -e "  📊 Память: ${memory}GB"
-    echo -e "  🖥️  CPU ядер: ${cpu_cores}"
+    echo -e "${BLUE}Анализ системы:${NC}" >&2
+    echo -e "  📊 Память: ${memory}GB" >&2
+    echo -e "  🖥️  CPU ядер: ${cpu_cores}" >&2
     
     # Проверка GPU
     if command -v nvidia-smi &> /dev/null && nvidia-smi &> /dev/null; then
         gpu_info=$(nvidia-smi --query-gpu=name --format=csv,noheader,nounits | head -1 2>/dev/null || echo "Unknown")
-        echo -e "  🎮 GPU: ${gpu_info}"
-        echo -e "${GREEN}🚀 Рекомендуемый профиль: gpu-nvidia${NC}"
+        echo -e "  🎮 GPU: ${gpu_info}" >&2
+        echo -e "${GREEN}🚀 Рекомендуемый профиль: gpu-nvidia${NC}" >&2
         echo "gpu-nvidia"
     elif [ "$memory" -gt 16 ] && [ "$cpu_cores" -gt 8 ]; then
-        echo -e "${GREEN}🚀 Рекомендуемый профиль: developer${NC}"
+        echo -e "${GREEN}🚀 Рекомендуемый профиль: developer${NC}" >&2
         echo "developer"
     else
-        echo -e "${GREEN}🚀 Рекомендуемый профиль: cpu${NC}"
+        echo -e "${GREEN}🚀 Рекомендуемый профиль: cpu${NC}" >&2
         echo "cpu"
     fi
 }
@@ -211,9 +211,15 @@ check_critical_components() {
 }
 
 # Основная логика запуска
-PROFILE=${1:-$(detect_optimal_profile)}
-echo ""
-echo -e "${BLUE}Выбранный профиль: ${YELLOW}$PROFILE${NC}"
+if [ -n "$1" ]; then
+    PROFILE="$1"
+    echo ""
+    echo -e "${BLUE}Выбранный профиль: ${YELLOW}$PROFILE${NC}"
+else
+    PROFILE=$(detect_optimal_profile)
+    echo ""
+    echo -e "${BLUE}Выбранный профиль: ${YELLOW}$PROFILE${NC}"
+fi
 
 # Проверка критических компонентов
 echo ""
