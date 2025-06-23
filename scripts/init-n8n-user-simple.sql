@@ -3,16 +3,12 @@
 -- =============================================
 -- Создает пользователя N8N с необходимыми правами
 
--- Проверяем, существует ли пользователь n8n
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'n8n') THEN
-        CREATE USER n8n WITH PASSWORD 'AkQhtouKmdoXOYKD';
-        RAISE NOTICE 'Пользователь n8n создан';
-    ELSE
-        RAISE NOTICE 'Пользователь n8n уже существует';
-    END IF;
-END
+-- Создание пользователя n8n (если не существует)
+\set password `echo "$N8N_PASSWORD"`
+CREATE USER n8n WITH PASSWORD :'password';
+
+-- Создание базы данных n8n (если не существует)
+CREATE DATABASE n8n OWNER n8n;
 $$;
 
 -- Предоставляем права на базу данных n8n

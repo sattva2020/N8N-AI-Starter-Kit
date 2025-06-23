@@ -75,7 +75,7 @@ docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 print_header "🔍 ПРОВЕРКА ОСНОВНЫХ СЕРВИСОВ"
 
 # Основные сервисы для проверки
-SERVICES=("n8n" "postgres" "qdrant" "minio" "traefik")
+SERVICES=("n8n" "postgres" "qdrant" "traefik")
 
 for service in "${SERVICES[@]}"; do
     echo -n "Проверяем контейнер $service... "
@@ -122,7 +122,8 @@ print_header "🌐 ПРОВЕРКА HTTP API ENDPOINTS"
 check_http "http://localhost:5678" "N8N Web UI" "n8n.io"
 check_http "http://localhost:11434" "Ollama API" "Ollama is running"
 check_http "http://localhost:6333" "Qdrant API" "qdrant"
-check_http "http://localhost:9000/minio/health/live" "MinIO Health" ""
+# Удалена проверка MinIO - используется локальное хранилище
+# check_http "http://localhost:9000/minio/health/live" "MinIO Health" ""
 check_http "http://localhost:8080" "Traefik Dashboard" ""
 
 print_header "🔍 ПРОВЕРКА HEALTHCHECK СТАТУСОВ"

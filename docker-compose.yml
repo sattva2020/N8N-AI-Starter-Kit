@@ -22,6 +22,8 @@ services:
       - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
     volumes:
       - n8n_storage:/home/node/.n8n
+      - ./data/n8n-files:/home/node/.n8n/binaryData
+      - ./data/n8n-workflows:/home/node/.n8n/workflows
     networks:
       - frontend
       - backend
@@ -42,12 +44,16 @@ services:
       - "--providers.docker.exposedByDefault=false"
       - "--providers.file.directory=/etc/traefik/dynamic"
       - "--entryPoints.web.address=:80"
-      - "--entryPoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entryPoints.web.http.redirections.entryPoint.scheme=https"
+      # For localhost development, use HTTP only (no HTTPS redirect)
+      # Comment these lines for production with real domains:
+      # - "--entryPoints.web.http.redirections.entryPoint.to=websecure"
+      # - "--entryPoints.web.http.redirections.entryPoint.scheme=https"
       - "--entryPoints.websecure.address=:443"
-      - "--certificatesResolvers.myresolver.acme.email=${ACME_EMAIL}"
-      - "--certificatesResolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-      - "--certificatesResolvers.myresolver.acme.tlsChallenge=true"
+      # Disable ACME for localhost development
+      # Uncomment and configure for production with real domains:
+      # - "--certificatesResolvers.myresolver.acme.email=${ACME_EMAIL}"
+      # - "--certificatesResolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      # - "--certificatesResolvers.myresolver.acme.tlsChallenge=true"
     ports:
       - "80:80"
       - "443:443"
@@ -61,8 +67,12 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`${TRAEFIK_DASHBOARD_DOMAIN}`)"
       - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.entrypoints=websecure"
-      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
+      # Use HTTP for localhost development
+      - "traefik.http.routers.traefik.entrypoints=web"
+      # Disable TLS for localhost development
+      # Uncomment for production:
+      # - "traefik.http.routers.traefik.entrypoints=websecure"
+      # - "traefik.http.routers.traefik.tls.certresolver=myresolver"
       - "traefik.http.routers.traefik.middlewares=auth"
       - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_USERNAME}:${TRAEFIK_PASSWORD_HASHED}"
     healthcheck:
@@ -83,8 +93,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`)"
-      - "traefik.http.routers.n8n.entrypoints=websecure"
-      - "traefik.http.routers.n8n.tls.certresolver=myresolver"
+      - "traefik.http.routers.n8n.entrypoints=web"
+      # Disable TLS for localhost development
+      # Uncomment for production:
+      # - "traefik.http.routers.n8n.entrypoints=websecure"
+      # - "traefik.http.routers.n8n.tls.certresolver=myresolver"
       - "traefik.http.services.n8n.loadbalancer.server.port=5678"
     deploy:
       resources:
@@ -99,24 +112,25 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 90s  # Увеличиваем время запуска
 
   postgres:
-    image: postgres:latest # latest для упрощения поддержки
+    image: pgvector/pgvector:pg17 # Образ с поддержкой pgvector для Graphiti (последняя версия)
     restart: unless-stopped
-    profiles: [default, cpu, developer]
+    profiles: [default, cpu, developer, production]
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_INITDB_ARGS="--encoding=UTF8 --lc-collate=C --lc-ctype=C"
-      # Передаем переменные для скрипта инициализации
-      - N8N_USER=${POSTGRES_USER}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8
+      # Передаем переменные для скрипта инициализации (правильные значения)
+      - N8N_USER=n8n
       - N8N_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres_storage:/var/lib/postgresql/data
-      - ./scripts/init-pgvector.sql:/docker-entrypoint-initdb.d/01-init-pgvector.sql:ro
-      - ./scripts/init-n8n-user-simple.sql:/docker-entrypoint-initdb.d/02-init-n8n-user-simple.sql:ro
+      # - ./scripts/init-pgvector.sql:/docker-entrypoint-initdb.d/01-init-pgvector.sql:ro  # Временно отключен
+      - ./scripts/init-n8n-user.sh:/docker-entrypoint-initdb.d/02-init-n8n-user.sh:ro
+      # Zep скрипт больше не нужен после перехода на Graphiti
     networks:
       - database
       - backend
@@ -149,8 +163,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.pgadmin.rule=Host(`${PGADMIN_DOMAIN}`)"
-      - "traefik.http.routers.pgadmin.entrypoints=websecure"
-      - "traefik.http.routers.pgadmin.tls.certresolver=myresolver"
+      - "traefik.http.routers.pgadmin.entrypoints=web"
+      # Disable TLS for localhost development
+      # Uncomment for production:
+      # - "traefik.http.routers.pgadmin.entrypoints=websecure"
+      # - "traefik.http.routers.pgadmin.tls.certresolver=myresolver"
       - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/pgadmin4/health"]
@@ -159,39 +176,10 @@ services:
       retries: 3
       start_period: 40s
 
-  minio:
-    image: minio/minio:latest # latest для упрощения поддержки
-    restart: unless-stopped
-    profiles: [default, cpu, developer]
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-    volumes:
-      - minio_data:/data
-    networks:
-      - backend
-      - frontend
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    labels:
-      - "traefik.enable=true"
-      # S3 API service
-      - "traefik.http.routers.minio-api.rule=Host(`${MINIO_API_DOMAIN}`)"
-      - "traefik.http.services.minio-api-service.loadbalancer.server.port=9000"
-      - "traefik.http.routers.minio-api.service=minio-api-service"
-      # Console service
-      - "traefik.http.routers.minio-console.rule=Host(`${MINIO_CONSOLE_DOMAIN}`)"
-      - "traefik.http.services.minio-console-service.loadbalancer.server.port=9001"
-      - "traefik.http.routers.minio-console.service=minio-console-service"
   qdrant:
     image: qdrant/qdrant:latest # latest для упрощения поддержки
     restart: unless-stopped
-    profiles: [default, cpu, developer]
+    profiles: [default, cpu, developer, production]
     ports:
       - "6333:6333"
     volumes:
@@ -202,8 +190,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.qdrant.rule=Host(`${QDRANT_DOMAIN}`)"
-      - "traefik.http.routers.qdrant.entrypoints=websecure"
-      - "traefik.http.routers.qdrant.tls.certresolver=myresolver"
+      - "traefik.http.routers.qdrant.entrypoints=web"
+      # Disable TLS for localhost development
+      # Uncomment for production:
+      # - "traefik.http.routers.qdrant.entrypoints=websecure"
+      # - "traefik.http.routers.qdrant.tls.certresolver=myresolver"
       - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
     deploy:
       resources:
@@ -215,8 +206,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:6333/"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 40s
+      retries: 5  # Увеличиваем количество попыток
+      start_period: 60s  # Увеличиваем время запуска
 
   # ollama:
   #   <<: *service-ollama
@@ -236,20 +227,6 @@ services:
   #         cpus: '2'
   #         memory: 4G
 
-  ollama-pull:
-    image: alpine/curl:latest
-    profiles: [default, cpu]
-    restart: "no"
-    networks:
-      - backend
-    environment:
-      - OLLAMA_HOST=ollama
-    depends_on:
-      ollama:
-        condition: service_healthy
-    labels:
-      - "traefik.enable=false"
-
   jupyterlab:
     image: jupyter/minimal-notebook:latest # latest для упрощения поддержки
     restart: unless-stopped
@@ -264,8 +241,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.jupyter.rule=Host(`${JUPYTER_DOMAIN}`)"
-      - "traefik.http.routers.jupyter.entrypoints=websecure"
-      - "traefik.http.routers.jupyter.tls.certresolver=myresolver"
+      - "traefik.http.routers.jupyter.entrypoints=web"
+      # Disable TLS for localhost development
+      # Uncomment for production:
+      # - "traefik.http.routers.jupyter.entrypoints=websecure"
+      # - "traefik.http.routers.jupyter.tls.certresolver=myresolver"
       - "traefik.http.services.jupyter.loadbalancer.server.port=8888"
     deploy:
       resources:
@@ -281,8 +261,8 @@ services:
       start_period: 40s
 
 include:
-  - path: ./compose/networks.yml
-  - path: ./compose/zep-compose.yaml
+  # Graphiti и Neo4j для AI память и граф знаний
+  - path: ./compose/graphiti-compose.yaml  # Содержит Graphiti и Neo4j (бывший zep-compose.yaml)
   # - path: ./compose/supabase-compose.yml  # Временно отключен для упрощения диагностики
   - path: ./compose/ollama-compose.yml
   - path: ./compose/optional-services.yml
@@ -293,6 +273,15 @@ volumes:
   ollama_data:
   traefik_letsencrypt:
   pgadmin_data:
-  minio_data:
   qdrant_storage:
   jupyter_data:
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+  database:
+    driver: bridge
+  zep-network:
+    driver: bridge

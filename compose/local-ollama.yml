@@ -1,10 +1,28 @@
+# ============================================================
+# LOCAL OLLAMA CONFIGURATION
+# ============================================================
+# Этот файл используется для подключения к Ollama, запущенному
+# ЛОКАЛЬНО на хост-машине (не в Docker-контейнере).
+# 
+# Использование:
+# docker compose -f docker-compose.yml -f compose/local-ollama.yml up -d
+# 
+# Когда использовать:
+# - Ollama уже установлен и запущен на хост-системе
+# - Нужно использовать GPU, который недоступен в Docker
+# - Требуется больше производительности
+# ============================================================
+
 services:
   # Конфигурация для локального Ollama без промежуточного NGINX
   ollama-config:
     image: alpine:latest
     container_name: ollama-config
     restart: "no"
-    command: sh -c "echo 'Ollama настроен на использование локального API: ${OLLAMA_HOST}:11434' && sleep 2"
+    command: 
+      - sh
+      - -c
+      - "echo 'Ollama настроен на использование локального API: ${OLLAMA_HOST}:11434' && sleep 2"
     networks:
       - frontend
       - backend
@@ -12,8 +30,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ollama.rule=Host(`${OLLAMA_DOMAIN}`)"
-      - "traefik.http.routers.ollama.entrypoints=websecure"
-      - "traefik.http.routers.ollama.tls.certresolver=myresolver"
+      - "traefik.http.routers.ollama.entrypoints=web"
+      # Disable TLS for localhost development
+      # Uncomment for production:
+      # - "traefik.http.routers.ollama.entrypoints=websecure"
+      # - "traefik.http.routers.ollama.tls.certresolver=myresolver"
       - "traefik.http.middlewares.ollama-forward.forwardauth.address=http://${OLLAMA_HOST}:11434"
       - "traefik.http.services.ollama.loadbalancer.server.url=http://${OLLAMA_HOST}:11434"
     environment:

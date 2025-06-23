@@ -798,9 +798,27 @@ done
 
 # Генерация паролей и ключей
 print_info "Генерация безопасных паролей и ключей..."
+
+# Проверяем существующий N8N_ENCRYPTION_KEY если .env файл существует
+existing_encryption_key=""
+if [ -f .env.backup ] && [ -f .env ]; then
+  existing_encryption_key=$(grep -E "^N8N_ENCRYPTION_KEY=" .env.backup 2>/dev/null | cut -d '=' -f2)
+  if [ -n "$existing_encryption_key" ]; then
+    print_success "Найден существующий ключ шифрования N8N, будет использован для сохранения совместимости"
+  fi
+fi
+
 # Используем только алфавитно-цифровые символы
 postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
-n8n_encryption_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+
+# Используем существующий ключ шифрования или генерируем новый
+if [ -n "$existing_encryption_key" ]; then
+  n8n_encryption_key="$existing_encryption_key"
+  print_info "Используется существующий ключ шифрования N8N"
+else
+  n8n_encryption_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+  print_info "Сгенерирован новый ключ шифрования N8N"
+fi
 n8n_jwt_secret=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
 supabase_postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
 supabase_anon_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
@@ -814,7 +832,6 @@ pooler_tenant_id="n8n_$(openssl rand -hex 8)"
 pooler_default_pool_size="20"
 pooler_max_client_conn="100"
 pooler_proxy_port_transaction="6543"
-minio_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
 pgadmin_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
 zep_api_secret=$(openssl rand -base64 64 | tr -cd '[:alnum:]' | cut -c1-48)
 grafana_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
@@ -851,16 +868,6 @@ read -p "Введите ваш Anthropic API ключ (или оставьте �
 if [ -n "$anthropic_key" ]; then
     print_success "Anthropic API ключ будет добавлен в конфигурацию"
 fi
-
-# Дополнительные параметры
-read -p "Введите регион для S3-совместимого хранилища (по умолчанию: us-east-1): " storage_region
-storage_region=${storage_region:-us-east-1}
-
-read -p "Введите имя bucket'а для хранилища (по умолчанию: n8n-storage): " storage_bucket
-storage_bucket=${storage_bucket:-n8n-storage}
-
-read -p "Введите максимальный размер файла в байтах (по умолчанию: 52428800): " file_size_limit
-file_size_limit=${file_size_limit:-52428800}
 
 # Создание файла .env
 print_info "Создание файла .env..."
@@ -970,10 +977,6 @@ MAILER_URLPATHS_CONFIRMATION=/auth/v1/verify
 MAILER_URLPATHS_RECOVERY=/auth/v1/verify
 MAILER_URLPATHS_EMAIL_CHANGE=/auth/v1/verify
 
-# ---- MINIO НАСТРОЙКИ ----
-MINIO_ROOT_USER=minioadmin
-MINIO_ROOT_PASSWORD=${minio_pwd}
-
 # ---- PGADMIN НАСТРОЙКИ ----
 PGADMIN_DEFAULT_EMAIL=${email}
 PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
@@ -1008,8 +1011,6 @@ OLLAMA_DOMAIN=ollama.${domain_name}
 QDRANT_DOMAIN=qdrant.${domain_name}
 SUPABASE_STUDIO_DOMAIN=supabase.${domain_name}
 SUPABASE_API_DOMAIN=api.supabase.${domain_name}
-MINIO_API_DOMAIN=minio.${domain_name}
-MINIO_CONSOLE_DOMAIN=minio-console.${domain_name}
 PGADMIN_DOMAIN=pgadmin.${domain_name}
 JUPYTER_DOMAIN=jupyter.${domain_name}
 TRAEFIK_DASHBOARD_DOMAIN=traefik.${domain_name}
@@ -1024,12 +1025,9 @@ JUPYTER_DS_DOMAIN=jupyter-ds.${domain_name}
 LANGSMITH_DOMAIN=langsmith.${domain_name}
 WANDB_DOMAIN=wandb.${domain_name}
 
-# ---- SUPABASE VECTOR/STORAGE НАСТРОЙКИ ----
-STORAGE_REGION=${storage_region}
-STORAGE_BUCKET=${storage_bucket}
-STORAGE_BACKEND=file
-FILE_STORAGE_BACKEND_PATH=/var/lib/storage
-FILE_SIZE_LIMIT=${file_size_limit}
+# ---- ЛОКАЛЬНОЕ ХРАНИЛИЩЕ N8N ----
+N8N_DEFAULT_BINARY_DATA_MODE=filesystem
+FILE_SIZE_LIMIT=52428800
 
 # ---- DOCKER CONFIGURATION ----
 COMPOSE_PROJECT_NAME=n8n-ai-starter-kit

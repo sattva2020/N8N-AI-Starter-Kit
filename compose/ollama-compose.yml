@@ -32,11 +32,37 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ollama.rule=Host(`${OLLAMA_DOMAIN}`)"
-      - "traefik.http.routers.ollama.entrypoints=websecure"
-      - "traefik.http.routers.ollama.tls.certresolver=myresolver"
+      - "traefik.http.routers.ollama.entrypoints=web"
+      # Disable TLS for localhost development
+      # Uncomment for production:
+      # - "traefik.http.routers.ollama.entrypoints=websecure"
+      # - "traefik.http.routers.ollama.tls.certresolver=myresolver"
       - "traefik.http.services.ollama.loadbalancer.server.port=11434"
-    
-# Networks are defined in networks.yml
+
+  # Сервис для предварительной загрузки моделей Ollama
+  ollama-pull:
+    image: alpine/curl:latest
+    profiles: [default, cpu, gpu-nvidia]
+    restart: "no"
+    networks:
+      - backend
+    environment:
+      - OLLAMA_HOST=ollama
+    depends_on:
+      ollama:
+        condition: service_healthy
+    command: |
+      sh -c '
+        echo "Ожидание готовности Ollama..."
+        sleep 10
+        echo "Попытка загрузки базовых моделей..."
+        curl -X POST http://ollama:11434/api/pull -d "{\"name\":\"llama3.2\"}" || echo "Модель llama3.2 не загружена"
+        echo "Инициализация моделей завершена"
+      '
+    labels:
+      - "traefik.enable=false"
+
+# Networks определены в главном docker-compose.yml
 # volumes are defined here
 volumes:
   ollama_data:
