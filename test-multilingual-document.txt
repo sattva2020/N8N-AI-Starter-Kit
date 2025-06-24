@@ -1,0 +1,23 @@
+Advanced AI Machine Learning and Semantic Search Testing Document
+
+This document contains information about artificial intelligence, machine learning algorithms, and semantic search capabilities. The Advanced RAG (Retrieval-Augmented Generation) Pipeline demonstrates sophisticated natural language processing and vector database integration.
+
+Key features include:
+- Semantic similarity search using sentence transformers
+- Vector embeddings with Qdrant database
+- Multi-language support (English and Russian)
+- Real-time document processing and indexing
+- Web-based interface for document management
+
+Этот документ также содержит русский текст для тестирования многоязычных возможностей. 
+
+The system uses state-of-the-art transformer models for creating high-quality embeddings that capture semantic meaning across different languages and contexts.
+
+Testing scenarios:
+1. Upload and processing documents
+2. Semantic search with various queries  
+3. Similarity scoring and ranking
+4. Cross-language retrieval capabilities
+5. Performance and response time optimization
+
+Machine learning pipeline includes sentence transformers, embedding generation, vector storage, and similarity computation for comprehensive information retrieval.

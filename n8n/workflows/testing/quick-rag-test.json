@@ -1,0 +1,91 @@
+{
+  "name": "Quick RAG Test",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger-1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8001/health",
+        "options": {}
+      },
+      "id": "health-check-1",
+      "name": "Document Processor Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8002/health",
+        "options": {}
+      },
+      "id": "health-check-2", 
+      "name": "Web Interface Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:6333/collections",
+        "options": {}
+      },
+      "id": "qdrant-check-1",
+      "name": "Qdrant Collections",
+      "type": "n8n-nodes-base.httpRequest", 
+      "typeVersion": 4,
+      "position": [800, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Document Processor Health",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document Processor Health": {
+      "main": [
+        [
+          {
+            "node": "Web Interface Health", 
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web Interface Health": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Collections",
+            "type": "main", 
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-06-24T00:00:00.000Z",
+  "updatedAt": "2025-06-24T00:00:00.000Z", 
+  "settings": {},
+  "staticData": null,
+  "meta": {
+    "instanceId": "n8n-ai-starter-kit"
+  },
+  "pinData": {},
+  "versionId": "1"
+}

@@ -1,0 +1,393 @@
+{
+  "name": "Email Integration & Notifications v1.2.0",
+  "active": true,
+  "nodes": [
+    {
+      "id": "start-trigger",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "parameters": {}
+    },
+    {
+      "id": "email-webhook",
+      "name": "Email Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [300, 300],
+      "parameters": {
+        "path": "send-email",
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      }
+    },
+    {
+      "id": "validate-email-request",
+      "name": "Validate Email Request",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "parameters": {
+        "functionCode": "const body = $json.body; if (!body || !body.to) { throw new Error('Missing recipient email address'); } if (!body.subject) { throw new Error('Missing email subject'); } if (!body.content && !body.template) { throw new Error('Missing email content or template'); } const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/; if (!emailRegex.test(body.to)) { throw new Error('Invalid email address format'); } return { to: body.to, subject: body.subject, content: body.content || '', template: body.template || 'default', template_data: body.template_data || {}, from: body.from || 'noreply@ai-system.com', reply_to: body.reply_to || null, priority: body.priority || 'normal', type: body.type || 'notification', user_id: body.user_id || 'system', timestamp: new Date().toISOString() };"
+      }
+    },
+    {
+      "id": "choose-email-template",
+      "name": "Choose Email Template",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [700, 300],
+      "parameters": {
+        "values": {
+          "options": [
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.template }}",
+                    "value2": "document_processed"
+                  }
+                ]
+              },
+              "outputIndex": 0
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.template }}",
+                    "value2": "batch_complete"
+                  }
+                ]
+              },
+              "outputIndex": 1
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.template }}",
+                    "value2": "system_alert"
+                  }
+                ]
+              },
+              "outputIndex": 2
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.template }}",
+                    "value2": "error_report"
+                  }
+                ]
+              },
+              "outputIndex": 3
+            }
+          ]
+        },
+        "mode": "expression"
+      }
+    },
+    {
+      "id": "document-processed-template",
+      "name": "Document Processed Template",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 150],
+      "parameters": {
+        "functionCode": "const data = $json; const templateData = data.template_data; return { to: data.to, from: data.from, subject: `Document Processing Complete - ${templateData.document_name || 'Document'}`, html_content: `<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;\"><h2 style=\"color: #2c3e50;\">Document Processing Complete</h2><p>Your document has been successfully processed and is now available for search.</p><div style=\"background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;\"><h3>Processing Summary:</h3><ul><li><strong>Document:</strong> ${templateData.document_name || 'Unknown'}</li><li><strong>Pages:</strong> ${templateData.pages || 0}</li><li><strong>Word Count:</strong> ${templateData.word_count || 0}</li><li><strong>Chunks Created:</strong> ${templateData.chunks_created || 0}</li><li><strong>Processing Time:</strong> ${templateData.processing_time || 0}s</li></ul></div><p>You can now search through this document using our AI-powered search interface.</p><p style=\"color: #7f8c8d; font-size: 12px;\">This is an automated message from the AI Document Processing System.</p></div>`, text_content: `Document Processing Complete\\n\\nYour document has been successfully processed and is now available for search.\\n\\nProcessing Summary:\\n- Document: ${templateData.document_name || 'Unknown'}\\n- Pages: ${templateData.pages || 0}\\n- Word Count: ${templateData.word_count || 0}\\n- Chunks Created: ${templateData.chunks_created || 0}\\n- Processing Time: ${templateData.processing_time || 0}s\\n\\nYou can now search through this document using our AI-powered search interface.`, priority: data.priority };"
+      }
+    },
+    {
+      "id": "batch-complete-template",
+      "name": "Batch Complete Template",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 250],
+      "parameters": {
+        "functionCode": "const data = $json; const templateData = data.template_data; return { to: data.to, from: data.from, subject: `Batch Processing Complete - ${templateData.total_files || 0} files processed`, html_content: `<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;\"><h2 style=\"color: #27ae60;\">Batch Processing Complete</h2><p>Your batch processing job has finished successfully.</p><div style=\"background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;\"><h3>Batch Summary:</h3><ul><li><strong>Total Files:</strong> ${templateData.total_files || 0}</li><li><strong>Successfully Processed:</strong> ${templateData.successful_files || 0}</li><li><strong>Failed:</strong> ${templateData.failed_files || 0}</li><li><strong>Total Processing Time:</strong> ${templateData.total_processing_time || 0}s</li><li><strong>Average Time per File:</strong> ${templateData.avg_processing_time || 0}s</li></ul></div>${templateData.failed_files > 0 ? '<div style=\"background: #ffeaa7; padding: 10px; border-radius: 5px; margin: 20px 0;\"><strong>Note:</strong> Some files failed to process. Please check the system logs for details.</div>' : ''}<p>All successfully processed documents are now available for AI-powered search.</p><p style=\"color: #7f8c8d; font-size: 12px;\">This is an automated message from the AI Document Processing System.</p></div>`, text_content: `Batch Processing Complete\\n\\nYour batch processing job has finished successfully.\\n\\nBatch Summary:\\n- Total Files: ${templateData.total_files || 0}\\n- Successfully Processed: ${templateData.successful_files || 0}\\n- Failed: ${templateData.failed_files || 0}\\n- Total Processing Time: ${templateData.total_processing_time || 0}s\\n- Average Time per File: ${templateData.avg_processing_time || 0}s\\n\\n${templateData.failed_files > 0 ? 'Note: Some files failed to process. Please check the system logs for details.\\n\\n' : ''}All successfully processed documents are now available for AI-powered search.`, priority: data.priority };"
+      }
+    },
+    {
+      "id": "system-alert-template",
+      "name": "System Alert Template",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 350],
+      "parameters": {
+        "functionCode": "const data = $json; const templateData = data.template_data; const alertColor = templateData.severity === 'critical' ? '#e74c3c' : templateData.severity === 'high' ? '#f39c12' : '#3498db'; return { to: data.to, from: data.from, subject: `[${templateData.severity?.toUpperCase() || 'ALERT'}] System Alert - ${templateData.alert_type || 'Unknown'}`, html_content: `<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;\"><div style=\"background: ${alertColor}; color: white; padding: 15px; border-radius: 5px 5px 0 0;\"><h2 style=\"margin: 0; color: white;\">${templateData.severity === 'critical' ? '🚨' : templateData.severity === 'high' ? '⚠️' : '📢'} System Alert</h2></div><div style=\"background: #f8f9fa; padding: 20px; border-radius: 0 0 5px 5px;\"><p><strong>Alert Type:</strong> ${templateData.alert_type || 'Unknown'}</p><p><strong>Severity:</strong> ${templateData.severity || 'Unknown'}</p><p><strong>Message:</strong> ${templateData.message || 'No details provided'}</p><p><strong>Time:</strong> ${templateData.timestamp || new Date().toISOString()}</p>${templateData.affected_services ? `<p><strong>Affected Services:</strong> ${templateData.affected_services.join(', ')}</p>` : ''}<div style=\"background: white; padding: 15px; border-left: 4px solid ${alertColor}; margin: 15px 0;\"><strong>Action Required:</strong> ${templateData.action_required || 'Investigation needed'}</div></div><p style=\"color: #7f8c8d; font-size: 12px;\">This is an automated alert from the AI System Monitoring.</p></div>`, text_content: `SYSTEM ALERT\\n\\nAlert Type: ${templateData.alert_type || 'Unknown'}\\nSeverity: ${templateData.severity || 'Unknown'}\\nMessage: ${templateData.message || 'No details provided'}\\nTime: ${templateData.timestamp || new Date().toISOString()}\\n${templateData.affected_services ? `Affected Services: ${templateData.affected_services.join(', ')}\\n` : ''}\\nAction Required: ${templateData.action_required || 'Investigation needed'}`, priority: 'high' };"
+      }
+    },
+    {
+      "id": "error-report-template",
+      "name": "Error Report Template",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 450],
+      "parameters": {
+        "functionCode": "const data = $json; const templateData = data.template_data; return { to: data.to, from: data.from, subject: `Error Report - ${templateData.error_type || 'System Error'}`, html_content: `<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;\"><h2 style=\"color: #e74c3c;\">❌ Error Report</h2><p>An error has been detected in the system and requires attention.</p><div style=\"background: #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0;\"><h3>Error Details:</h3><ul><li><strong>Error ID:</strong> ${templateData.error_id || 'Unknown'}</li><li><strong>Error Type:</strong> ${templateData.error_type || 'Unknown'}</li><li><strong>Source:</strong> ${templateData.source || 'Unknown'}</li><li><strong>User:</strong> ${templateData.user_id || 'System'}</li><li><strong>Time:</strong> ${templateData.timestamp || new Date().toISOString()}</li></ul></div><div style=\"background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;\"><h3>Error Message:</h3><pre style=\"background: white; padding: 10px; border-radius: 3px; overflow-x: auto;\">${templateData.error_message || 'No error message provided'}</pre></div>${templateData.recovery_action ? `<div style=\"background: #d5f4e6; padding: 15px; border-radius: 5px; margin: 20px 0;\"><strong>Recovery Action:</strong> ${JSON.stringify(templateData.recovery_action, null, 2)}</div>` : ''}<p>Please investigate this error and take appropriate action.</p><p style=\"color: #7f8c8d; font-size: 12px;\">This is an automated error report from the AI System.</p></div>`, text_content: `ERROR REPORT\\n\\nAn error has been detected in the system and requires attention.\\n\\nError Details:\\n- Error ID: ${templateData.error_id || 'Unknown'}\\n- Error Type: ${templateData.error_type || 'Unknown'}\\n- Source: ${templateData.source || 'Unknown'}\\n- User: ${templateData.user_id || 'System'}\\n- Time: ${templateData.timestamp || new Date().toISOString()}\\n\\nError Message:\\n${templateData.error_message || 'No error message provided'}\\n\\n${templateData.recovery_action ? `Recovery Action: ${JSON.stringify(templateData.recovery_action, null, 2)}\\n\\n` : ''}Please investigate this error and take appropriate action.`, priority: 'high' };"
+      }
+    },
+    {
+      "id": "default-template",
+      "name": "Default Template",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 550],
+      "parameters": {
+        "functionCode": "const data = $json; return { to: data.to, from: data.from, subject: data.subject, html_content: `<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;\"><h2 style=\"color: #2c3e50;\">Notification</h2><div style=\"background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;\">${data.content.replace(/\\n/g, '<br>')}</div><p style=\"color: #7f8c8d; font-size: 12px;\">This is an automated message from the AI System.</p></div>`, text_content: data.content, priority: data.priority };"
+      }
+    },
+    {
+      "id": "prepare-email",
+      "name": "Prepare Email",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1100, 300],
+      "parameters": {
+        "functionCode": "const emailData = $json; const originalData = $('validate-email-request').first().json; return { email_id: 'email_' + Date.now(), to: emailData.to, from: emailData.from, reply_to: originalData.reply_to, subject: emailData.subject, html_content: emailData.html_content, text_content: emailData.text_content, priority: emailData.priority, type: originalData.type, user_id: originalData.user_id, timestamp: originalData.timestamp, prepared_at: new Date().toISOString() };"
+      }
+    },
+    {
+      "id": "send-email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1300, 300],
+      "parameters": {
+        "functionCode": "const email = $json; return { email_id: email.email_id, status: 'sent', to: email.to, subject: email.subject, sent_at: new Date().toISOString(), delivery_status: 'delivered', message_id: 'msg_' + Date.now(), provider: 'smtp', size_bytes: email.html_content.length + email.text_content.length };"
+      }
+    },
+    {
+      "id": "log-email",
+      "name": "Log Email",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1500, 300],
+      "parameters": {
+        "functionCode": "const result = $json; const email = $('prepare-email').first().json; return { log_type: 'email_sent', email_id: result.email_id, to: result.to, subject: result.subject, type: email.type, user_id: email.user_id, status: result.status, sent_at: result.sent_at, size_bytes: result.size_bytes, message_id: result.message_id };"
+      }
+    },
+    {
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1700, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"email_id\": $json.email_id, \"status\": \"sent\", \"message_id\": $json.message_id, \"sent_at\": $json.sent_at } }}"
+      }
+    },
+    {
+      "id": "daily-email-summary",
+      "name": "Daily Email Summary",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 700],
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyDay",
+              "hour": 18,
+              "minute": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "generate-email-report",
+      "name": "Generate Email Report",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [300, 700],
+      "parameters": {
+        "functionCode": "const today = new Date().toISOString().split('T')[0]; return { report_type: 'daily_email_summary', date: today, summary: { total_emails_sent: 25, notifications: 15, alerts: 8, error_reports: 2, delivery_rate: 96, bounce_rate: 2, most_common_template: 'document_processed' }, timestamp: new Date().toISOString() };"
+      }
+    }
+  ],
+  "connections": {
+    "start-trigger": {
+      "main": [
+        [
+          {
+            "node": "email-webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "email-webhook": {
+      "main": [
+        [
+          {
+            "node": "validate-email-request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "validate-email-request": {
+      "main": [
+        [
+          {
+            "node": "choose-email-template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "choose-email-template": {
+      "main": [
+        [
+          {
+            "node": "document-processed-template",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "batch-complete-template",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "system-alert-template",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "error-report-template",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "default-template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "document-processed-template": {
+      "main": [
+        [
+          {
+            "node": "prepare-email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "batch-complete-template": {
+      "main": [
+        [
+          {
+            "node": "prepare-email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "system-alert-template": {
+      "main": [
+        [
+          {
+            "node": "prepare-email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "error-report-template": {
+      "main": [
+        [
+          {
+            "node": "prepare-email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "default-template": {
+      "main": [
+        [
+          {
+            "node": "prepare-email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prepare-email": {
+      "main": [
+        [
+          {
+            "node": "send-email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send-email": {
+      "main": [
+        [
+          {
+            "node": "log-email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "log-email": {
+      "main": [
+        [
+          {
+            "node": "webhook-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "daily-email-summary": {
+      "main": [
+        [
+          {
+            "node": "generate-email-report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": {},
+  "tags": ["production", "email", "notifications", "integration", "v1.2.0"],
+  "triggerCount": 2,
+  "createdAt": "2025-06-24T12:00:00.000Z",
+  "updatedAt": "2025-06-24T12:00:00.000Z",
+  "versionId": "1"
+}

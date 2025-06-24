@@ -1,0 +1,118 @@
+# Traefik Dynamic Configuration - Development
+# Конфигурация для localhost development (без SSL)
+
+# ===============================================
+# HTTP MIDDLEWARES (Development)
+# ===============================================
+
+http:
+  middlewares:
+    # Базовые security headers для development
+    dev-headers:
+      headers:
+        contentTypeNosniff: true
+        browserXssFilter: true
+        frameDeny: false  # Разрешаем frames для development
+        referrerPolicy: "strict-origin-when-cross-origin"
+
+    # CORS для localhost development
+    dev-cors:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        accessControlAllowHeaders:
+          - "Content-Type"
+          - "Authorization"
+          - "X-Requested-With"
+        accessControlAllowOriginList:
+          - "http://localhost:*"
+          - "http://127.0.0.1:*"
+        accessControlAllowCredentials: true
+
+    # Basic Auth для Traefik dashboard
+    dev-auth:
+      basicAuth:
+        users:
+          - "admin:$apr1$1LF8GnRQ$qBinSa/CmAS/lLy4vz6DL1"  # admin:adminpass
+
+    # Compression для улучшения производительности
+    dev-compression:
+      compress: {}
+
+# ===============================================
+# ROUTERS CONFIGURATION (Development)
+# ===============================================
+
+  routers:
+    # Traefik Dashboard
+    traefik-dashboard-dev:
+      rule: "Host(`localhost`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+      entryPoints:
+        - web
+      middlewares:
+        - dev-auth
+        - dev-headers
+      service: api@internal
+
+    # N8N Development
+    n8n-dev:
+      rule: "Host(`localhost`) && PathPrefix(`/n8n`)"
+      entryPoints:
+        - web
+      middlewares:
+        - dev-headers
+        - dev-compression
+      service: n8n-dev
+      
+    # Web Interface Development
+    web-interface-dev:
+      rule: "Host(`web-interface.localhost`)"
+      entryPoints:
+        - web
+      middlewares:
+        - dev-headers
+        - dev-cors
+        - dev-compression
+      service: web-interface-dev
+
+    # Document Processor API Development
+    document-processor-dev:
+      rule: "Host(`document-processor.localhost`)"
+      entryPoints:
+        - web
+      middlewares:
+        - dev-headers
+        - dev-cors
+        - dev-compression
+      service: document-processor-dev
+
+# ===============================================
+# SERVICES CONFIGURATION (Development)
+# ===============================================
+
+  services:
+    n8n-dev:
+      loadBalancer:
+        servers:
+          - url: "http://n8n:5678"
+
+    web-interface-dev:
+      loadBalancer:
+        servers:
+          - url: "http://web-interface:8000"
+
+    document-processor-dev:
+      loadBalancer:
+        servers:
+          - url: "http://document-processor:8001"
+
+# ===============================================
+# NOTES
+# ===============================================
+# Эта конфигурация используется для local development
+# Без SSL, с упрощенными security headers
+# Для production используйте ssl-security.yml

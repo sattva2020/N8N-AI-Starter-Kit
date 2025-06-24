@@ -1,0 +1,39 @@
+# Document Processor Service Requirements (Full ML Stack)
+# =========================================================
+
+# Core FastAPI dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+
+# HTTP client
+aiohttp==3.9.1
+
+# Form data handling
+python-multipart==0.0.6
+
+# Utilities
+python-dotenv==1.0.0
+
+# Database
+asyncpg==0.29.0
+psycopg2-binary==2.9.7
+
+# Text Processing
+beautifulsoup4==4.12.2
+pypdf2==3.0.1
+python-docx==0.8.11
+
+# ML and Vector Processing (Compatible versions - АКТИВИРОВАНЫ)
+sentence-transformers==2.2.2
+transformers==4.30.0
+huggingface-hub==0.16.4
+numpy==1.24.3
+pandas==2.0.3
+
+# Vector Databases
+qdrant-client==1.9.1
+
+# Additional ML utilities
+scikit-learn==1.3.0
+torch==2.0.1 --index-url https://download.pytorch.org/whl/cpu

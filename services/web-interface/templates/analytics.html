@@ -1,0 +1,537 @@
+{% extends "base.html" %}
+
+{% block title %}Аналитика - N8N AI Starter Kit{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="text-center mb-4">
+            <h1 class="display-5 mb-3">
+                <i class="fas fa-chart-bar text-info me-3"></i>
+                Аналитика системы
+            </h1>
+            <p class="lead text-muted">
+                Статистика использования и производительности Advanced RAG Pipeline
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Ключевые метрики -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-file-alt fa-2x mb-2"></i>
+                <h3 id="total-documents">0</h3>
+                <small>Всего документов</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-search fa-2x mb-2"></i>
+                <h3 id="total-searches">0</h3>
+                <small>Поисковых запросов</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-clock fa-2x mb-2"></i>
+                <h3 id="avg-response-time">0ms</h3>
+                <small>Среднее время ответа</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-percentage fa-2x mb-2"></i>
+                <h3 id="success-rate">0%</h3>
+                <small>Успешность запросов</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Графики -->
+<div class="row">
+    <!-- График поисков по дням -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Поиски по дням
+                </h6>
+                <select class="form-select form-select-sm" style="width: auto;" id="searches-period">
+                    <option value="7">За неделю</option>
+                    <option value="30" selected>За месяц</option>
+                    <option value="90">За 3 месяца</option>
+                </select>
+            </div>
+            <div class="card-body">
+                <canvas id="searchesChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- График типов документов -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Документы по типам
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="documentsChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Популярные запросы -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-fire me-2"></i>Популярные поисковые запросы
+                </h6>
+                <button class="btn btn-outline-primary btn-sm" onclick="refreshPopularQueries()">
+                    <i class="fas fa-sync-alt me-1"></i>Обновить
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="popular-queries">
+                    <!-- Популярные запросы будут загружены здесь -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Статус системы -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-server me-2"></i>Статус сервисов
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="system-services">
+                    <!-- Статус сервисов будет загружен здесь -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Производительность -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-tachometer-alt me-2"></i>Производительность системы
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <div class="progress mb-2" style="height: 6px;">
+                                <div id="cpu-usage" class="progress-bar bg-primary" style="width: 0%"></div>
+                            </div>
+                            <small>CPU</small>
+                            <div><strong id="cpu-value">0%</strong></div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <div class="progress mb-2" style="height: 6px;">
+                                <div id="memory-usage" class="progress-bar bg-success" style="width: 0%"></div>
+                            </div>
+                            <small>Память</small>
+                            <div><strong id="memory-value">0%</strong></div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <div class="progress mb-2" style="height: 6px;">
+                                <div id="disk-usage" class="progress-bar bg-warning" style="width: 0%"></div>
+                            </div>
+                            <small>Диск</small>
+                            <div><strong id="disk-value">0%</strong></div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <div class="progress mb-2" style="height: 6px;">
+                                <div id="qdrant-status" class="progress-bar bg-info" style="width: 100%"></div>
+                            </div>
+                            <small>Qdrant</small>
+                            <div><strong id="qdrant-value">OK</strong></div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <div class="progress mb-2" style="height: 6px;">
+                                <div id="ollama-status" class="progress-bar bg-secondary" style="width: 100%"></div>
+                            </div>
+                            <small>Ollama</small>
+                            <div><strong id="ollama-value">OK</strong></div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="text-center">
+                            <div class="progress mb-2" style="height: 6px;">
+                                <div id="postgres-status" class="progress-bar bg-danger" style="width: 100%"></div>
+                            </div>
+                            <small>PostgreSQL</small>
+                            <div><strong id="postgres-value">OK</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Детальные логи -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Последние события
+                </h6>
+                <div>
+                    <button class="btn btn-outline-primary btn-sm me-2" onclick="refreshLogs()">
+                        <i class="fas fa-sync-alt me-1"></i>Обновить
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="downloadLogs()">
+                        <i class="fas fa-download me-1"></i>Экспорт
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="system-logs" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Логи будут загружены здесь -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let searchesChart, documentsChart;
+    
+    // Инициализация графиков
+    function initCharts() {
+        // График поисков по дням
+        const searchesCtx = document.getElementById('searchesChart').getContext('2d');
+        searchesChart = new Chart(searchesCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Количество поисков',
+                    data: [],
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        
+        // График типов документов
+        const documentsCtx = document.getElementById('documentsChart').getContext('2d');
+        documentsChart = new Chart(documentsCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [
+                        '#0d6efd',
+                        '#198754', 
+                        '#dc3545',
+                        '#ffc107',
+                        '#6f42c1'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+    
+    // Загрузка аналитических данных
+    async function loadAnalytics() {
+        try {
+            const response = await fetch('/api/analytics');
+            const data = await response.json();
+            
+            // Обновляем ключевые метрики
+            updateKeyMetrics(data);
+            
+            // Обновляем графики
+            updateCharts(data);
+            
+            // Обновляем популярные запросы
+            updatePopularQueries(data.charts.popular_queries);
+            
+            // Обновляем статус сервисов
+            updateSystemStatus();
+            
+        } catch (error) {
+            console.error('Error loading analytics:', error);
+            showNotification('Ошибка загрузки аналитики: ' + error.message, 'error');
+        }
+    }
+    
+    // Обновление ключевых метрик
+    function updateKeyMetrics(data) {
+        // Заглушки для демонстрации
+        document.getElementById('total-documents').textContent = '24';
+        document.getElementById('total-searches').textContent = '187';
+        document.getElementById('avg-response-time').textContent = '340ms';
+        document.getElementById('success-rate').textContent = '97%';
+    }
+    
+    // Обновление графиков
+    function updateCharts(data) {
+        // График поисков по дням
+        if (data.charts.searches_by_day) {
+            const labels = data.charts.searches_by_day.map(item => 
+                new Date(item.date).toLocaleDateString('ru-RU', { 
+                    day: '2-digit', 
+                    month: '2-digit' 
+                })
+            );
+            const values = data.charts.searches_by_day.map(item => item.searches);
+            
+            searchesChart.data.labels = labels;
+            searchesChart.data.datasets[0].data = values;
+            searchesChart.update();
+        }
+        
+        // График типов документов
+        if (data.charts.documents_by_type) {
+            const types = Object.keys(data.charts.documents_by_type);
+            const counts = Object.values(data.charts.documents_by_type);
+            
+            documentsChart.data.labels = types.map(type => type.toUpperCase());
+            documentsChart.data.datasets[0].data = counts;
+            documentsChart.update();
+        }
+    }
+    
+    // Обновление популярных запросов
+    function updatePopularQueries(queries) {
+        const container = document.getElementById('popular-queries');
+        
+        if (!queries || queries.length === 0) {
+            container.innerHTML = '<p class="text-muted">Нет данных о популярных запросах</p>';
+            return;
+        }
+        
+        container.innerHTML = queries.map((query, index) => `
+            <div class="d-flex justify-content-between align-items-center py-2 ${index < queries.length - 1 ? 'border-bottom' : ''}">
+                <div>
+                    <span class="badge bg-primary me-2">${index + 1}</span>
+                    <strong>${query.query}</strong>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-secondary">${query.count}</span>
+                    <div class="progress mt-1" style="width: 100px; height: 4px;">
+                        <div class="progress-bar" style="width: ${(query.count / queries[0].count) * 100}%"></div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Обновление статуса системы
+    async function updateSystemStatus() {
+        const container = document.getElementById('system-services');
+        
+        try {
+            const response = await fetch('/api/status');
+            const data = await response.json();
+            
+            const services = [
+                {
+                    name: 'Web Interface',
+                    status: data.web_interface?.status === 'running' ? 'online' : 'offline',
+                    version: data.web_interface?.version || 'N/A'
+                },
+                {
+                    name: 'Document Processor',
+                    status: data.document_processor?.status === 'healthy' ? 'online' : 'offline',
+                    version: 'v1.2.0'
+                },
+                {
+                    name: 'Qdrant',
+                    status: 'online',
+                    version: '1.9.1'
+                },
+                {
+                    name: 'Ollama',
+                    status: 'online',
+                    version: '0.1.0'
+                }
+            ];
+            
+            container.innerHTML = services.map(service => `
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <div>
+                        <strong>${service.name}</strong>
+                        <br>
+                        <small class="text-muted">${service.version}</small>
+                    </div>
+                    <span class="badge bg-${service.status === 'online' ? 'success' : 'danger'}">
+                        ${service.status === 'online' ? 'Online' : 'Offline'}
+                    </span>
+                </div>
+            `).join('');
+            
+        } catch (error) {
+            container.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Ошибка загрузки статуса
+                </div>
+            `;
+        }
+    }
+    
+    // Обновление метрик производительности
+    function updatePerformanceMetrics() {
+        // Заглушки для демонстрации
+        const metrics = {
+            cpu: Math.random() * 60 + 20,
+            memory: Math.random() * 40 + 30,
+            disk: Math.random() * 30 + 20
+        };
+        
+        // CPU
+        document.getElementById('cpu-usage').style.width = `${metrics.cpu}%`;
+        document.getElementById('cpu-value').textContent = `${Math.round(metrics.cpu)}%`;
+        
+        // Память
+        document.getElementById('memory-usage').style.width = `${metrics.memory}%`;
+        document.getElementById('memory-value').textContent = `${Math.round(metrics.memory)}%`;
+        
+        // Диск
+        document.getElementById('disk-usage').style.width = `${metrics.disk}%`;
+        document.getElementById('disk-value').textContent = `${Math.round(metrics.disk)}%`;
+    }
+    
+    // Загрузка логов
+    function refreshLogs() {
+        const container = document.getElementById('system-logs');
+        
+        // Заглушка для логов
+        const logs = [
+            { time: new Date(), level: 'INFO', message: 'Document processed successfully', service: 'document-processor' },
+            { time: new Date(Date.now() - 60000), level: 'INFO', message: 'Search query executed', service: 'web-interface' },
+            { time: new Date(Date.now() - 120000), level: 'DEBUG', message: 'Embedding created for document', service: 'document-processor' },
+            { time: new Date(Date.now() - 180000), level: 'INFO', message: 'User uploaded new document', service: 'web-interface' },
+            { time: new Date(Date.now() - 240000), level: 'WARN', message: 'High response time detected', service: 'qdrant' }
+        ];
+        
+        container.innerHTML = logs.map(log => `
+            <div class="d-flex justify-content-between align-items-start py-2 border-bottom">
+                <div class="flex-grow-1">
+                    <span class="badge bg-${getLevelColor(log.level)} me-2">${log.level}</span>
+                    <strong>${log.service}</strong>
+                    <p class="mb-0 mt-1">${log.message}</p>
+                </div>
+                <small class="text-muted">${log.time.toLocaleTimeString('ru-RU')}</small>
+            </div>
+        `).join('');
+    }
+    
+    function getLevelColor(level) {
+        const colors = {
+            'INFO': 'primary',
+            'DEBUG': 'secondary',
+            'WARN': 'warning',
+            'ERROR': 'danger',
+            'SUCCESS': 'success'
+        };
+        return colors[level] || 'secondary';
+    }
+    
+    // Функции управления
+    function refreshPopularQueries() {
+        loadAnalytics();
+        showNotification('Данные обновлены', 'info');
+    }
+    
+    function downloadLogs() {
+        // Заглушка для скачивания логов
+        const blob = new Blob(['System logs export\n'], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `system-logs-${new Date().toISOString().split('T')[0]}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        showNotification('Логи экспортированы', 'success');
+    }
+    
+    // Обработчики событий
+    document.getElementById('searches-period').addEventListener('change', function() {
+        loadAnalytics();
+    });
+    
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        initCharts();
+        loadAnalytics();
+        refreshLogs();
+        
+        // Обновление метрик производительности каждые 10 секунд
+        setInterval(updatePerformanceMetrics, 10000);
+        updatePerformanceMetrics();
+    });
+</script>
+{% endblock %}

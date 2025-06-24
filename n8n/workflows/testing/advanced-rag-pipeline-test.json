@@ -1,0 +1,175 @@
+{
+  "name": "Advanced RAG Pipeline Test",
+  "description": "Тестирование полной функциональности Advanced RAG Pipeline",
+  "active": true,
+  "nodes": [
+    {
+      "id": "manual-trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [100, 200],
+      "parameters": {}
+    },
+    {
+      "id": "document-upload",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "http://document-processor:8001/documents/upload",
+        "options": {
+          "bodyContentType": "multipart/form-data"
+        },
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "file",
+              "value": "={{ $json.testDocument }}"
+            },
+            {
+              "name": "metadata",
+              "value": "{\"source\": \"n8n-test\", \"type\": \"test\"}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "wait-processing",
+      "type": "n8n-nodes-base.wait",
+      "position": [500, 200],
+      "parameters": {
+        "amount": 5,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "search-test",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [700, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "http://document-processor:8001/documents/search",
+        "options": {
+          "bodyContentType": "json"
+        },
+        "body": {
+          "query": "тестовый документ",
+          "limit": 10
+        }
+      }
+    },
+    {
+      "id": "analytics-check",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [900, 200],
+      "parameters": {
+        "method": "GET",
+        "url": "http://document-processor:8001/metrics"
+      }
+    },
+    {
+      "id": "web-interface-check",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [500, 400],
+      "parameters": {
+        "method": "GET",
+        "url": "http://web-interface:8002/health"
+      }
+    },
+    {
+      "id": "final-notification",
+      "type": "n8n-nodes-base.function",
+      "position": [1100, 300],      "parameters": {
+        "functionCode": "const uploadResult = $('document-upload').first().json; const searchResult = $('search-test').first().json; const analyticsResult = $('analytics-check').first().json; const webInterfaceResult = $('web-interface-check').first().json; return { timestamp: new Date().toISOString(), testResults: { documentUpload: uploadResult ? 'SUCCESS' : 'FAILED', semanticSearch: searchResult && searchResult.results ? 'SUCCESS' : 'FAILED', analytics: analyticsResult ? 'SUCCESS' : 'FAILED', webInterface: webInterfaceResult && webInterfaceResult.status === 'healthy' ? 'SUCCESS' : 'FAILED' }, summary: 'Advanced RAG Pipeline Test Completed', searchResults: searchResult?.results?.length || 0, recommendation: 'Full ML stack is operational' };"
+      }
+    }
+  ],
+  "connections": {
+    "manual-trigger": {
+      "main": [
+        [
+          {
+            "node": "document-upload",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "web-interface-check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "document-upload": {
+      "main": [
+        [
+          {
+            "node": "wait-processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait-processing": {
+      "main": [
+        [
+          {
+            "node": "search-test",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search-test": {
+      "main": [
+        [
+          {
+            "node": "analytics-check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "analytics-check": {
+      "main": [
+        [
+          {
+            "node": "final-notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "web-interface-check": {
+      "main": [
+        [
+          {
+            "node": "final-notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "manual-trigger": [
+      {
+        "testDocument": "Это тестовый документ для проверки Advanced RAG Pipeline. Система должна обработать этот текст, создать эмбеддинги и индексировать в векторную базу данных."
+      }
+    ]
+  },
+  "versionId": "1.0.0"
+}

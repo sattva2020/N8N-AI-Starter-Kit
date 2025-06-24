@@ -1,0 +1,339 @@
+/* Custom styles for N8N AI Starter Kit Web Interface */
+
+:root {
+    --primary-color: #2c5aa0;
+    --secondary-color: #34a853;
+    --accent-color: #fbbc04;
+    --danger-color: #ea4335;
+    --dark-color: #1a1a1a;
+    --light-color: #f8f9fa;
+    --border-radius: 12px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+/* Анимации */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+/* Компоненты */
+.card {
+    animation: fadeInUp 0.5s ease;
+    transition: var(--transition);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn {
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    box-shadow: 0 4px 15px rgba(44, 90, 160, 0.3);
+}
+
+/* Формы */
+.form-control, .form-select {
+    border-radius: var(--border-radius);
+    border: 2px solid #e9ecef;
+    transition: var(--transition);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(44, 90, 160, 0.25);
+}
+
+/* Загрузка файлов */
+.upload-area {
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.upload-area:hover {
+    border-color: var(--primary-color) !important;
+    background-color: #f8f9fa !important;
+}
+
+.upload-area.dragover {
+    border-color: var(--secondary-color) !important;
+    background-color: #e8f5e8 !important;
+}
+
+/* Результаты поиска */
+.result-item {
+    transition: var(--transition);
+    animation: fadeInUp 0.3s ease;
+}
+
+.result-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Спиннеры */
+.spinner-custom {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Прогресс бары */
+.progress {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 0.3s ease;
+}
+
+/* Бейджи */
+.badge {
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* Уведомления */
+.toast {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: var(--box-shadow);
+}
+
+/* Модальные окна */
+.modal-content {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.modal-footer {
+    border-top: 2px solid #f8f9fa;
+}
+
+/* Таблицы */
+.table {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(44, 90, 160, 0.05);
+}
+
+/* Навигация */
+.navbar {
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+}
+
+.nav-link {
+    transition: var(--transition);
+}
+
+.nav-link:hover {
+    color: var(--primary-color) !important;
+    transform: translateY(-1px);
+}
+
+/* Графики */
+canvas {
+    border-radius: var(--border-radius);
+}
+
+/* Анимации при загрузке */
+.loading-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* Статус индикаторы */
+.status-indicator {
+    position: relative;
+}
+
+.status-indicator.status-healthy::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    background-color: inherit;
+    opacity: 0.6;
+}
+
+/* Кастомные скроллбары */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .main-container {
+        margin: 1rem;
+        padding: 1rem;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .display-5 {
+        font-size: 1.5rem;
+    }
+    
+    .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+}
+
+/* Темная тема (опционально) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #1a1a1a;
+        --text-color: #ffffff;
+        --card-bg: #2d2d2d;
+    }
+    
+    body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+    }
+    
+    .card {
+        background-color: var(--card-bg);
+        border-color: #444;
+    }
+    
+    .form-control, .form-select {
+        background-color: var(--card-bg);
+        border-color: #444;
+        color: var(--text-color);
+    }
+}
+
+/* Кастомные утилиты */
+.glass-effect {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.shadow-custom {
+    box-shadow: var(--box-shadow);
+}
+
+.border-radius-custom {
+    border-radius: var(--border-radius);
+}
+
+/* Анимации для списков */
+.list-enter {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.list-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.3s ease;
+}
+
+.list-exit {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.list-exit-active {
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+}

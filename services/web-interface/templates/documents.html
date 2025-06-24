@@ -1,0 +1,670 @@
+{% extends "base.html" %}
+
+{% block title %}Управление документами - N8N AI Starter Kit{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="text-center mb-4">
+            <h1 class="display-5 mb-3">
+                <i class="fas fa-file-alt text-warning me-3"></i>
+                Управление документами
+            </h1>
+            <p class="lead text-muted">
+                Просматривайте, управляйте и анализируйте загруженные документы
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Панель управления -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="document-search" 
+                                   placeholder="Поиск по названию или содержимому...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="document-filter">
+                            <option value="all">Все документы</option>
+                            <option value="text">Текстовые файлы</option>
+                            <option value="pdf">PDF документы</option>
+                            <option value="doc">Word документы</option>
+                            <option value="recent">Недавние (24ч)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" id="document-sort">
+                            <option value="date-desc">Сначала новые</option>
+                            <option value="date-asc">Сначала старые</option>
+                            <option value="name-asc">По названию А-Я</option>
+                            <option value="name-desc">По названию Я-А</option>
+                            <option value="size-desc">По размеру ↓</option>
+                            <option value="size-asc">По размеру ↑</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary" onclick="refreshDocuments()">
+                                <i class="fas fa-sync-alt me-1"></i>Обновить
+                            </button>
+                            <button class="btn btn-success" onclick="selectAllDocuments()">
+                                <i class="fas fa-check-square me-1"></i>Все
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteSelectedDocuments()" disabled id="delete-selected">
+                                <i class="fas fa-trash me-1"></i>Удалить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Список документов -->
+<div class="row">
+    <div class="col-12">
+        <div id="documents-container">
+            <!-- Документы будут загружены через JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!-- Пагинация -->
+<div class="row mt-4">
+    <div class="col-12">
+        <nav aria-label="Навигация по документам">
+            <ul class="pagination justify-content-center" id="pagination">
+                <!-- Пагинация будет сгенерирована через JavaScript -->
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Модальное окно просмотра документа -->
+<div class="modal fade" id="documentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="documentModalTitle">
+                    <i class="fas fa-file-alt me-2"></i>Просмотр документа
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="documentModalContent">
+                    <!-- Содержимое документа -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" onclick="downloadDocument()">
+                    <i class="fas fa-download me-1"></i>Скачать
+                </button>
+                <button type="button" class="btn btn-outline-danger" onclick="deleteDocument()">
+                    <i class="fas fa-trash me-1"></i>Удалить
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Закрыть
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно подтверждения удаления -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                    Подтверждение удаления
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить выбранные документы?</p>
+                <p class="text-muted">Это действие нельзя отменить.</p>
+                <div id="deleteConfirmList"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Отмена
+                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                    <i class="fas fa-trash me-1"></i>Удалить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let allDocuments = [];
+    let filteredDocuments = [];
+    let selectedDocuments = new Set();
+    let currentDocument = null;
+    let currentPage = 1;
+    const documentsPerPage = 10;
+    
+    // Загрузка документов
+    async function loadDocuments() {
+        try {
+            const response = await fetch('/api/documents');
+            const data = await response.json();
+            
+            allDocuments = data.documents || [];
+            filteredDocuments = [...allDocuments];
+            selectedDocuments.clear();
+            
+            applyFiltersAndSort();
+            displayDocuments();
+            updatePagination();
+            updateSelectionButtons();
+            
+        } catch (error) {
+            console.error('Error loading documents:', error);
+            showNotification('Ошибка загрузки документов: ' + error.message, 'error');
+            displayEmptyState();
+        }
+    }
+    
+    // Отображение документов
+    function displayDocuments() {
+        const container = document.getElementById('documents-container');
+        
+        if (filteredDocuments.length === 0) {
+            displayEmptyState();
+            return;
+        }
+        
+        const startIndex = (currentPage - 1) * documentsPerPage;
+        const endIndex = startIndex + documentsPerPage;
+        const pageDocuments = filteredDocuments.slice(startIndex, endIndex);
+        
+        container.innerHTML = `
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        Документы (${filteredDocuments.length})
+                    </h6>
+                    <small class="text-muted">
+                        Показано ${startIndex + 1}-${Math.min(endIndex, filteredDocuments.length)} из ${filteredDocuments.length}
+                    </small>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="40">
+                                        <input type="checkbox" class="form-check-input" id="select-all" onchange="toggleSelectAll()">
+                                    </th>
+                                    <th>Название</th>
+                                    <th width="100">Тип</th>
+                                    <th width="100">Размер</th>
+                                    <th width="150">Дата создания</th>
+                                    <th width="120">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${pageDocuments.map(doc => `
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" 
+                                                   class="form-check-input document-checkbox" 
+                                                   value="${doc.id}"
+                                                   onchange="toggleDocumentSelection('${doc.id}')">
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-file-${getFileIcon(doc.metadata?.type || 'text')} me-2"></i>
+                                                <div>
+                                                    <strong>${doc.title}</strong>
+                                                    <br>
+                                                    <small class="text-muted">ID: ${doc.id}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-${getTypeBadgeColor(doc.metadata?.type || 'text')}">
+                                                ${(doc.metadata?.type || 'text').toUpperCase()}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small>${formatFileSize(doc.metadata?.size || 0)}</small>
+                                        </td>
+                                        <td>
+                                            <small>${formatDate(doc.created_at)}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button class="btn btn-outline-primary btn-sm" 
+                                                        onclick="viewDocument('${doc.id}')"
+                                                        title="Просмотр">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm" 
+                                                        onclick="searchInDocument('${doc.id}')"
+                                                        title="Поиск в документе">
+                                                    <i class="fas fa-search"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm" 
+                                                        onclick="deleteDocumentSingle('${doc.id}')"
+                                                        title="Удалить">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Пустое состояние
+    function displayEmptyState() {
+        const container = document.getElementById('documents-container');
+        container.innerHTML = `
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">Документы не найдены</h4>
+                    <p class="text-muted">Загрузите документы или измените фильтры поиска</p>
+                    <a href="/upload" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>Загрузить документы
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Применение фильтров и сортировки
+    function applyFiltersAndSort() {
+        const searchTerm = document.getElementById('document-search').value.toLowerCase();
+        const filterType = document.getElementById('document-filter').value;
+        const sortType = document.getElementById('document-sort').value;
+        
+        // Фильтрация
+        filteredDocuments = allDocuments.filter(doc => {
+            // Поиск по тексту
+            const matchesSearch = !searchTerm || 
+                                doc.title.toLowerCase().includes(searchTerm) ||
+                                doc.content.toLowerCase().includes(searchTerm);
+            
+            // Фильтр по типу
+            let matchesType = true;
+            if (filterType !== 'all') {
+                if (filterType === 'recent') {
+                    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                    matchesType = new Date(doc.created_at) > dayAgo;
+                } else {
+                    matchesType = (doc.metadata?.type || 'text') === filterType;
+                }
+            }
+            
+            return matchesSearch && matchesType;
+        });
+        
+        // Сортировка
+        filteredDocuments.sort((a, b) => {
+            switch (sortType) {
+                case 'date-desc':
+                    return new Date(b.created_at) - new Date(a.created_at);
+                case 'date-asc':
+                    return new Date(a.created_at) - new Date(b.created_at);
+                case 'name-asc':
+                    return a.title.localeCompare(b.title);
+                case 'name-desc':
+                    return b.title.localeCompare(a.title);
+                case 'size-desc':
+                    return (b.metadata?.size || 0) - (a.metadata?.size || 0);
+                case 'size-asc':
+                    return (a.metadata?.size || 0) - (b.metadata?.size || 0);
+                default:
+                    return 0;
+            }
+        });
+        
+        currentPage = 1; // Сброс на первую страницу
+    }
+    
+    // Пагинация
+    function updatePagination() {
+        const totalPages = Math.ceil(filteredDocuments.length / documentsPerPage);
+        const pagination = document.getElementById('pagination');
+        
+        if (totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+        }
+        
+        let paginationHTML = '';
+        
+        // Предыдущая страница
+        paginationHTML += `
+            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+        `;
+        
+        // Номера страниц
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                paginationHTML += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                    </li>
+                `;
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                paginationHTML += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+            }
+        }
+        
+        // Следующая страница
+        paginationHTML += `
+            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        `;
+        
+        pagination.innerHTML = paginationHTML;
+    }
+    
+    function changePage(page) {
+        const totalPages = Math.ceil(filteredDocuments.length / documentsPerPage);
+        if (page >= 1 && page <= totalPages) {
+            currentPage = page;
+            displayDocuments();
+            updatePagination();
+        }
+    }
+    
+    // Работа с выделением
+    function toggleDocumentSelection(documentId) {
+        if (selectedDocuments.has(documentId)) {
+            selectedDocuments.delete(documentId);
+        } else {
+            selectedDocuments.add(documentId);
+        }
+        updateSelectionButtons();
+        updateSelectAllCheckbox();
+    }
+    
+    function toggleSelectAll() {
+        const selectAll = document.getElementById('select-all');
+        const checkboxes = document.querySelectorAll('.document-checkbox');
+        
+        if (selectAll.checked) {
+            checkboxes.forEach(cb => {
+                cb.checked = true;
+                selectedDocuments.add(cb.value);
+            });
+        } else {
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+                selectedDocuments.delete(cb.value);
+            });
+        }
+        
+        updateSelectionButtons();
+    }
+    
+    function selectAllDocuments() {
+        filteredDocuments.forEach(doc => selectedDocuments.add(doc.id));
+        updateSelectionButtons();
+        updateSelectAllCheckbox();
+        
+        // Обновляем чекбоксы на текущей странице
+        document.querySelectorAll('.document-checkbox').forEach(cb => {
+            cb.checked = selectedDocuments.has(cb.value);
+        });
+    }
+    
+    function updateSelectionButtons() {
+        const deleteBtn = document.getElementById('delete-selected');
+        deleteBtn.disabled = selectedDocuments.size === 0;
+        
+        if (selectedDocuments.size > 0) {
+            deleteBtn.innerHTML = `<i class="fas fa-trash me-1"></i>Удалить (${selectedDocuments.size})`;
+        } else {
+            deleteBtn.innerHTML = '<i class="fas fa-trash me-1"></i>Удалить';
+        }
+    }
+    
+    function updateSelectAllCheckbox() {
+        const selectAll = document.getElementById('select-all');
+        const visibleCheckboxes = document.querySelectorAll('.document-checkbox');
+        
+        if (visibleCheckboxes.length === 0) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+            return;
+        }
+        
+        const checkedCount = Array.from(visibleCheckboxes).filter(cb => cb.checked).length;
+        
+        if (checkedCount === 0) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+        } else if (checkedCount === visibleCheckboxes.length) {
+            selectAll.checked = true;
+            selectAll.indeterminate = false;
+        } else {
+            selectAll.checked = false;
+            selectAll.indeterminate = true;
+        }
+    }
+    
+    // Просмотр документа
+    function viewDocument(documentId) {
+        const doc = allDocuments.find(d => d.id === documentId);
+        if (!doc) return;
+        
+        currentDocument = doc;
+        
+        document.getElementById('documentModalTitle').innerHTML = `
+            <i class="fas fa-file-alt me-2"></i>${doc.title}
+        `;
+        
+        document.getElementById('documentModalContent').innerHTML = `
+            <div class="mb-3">
+                <h6>Информация о документе</h6>
+                <table class="table table-sm">
+                    <tr><td><strong>ID:</strong></td><td>${doc.id}</td></tr>
+                    <tr><td><strong>Тип:</strong></td><td>${doc.metadata?.type || 'text'}</td></tr>
+                    <tr><td><strong>Размер:</strong></td><td>${formatFileSize(doc.metadata?.size || 0)}</td></tr>
+                    <tr><td><strong>Создан:</strong></td><td>${formatDate(doc.created_at)}</td></tr>
+                </table>
+            </div>
+            <div>
+                <h6>Содержимое</h6>
+                <div class="border rounded p-3" style="max-height: 400px; overflow-y: auto;">
+                    <pre style="white-space: pre-wrap; word-wrap: break-word;">${doc.content}</pre>
+                </div>
+            </div>
+        `;
+        
+        new bootstrap.Modal(document.getElementById('documentModal')).show();
+    }
+    
+    // Удаление документов
+    function deleteDocumentSingle(documentId) {
+        selectedDocuments.clear();
+        selectedDocuments.add(documentId);
+        showDeleteConfirmation();
+    }
+    
+    function deleteSelectedDocuments() {
+        if (selectedDocuments.size === 0) return;
+        showDeleteConfirmation();
+    }
+    
+    function showDeleteConfirmation() {
+        const docs = Array.from(selectedDocuments).map(id => 
+            allDocuments.find(d => d.id === id)
+        ).filter(Boolean);
+        
+        document.getElementById('deleteConfirmList').innerHTML = `
+            <ul class="list-group list-group-flush">
+                ${docs.map(doc => `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        ${doc.title}
+                        <span class="badge bg-secondary">${doc.metadata?.type || 'text'}</span>
+                    </li>
+                `).join('')}
+            </ul>
+        `;
+        
+        new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+    }
+    
+    async function confirmDelete() {
+        const documentsToDelete = Array.from(selectedDocuments);
+        
+        try {
+            for (const docId of documentsToDelete) {
+                const response = await fetch(`/api/documents/${docId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Ошибка удаления документа ${docId}`);
+                }
+            }
+            
+            showNotification(`Удалено документов: ${documentsToDelete.length}`, 'success');
+            selectedDocuments.clear();
+            await loadDocuments();
+            
+        } catch (error) {
+            showNotification('Ошибка удаления: ' + error.message, 'error');
+        }
+        
+        bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
+    }
+    
+    // Утилиты
+    function getFileIcon(type) {
+        const icons = {
+            'text': 'alt',
+            'pdf': 'pdf',
+            'doc': 'word',
+            'docx': 'word',
+            'md': 'code'
+        };
+        return icons[type] || 'alt';
+    }
+    
+    function getTypeBadgeColor(type) {
+        const colors = {
+            'text': 'primary',
+            'pdf': 'danger',
+            'doc': 'info',
+            'docx': 'info',
+            'md': 'warning'
+        };
+        return colors[type] || 'secondary';
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Б';
+        const k = 1024;
+        const sizes = ['Б', 'КБ', 'МБ', 'ГБ'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    function formatDate(dateString) {
+        if (!dateString) return 'Неизвестно';
+        return new Date(dateString).toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+    
+    // Обработчики событий
+    function refreshDocuments() {
+        loadDocuments();
+    }
+    
+    function searchInDocument(documentId) {
+        const doc = allDocuments.find(d => d.id === documentId);
+        if (doc) {
+            const query = prompt('Введите поисковый запрос:');
+            if (query) {
+                window.location.href = `/search?q=${encodeURIComponent(query)}&doc=${documentId}`;
+            }
+        }
+    }
+    
+    function downloadDocument() {
+        if (currentDocument) {
+            const blob = new Blob([currentDocument.content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentDocument.title + '.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    }
+    
+    function deleteDocument() {
+        if (currentDocument) {
+            selectedDocuments.clear();
+            selectedDocuments.add(currentDocument.id);
+            bootstrap.Modal.getInstance(document.getElementById('documentModal')).hide();
+            setTimeout(() => showDeleteConfirmation(), 300);
+        }
+    }
+    
+    // Поиск и фильтрация в реальном времени
+    document.getElementById('document-search').addEventListener('input', () => {
+        applyFiltersAndSort();
+        displayDocuments();
+        updatePagination();
+    });
+    
+    document.getElementById('document-filter').addEventListener('change', () => {
+        applyFiltersAndSort();
+        displayDocuments();
+        updatePagination();
+    });
+    
+    document.getElementById('document-sort').addEventListener('change', () => {
+        applyFiltersAndSort();
+        displayDocuments();
+        updatePagination();
+    });
+    
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDocuments();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+
+{% block title %}Семантический поиск - N8N AI Starter Kit{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="text-center mb-4">
+            <h1 class="display-5 mb-3">
+                <i class="fas fa-search text-primary me-3"></i>
+                Семантический поиск
+            </h1>
+            <p class="lead text-muted">
+                Используйте возможности ИИ для поиска релевантной информации в ваших документах
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Форма поиска -->
+<div class="search-form">
+    <form id="search-form">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="mb-3">
+                    <label for="search-query" class="form-label">
+                        <i class="fas fa-search me-2"></i>Поисковый запрос
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-control form-control-lg" 
+                        id="search-query" 
+                        placeholder="Введите ваш вопрос или ключевые слова..."
+                        required
+                    >
+                    <div class="form-text">
+                        Введите вопрос на естественном языке или ключевые слова для поиска
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label for="result-limit" class="form-label">
+                        <i class="fas fa-list-ol me-2"></i>Количество результатов
+                    </label>
+                    <select class="form-select form-select-lg" id="result-limit">
+                        <option value="5">5 результатов</option>
+                        <option value="10" selected>10 результатов</option>
+                        <option value="20">20 результатов</option>
+                        <option value="50">50 результатов</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary btn-lg me-3">
+                    <i class="fas fa-search me-2"></i>Поиск
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-lg" onclick="clearSearch()">
+                    <i class="fas fa-eraser me-2"></i>Очистить
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Быстрые примеры -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Примеры поисковых запросов
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="setSearchQuery('машинное обучение')">
+                        машинное обучение
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="setSearchQuery('искусственный интеллект')">
+                        искусственный интеллект
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="setSearchQuery('нейронные сети')">
+                        нейронные сети
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="setSearchQuery('обработка данных')">
+                        обработка данных
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="setSearchQuery('векторный поиск')">
+                        векторный поиск
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="setSearchQuery('что такое RAG?')">
+                        что такое RAG?
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Результаты поиска -->
+<div id="search-results-container" style="display: none;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>
+            <i class="fas fa-list me-2"></i>Результаты поиска
+        </h4>
+        <div id="search-stats" class="text-muted">
+            <!-- Статистика поиска -->
+        </div>
+    </div>
+    
+    <div id="search-results" class="search-results">
+        <!-- Результаты будут загружены здесь -->
+    </div>
+</div>
+
+<!-- Загрузка -->
+<div id="search-loading" class="loading" style="display: none;">
+    <div class="spinner"></div>
+    <p class="mt-3">Выполняется семантический поиск...</p>
+    <small class="text-muted">Анализируем документы с помощью ИИ</small>
+</div>
+
+<!-- Пустые результаты -->
+<div id="no-results" class="text-center py-5" style="display: none;">
+    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+    <h4 class="text-muted">Результаты не найдены</h4>
+    <p class="text-muted">Попробуйте изменить поисковый запрос или загрузить больше документов</p>
+    <div class="mt-3">
+        <a href="/upload" class="btn btn-primary">
+            <i class="fas fa-upload me-2"></i>Загрузить документы
+        </a>
+    </div>
+</div>
+
+<!-- История поиска -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-history me-2"></i>История поиска
+                </h6>
+                <button class="btn btn-outline-danger btn-sm" onclick="clearSearchHistory()">
+                    <i class="fas fa-trash me-1"></i>Очистить
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="search-history">
+                    <p class="text-muted">История поиска пуста</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let searchHistory = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+    
+    // Обработка формы поиска
+    document.getElementById('search-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const query = document.getElementById('search-query').value.trim();
+        const limit = parseInt(document.getElementById('result-limit').value);
+        
+        if (!query) {
+            showNotification('Введите поисковый запрос', 'warning');
+            return;
+        }
+        
+        await performSearch(query, limit);
+    });
+    
+    // Выполнение поиска
+    async function performSearch(query, limit = 10) {
+        // Показываем индикатор загрузки
+        showLoading(true);
+        hideResults();
+        
+        try {
+            const startTime = Date.now();
+            
+            const response = await fetch('/api/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: query,
+                    limit: limit
+                })
+            });
+            
+            const data = await response.json();
+            const searchTime = Date.now() - startTime;
+            
+            if (response.ok) {
+                displayResults(data, query, searchTime);
+                addToSearchHistory(query, data.results ? data.results.length : 0, searchTime);
+                showNotification(`Поиск выполнен за ${searchTime}мс`, 'success');
+            } else {
+                throw new Error(data.detail || 'Ошибка поиска');
+            }
+            
+        } catch (error) {
+            console.error('Search error:', error);
+            showNotification('Ошибка поиска: ' + error.message, 'error');
+            showNoResults();
+        } finally {
+            showLoading(false);
+        }
+    }
+    
+    // Отображение результатов
+    function displayResults(data, query, searchTime) {
+        const container = document.getElementById('search-results');
+        const statsContainer = document.getElementById('search-stats');
+        
+        if (!data.results || data.results.length === 0) {
+            showNoResults();
+            return;
+        }
+        
+        // Статистика
+        statsContainer.innerHTML = `
+            Найдено: <strong>${data.results.length}</strong> результатов 
+            за <strong>${searchTime}мс</strong>
+        `;
+        
+        // Результаты
+        container.innerHTML = data.results.map((result, index) => `
+            <div class="result-item">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="mb-0">
+                        <i class="fas fa-file-text me-2"></i>
+                        ${result.metadata?.title || `Документ ${result.id}`}
+                    </h6>
+                    <span class="badge bg-primary">
+                        Релевантность: ${(result.score * 100).toFixed(1)}%
+                    </span>
+                </div>
+                
+                <p class="mb-2">${highlightQuery(result.content, query)}</p>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-id-card me-1"></i>ID: ${result.id}
+                        ${result.metadata?.created_at ? `| <i class="fas fa-calendar me-1"></i>${new Date(result.metadata.created_at).toLocaleDateString('ru-RU')}` : ''}
+                    </small>
+                    <div>
+                        <button class="btn btn-outline-primary btn-sm" onclick="viewDocument('${result.id}')">
+                            <i class="fas fa-eye me-1"></i>Просмотр
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="copyToClipboard('${result.content.replace(/'/g, "\\'")}')">
+                            <i class="fas fa-copy me-1"></i>Копировать
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        showResults();
+    }
+    
+    // Подсветка запроса в результатах
+    function highlightQuery(text, query) {
+        if (!query || query.length < 2) return text;
+        
+        const words = query.toLowerCase().split(/\s+/);
+        let highlightedText = text;
+        
+        words.forEach(word => {
+            if (word.length > 2) {
+                const regex = new RegExp(`(${word})`, 'gi');
+                highlightedText = highlightedText.replace(regex, '<mark>$1</mark>');
+            }
+        });
+        
+        return highlightedText;
+    }
+    
+    // Показать/скрыть элементы
+    function showLoading(show) {
+        document.getElementById('search-loading').style.display = show ? 'block' : 'none';
+    }
+    
+    function showResults() {
+        document.getElementById('search-results-container').style.display = 'block';
+        document.getElementById('no-results').style.display = 'none';
+    }
+    
+    function hideResults() {
+        document.getElementById('search-results-container').style.display = 'none';
+        document.getElementById('no-results').style.display = 'none';
+    }
+    
+    function showNoResults() {
+        document.getElementById('search-results-container').style.display = 'none';
+        document.getElementById('no-results').style.display = 'block';
+    }
+    
+    // Установка поискового запроса
+    function setSearchQuery(query) {
+        document.getElementById('search-query').value = query;
+        document.getElementById('search-query').focus();
+    }
+    
+    // Очистка поиска
+    function clearSearch() {
+        document.getElementById('search-query').value = '';
+        document.getElementById('result-limit').value = '10';
+        hideResults();
+        document.getElementById('search-query').focus();
+    }
+    
+    // История поиска
+    function addToSearchHistory(query, resultCount, searchTime) {
+        const historyItem = {
+            query: query,
+            resultCount: resultCount,
+            searchTime: searchTime,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Удаляем дубликаты
+        searchHistory = searchHistory.filter(item => item.query !== query);
+        
+        // Добавляем в начало
+        searchHistory.unshift(historyItem);
+        
+        // Ограничиваем до 10 элементов
+        searchHistory = searchHistory.slice(0, 10);
+        
+        // Сохраняем в localStorage
+        localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+        
+        // Обновляем отображение
+        updateSearchHistoryDisplay();
+    }
+    
+    function updateSearchHistoryDisplay() {
+        const container = document.getElementById('search-history');
+        
+        if (searchHistory.length === 0) {
+            container.innerHTML = '<p class="text-muted">История поиска пуста</p>';
+            return;
+        }
+        
+        container.innerHTML = searchHistory.map(item => `
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                <div>
+                    <button class="btn btn-link p-0 text-start" onclick="setSearchQuery('${item.query.replace(/'/g, "\\'")}')">
+                        ${item.query}
+                    </button>
+                    <small class="text-muted d-block">
+                        ${item.resultCount} результатов за ${item.searchTime}мс | 
+                        ${new Date(item.timestamp).toLocaleDateString('ru-RU', { 
+                            day: 'numeric', 
+                            month: 'short', 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                        })}
+                    </small>
+                </div>
+                <button class="btn btn-outline-danger btn-sm" onclick="removeFromHistory('${item.query}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+    
+    function removeFromHistory(query) {
+        searchHistory = searchHistory.filter(item => item.query !== query);
+        localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+        updateSearchHistoryDisplay();
+    }
+    
+    function clearSearchHistory() {
+        if (confirm('Очистить всю историю поиска?')) {
+            searchHistory = [];
+            localStorage.removeItem('searchHistory');
+            updateSearchHistoryDisplay();
+            showNotification('История поиска очищена', 'info');
+        }
+    }
+    
+    // Дополнительные функции
+    function viewDocument(documentId) {
+        // Открываем документ в новом окне/вкладке
+        window.open(`/documents?id=${documentId}`, '_blank');
+    }
+    
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showNotification('Текст скопирован в буфер обмена', 'success');
+        }).catch(() => {
+            showNotification('Не удалось скопировать текст', 'error');
+        });
+    }
+    
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        updateSearchHistoryDisplay();
+        
+        // Фокус на поле поиска
+        document.getElementById('search-query').focus();
+        
+        // Поддержка Enter в поле поиска
+        document.getElementById('search-query').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('search-form').dispatchEvent(new Event('submit'));
+            }
+        });
+    });
+</script>
+{% endblock %}

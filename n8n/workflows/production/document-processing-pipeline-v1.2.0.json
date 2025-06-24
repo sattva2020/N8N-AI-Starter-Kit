@@ -1,0 +1,239 @@
+{
+  "name": "Document Processing Pipeline v1.2.0",
+  "active": true,
+  "nodes": [
+    {
+      "id": "start-trigger",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "parameters": {}
+    },
+    {
+      "id": "webhook-trigger",
+      "name": "Document Upload Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [300, 300],
+      "parameters": {
+        "path": "document-upload",
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      }
+    },
+    {
+      "id": "validate-input",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "parameters": {
+        "functionCode": "const body = $json.body; if (!body || !body.file_path) { throw new Error('Missing file_path in request body'); } if (!body.document_type) { body.document_type = 'auto'; } return { file_path: body.file_path, document_type: body.document_type, user_id: body.user_id || 'anonymous', timestamp: new Date().toISOString() };"
+      }
+    },
+    {
+      "id": "check-file-exists",
+      "name": "Check File Exists",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [700, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "http://document-processor:8000/api/health",
+        "options": {
+          "timeout": 10000
+        }
+      }
+    },
+    {
+      "id": "process-document",
+      "name": "Process Document",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [900, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "http://document-processor:8000/api/upload",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"file_path\": $json.file_path, \"document_type\": $json.document_type } }}",
+        "options": {
+          "timeout": 60000
+        }
+      }
+    },
+    {
+      "id": "extract-metadata",
+      "name": "Extract Metadata",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1100, 300],
+      "parameters": {
+        "functionCode": "const result = $json; return { document_id: result.document_id, file_path: result.file_path, pages: result.pages || 0, word_count: result.content ? result.content.split(' ').length : 0, processing_time: result.processing_time, status: result.status, chunks_created: result.chunks ? result.chunks.length : 0, metadata: result.metadata || {}, processed_at: new Date().toISOString() };"
+      }
+    },
+    {
+      "id": "store-metadata",
+      "name": "Store Metadata",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1300, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "http://qdrant:6333/collections/documents/points",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"points\": [{ \"id\": $json.document_id, \"vector\": Array(1536).fill(0), \"payload\": { \"document_id\": $json.document_id, \"file_path\": $json.file_path, \"pages\": $json.pages, \"word_count\": $json.word_count, \"processing_time\": $json.processing_time, \"chunks_created\": $json.chunks_created, \"processed_at\": $json.processed_at, \"metadata\": $json.metadata } }] } }}",
+        "options": {
+          "timeout": 10000
+        }
+      }
+    },
+    {
+      "id": "send-notification",
+      "name": "Send Notification",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1500, 300],
+      "parameters": {
+        "functionCode": "const metadata = $('extract-metadata').first().json; return { notification_type: 'document_processed', document_id: metadata.document_id, file_path: metadata.file_path, status: 'success', pages: metadata.pages, word_count: metadata.word_count, chunks_created: metadata.chunks_created, processing_time: metadata.processing_time, timestamp: new Date().toISOString(), message: `Document ${metadata.file_path} successfully processed: ${metadata.pages} pages, ${metadata.word_count} words, ${metadata.chunks_created} chunks created` };"
+      }
+    },
+    {
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1700, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"document_id\": $json.document_id, \"status\": \"processed\", \"message\": $json.message, \"metadata\": { \"pages\": $json.pages, \"word_count\": $json.word_count, \"chunks_created\": $json.chunks_created, \"processing_time\": $json.processing_time } } }}"
+      }
+    },
+    {
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 500],
+      "parameters": {
+        "functionCode": "const error = $json.error || 'Unknown error occurred'; const originalData = $('validate-input').first().json; return { notification_type: 'document_processing_error', file_path: originalData?.file_path || 'unknown', user_id: originalData?.user_id || 'anonymous', error_message: error, timestamp: new Date().toISOString(), status: 'failed' };"
+      }
+    },
+    {
+      "id": "error-response",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1100, 500],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": false, \"error\": $json.error_message, \"file_path\": $json.file_path, \"timestamp\": $json.timestamp } }}"
+      }
+    }
+  ],
+  "connections": {
+    "start-trigger": {
+      "main": [
+        [
+          {
+            "node": "webhook-trigger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-trigger": {
+      "main": [
+        [
+          {
+            "node": "validate-input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "validate-input": {
+      "main": [
+        [
+          {
+            "node": "check-file-exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-file-exists": {
+      "main": [
+        [
+          {
+            "node": "process-document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "process-document": {
+      "main": [
+        [
+          {
+            "node": "extract-metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract-metadata": {
+      "main": [
+        [
+          {
+            "node": "store-metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "store-metadata": {
+      "main": [
+        [
+          {
+            "node": "send-notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send-notification": {
+      "main": [
+        [
+          {
+            "node": "webhook-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "errorWorkflow": {
+      "errorWorkflow": {
+        "id": "error-handler"
+      }
+    }
+  },
+  "staticData": {},
+  "tags": ["production", "document-processing", "automation", "v1.2.0"],
+  "triggerCount": 1,
+  "createdAt": "2025-06-24T12:00:00.000Z",
+  "updatedAt": "2025-06-24T12:00:00.000Z",
+  "versionId": "1"
+}

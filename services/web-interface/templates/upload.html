@@ -1,0 +1,507 @@
+{% extends "base.html" %}
+
+{% block title %}Загрузка документов - N8N AI Starter Kit{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="text-center mb-4">
+            <h1 class="display-5 mb-3">
+                <i class="fas fa-upload text-success me-3"></i>
+                Загрузка документов
+            </h1>
+            <p class="lead text-muted">
+                Добавьте документы для обработки и индексации в векторной базе данных
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Форма загрузки -->
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-upload me-2"></i>Выберите файлы для загрузки
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="upload-form" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <div class="upload-area border-2 border-dashed rounded-3 p-5 text-center" 
+                             style="border-color: #dee2e6; transition: all 0.3s ease;"
+                             ondrop="handleDrop(event)" 
+                             ondragover="handleDragOver(event)"
+                             ondragenter="handleDragEnter(event)"
+                             ondragleave="handleDragLeave(event)">
+                            
+                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Перетащите файлы сюда или нажмите для выбора</h5>
+                            <p class="text-muted mb-3">
+                                Поддерживаемые форматы: TXT, PDF, DOC, DOCX, MD
+                            </p>
+                            
+                            <input type="file" 
+                                   id="file-input" 
+                                   name="files" 
+                                   multiple 
+                                   accept=".txt,.pdf,.doc,.docx,.md"
+                                   style="display: none;">
+                            
+                            <button type="button" 
+                                    class="btn btn-outline-primary" 
+                                    onclick="document.getElementById('file-input').click()">
+                                <i class="fas fa-folder-open me-2"></i>Выбрать файлы
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Список выбранных файлов -->
+                    <div id="selected-files" class="mb-4" style="display: none;">
+                        <h6>Выбранные файлы:</h6>
+                        <div id="file-list" class="list-group"></div>
+                    </div>
+                    
+                    <!-- Настройки обработки -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="processing-mode" class="form-label">
+                                <i class="fas fa-cogs me-2"></i>Режим обработки
+                            </label>
+                            <select class="form-select" id="processing-mode">
+                                <option value="auto" selected>Автоматический</option>
+                                <option value="fast">Быстрый (без детального анализа)</option>
+                                <option value="detailed">Детальный (с метаданными)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="chunk-size" class="form-label">
+                                <i class="fas fa-puzzle-piece me-2"></i>Размер фрагментов
+                            </label>
+                            <select class="form-select" id="chunk-size">
+                                <option value="small">Маленький (512 символов)</option>
+                                <option value="medium" selected>Средний (1024 символа)</option>
+                                <option value="large">Большой (2048 символов)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Кнопки действий -->
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" onclick="clearFiles()">
+                            <i class="fas fa-times me-2"></i>Очистить
+                        </button>
+                        <button type="submit" class="btn btn-success" id="upload-btn" disabled>
+                            <i class="fas fa-upload me-2"></i>Загрузить и обработать
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Прогресс загрузки -->
+<div id="upload-progress" class="row justify-content-center mt-4" style="display: none;">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-spinner fa-spin me-2"></i>Обработка файлов
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="progress-details"></div>
+                <div class="progress mt-3">
+                    <div id="progress-bar" 
+                         class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" 
+                         style="width: 0%">
+                        0%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Результаты загрузки -->
+<div id="upload-results" class="row justify-content-center mt-4" style="display: none;">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-check-circle text-success me-2"></i>Результаты загрузки
+                </h6>
+                <button class="btn btn-outline-primary btn-sm" onclick="startNewUpload()">
+                    <i class="fas fa-plus me-1"></i>Загрузить ещё
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="results-details"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Статистика документов
+                </h6>
+                <button class="btn btn-outline-primary btn-sm" onclick="refreshStats()">
+                    <i class="fas fa-sync-alt me-1"></i>Обновить
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="upload-stats" class="row g-3">
+                    <!-- Статистика будет загружена через JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Подсказки -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-lightbulb text-warning me-2"></i>Советы по загрузке
+                </h6>
+                <ul class="mb-0">
+                    <li>Для лучшего качества поиска разбивайте большие документы на логические части</li>
+                    <li>Используйте осмысленные названия файлов - они помогут в поиске</li>
+                    <li>PDF и DOC файлы автоматически конвертируются в текст</li>
+                    <li>Рекомендуемый размер файла: до 10 МБ</li>
+                    <li>Поддерживается пакетная загрузка до 10 файлов одновременно</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let selectedFiles = [];
+    
+    // Обработка выбора файлов
+    document.getElementById('file-input').addEventListener('change', function(e) {
+        handleFileSelection(e.target.files);
+    });
+    
+    // Обработка drag & drop
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.currentTarget.style.borderColor = '#0d6efd';
+        e.currentTarget.style.backgroundColor = '#f8f9fa';
+    }
+    
+    function handleDragEnter(e) {
+        e.preventDefault();
+    }
+    
+    function handleDragLeave(e) {
+        e.preventDefault();
+        e.currentTarget.style.borderColor = '#dee2e6';
+        e.currentTarget.style.backgroundColor = 'transparent';
+    }
+    
+    function handleDrop(e) {
+        e.preventDefault();
+        e.currentTarget.style.borderColor = '#dee2e6';
+        e.currentTarget.style.backgroundColor = 'transparent';
+        
+        const files = e.dataTransfer.files;
+        handleFileSelection(files);
+    }
+    
+    // Обработка выбранных файлов
+    function handleFileSelection(files) {
+        selectedFiles = Array.from(files);
+        
+        if (selectedFiles.length === 0) {
+            document.getElementById('selected-files').style.display = 'none';
+            document.getElementById('upload-btn').disabled = true;
+            return;
+        }
+        
+        // Валидация файлов
+        const validFiles = [];
+        const invalidFiles = [];
+        const allowedTypes = ['.txt', '.pdf', '.doc', '.docx', '.md'];
+        
+        selectedFiles.forEach(file => {
+            const extension = '.' + file.name.split('.').pop().toLowerCase();
+            if (allowedTypes.includes(extension)) {
+                validFiles.push(file);
+            } else {
+                invalidFiles.push(file);
+            }
+        });
+        
+        if (invalidFiles.length > 0) {
+            showNotification(
+                `Неподдерживаемые файлы: ${invalidFiles.map(f => f.name).join(', ')}`, 
+                'warning'
+            );
+        }
+        
+        selectedFiles = validFiles;
+        displaySelectedFiles();
+        
+        document.getElementById('upload-btn').disabled = selectedFiles.length === 0;
+    }
+    
+    // Отображение списка выбранных файлов
+    function displaySelectedFiles() {
+        const container = document.getElementById('file-list');
+        
+        if (selectedFiles.length === 0) {
+            document.getElementById('selected-files').style.display = 'none';
+            return;
+        }
+        
+        container.innerHTML = selectedFiles.map((file, index) => `
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-file me-2"></i>
+                    <strong>${file.name}</strong>
+                    <small class="text-muted ms-2">(${formatFileSize(file.size)})</small>
+                </div>
+                <button class="btn btn-outline-danger btn-sm" onclick="removeFile(${index})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `).join('');
+        
+        document.getElementById('selected-files').style.display = 'block';
+    }
+    
+    // Удаление файла из списка
+    function removeFile(index) {
+        selectedFiles.splice(index, 1);
+        displaySelectedFiles();
+        document.getElementById('upload-btn').disabled = selectedFiles.length === 0;
+    }
+    
+    // Очистка всех файлов
+    function clearFiles() {
+        selectedFiles = [];
+        document.getElementById('file-input').value = '';
+        document.getElementById('selected-files').style.display = 'none';
+        document.getElementById('upload-btn').disabled = true;
+    }
+    
+    // Обработка формы загрузки
+    document.getElementById('upload-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (selectedFiles.length === 0) {
+            showNotification('Выберите файлы для загрузки', 'warning');
+            return;
+        }
+        
+        await uploadFiles();
+    });
+    
+    // Загрузка файлов
+    async function uploadFiles() {
+        showProgress(true);
+        hideResults();
+        
+        const progressBar = document.getElementById('progress-bar');
+        const progressDetails = document.getElementById('progress-details');
+        
+        const results = [];
+        const totalFiles = selectedFiles.length;
+        
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+            const progress = ((i + 1) / totalFiles) * 100;
+            
+            progressBar.style.width = `${progress}%`;
+            progressBar.textContent = `${Math.round(progress)}%`;
+            progressDetails.innerHTML = `
+                Обрабатывается файл ${i + 1} из ${totalFiles}: <strong>${file.name}</strong>
+            `;
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    results.push({
+                        file: file.name,
+                        status: 'success',
+                        data: result
+                    });
+                } else {
+                    results.push({
+                        file: file.name,
+                        status: 'error',
+                        error: result.detail || 'Неизвестная ошибка'
+                    });
+                }
+                
+            } catch (error) {
+                results.push({
+                    file: file.name,
+                    status: 'error',
+                    error: error.message
+                });
+            }
+        }
+        
+        showProgress(false);
+        displayResults(results);
+        refreshStats();
+        
+        const successCount = results.filter(r => r.status === 'success').length;
+        const errorCount = results.filter(r => r.status === 'error').length;
+        
+        if (errorCount === 0) {
+            showNotification(`Все файлы (${successCount}) загружены успешно!`, 'success');
+        } else if (successCount > 0) {
+            showNotification(`Загружено: ${successCount}, ошибок: ${errorCount}`, 'warning');
+        } else {
+            showNotification(`Ошибка загрузки всех файлов (${errorCount})`, 'error');
+        }
+    }
+    
+    // Отображение результатов
+    function displayResults(results) {
+        const container = document.getElementById('results-details');
+        
+        container.innerHTML = results.map(result => `
+            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                <div>
+                    <i class="fas fa-${result.status === 'success' ? 'check-circle text-success' : 'exclamation-circle text-danger'} me-2"></i>
+                    <strong>${result.file}</strong>
+                    ${result.status === 'success' 
+                        ? `<small class="text-muted d-block">ID: ${result.data.document_id || 'N/A'}</small>`
+                        : `<small class="text-danger d-block">${result.error}</small>`
+                    }
+                </div>
+                <div>
+                    ${result.status === 'success' 
+                        ? `<span class="badge bg-success">Успешно</span>`
+                        : `<span class="badge bg-danger">Ошибка</span>`
+                    }
+                </div>
+            </div>
+        `).join('');
+        
+        document.getElementById('upload-results').style.display = 'block';
+    }
+    
+    // Показать/скрыть прогресс
+    function showProgress(show) {
+        document.getElementById('upload-progress').style.display = show ? 'block' : 'none';
+    }
+    
+    function hideResults() {
+        document.getElementById('upload-results').style.display = 'none';
+    }
+    
+    // Начать новую загрузку
+    function startNewUpload() {
+        clearFiles();
+        hideResults();
+        showProgress(false);
+    }
+    
+    // Обновление статистики
+    async function refreshStats() {
+        const container = document.getElementById('upload-stats');
+        container.innerHTML = `
+            <div class="col-12 text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+            </div>
+        `;
+        
+        try {
+            const response = await fetch('/api/documents');
+            const data = await response.json();
+            
+            // Заглушка для статистики
+            const stats = {
+                totalDocuments: data.total || 0,
+                totalSize: '15.2 МБ',
+                avgProcessingTime: '2.3 сек',
+                successRate: '95%'
+            };
+            
+            container.innerHTML = `
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <i class="fas fa-file-alt fa-2x text-primary mb-2"></i>
+                        <h4>${stats.totalDocuments}</h4>
+                        <small class="text-muted">Всего документов</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <i class="fas fa-database fa-2x text-success mb-2"></i>
+                        <h4>${stats.totalSize}</h4>
+                        <small class="text-muted">Общий размер</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                        <h4>${stats.avgProcessingTime}</h4>
+                        <small class="text-muted">Среднее время</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <i class="fas fa-check-circle fa-2x text-info mb-2"></i>
+                        <h4>${stats.successRate}</h4>
+                        <small class="text-muted">Успешность</small>
+                    </div>
+                </div>
+            `;
+            
+        } catch (error) {
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Ошибка загрузки статистики: ${error.message}
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    // Форматирование размера файла
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Б';
+        const k = 1024;
+        const sizes = ['Б', 'КБ', 'МБ', 'ГБ'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        refreshStats();
+    });
+</script>
+{% endblock %}

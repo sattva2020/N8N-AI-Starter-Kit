@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Ошибка {{ error_code }} - N8N AI Starter Kit{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="text-center">
+            <div class="mb-4">
+                <i class="fas fa-exclamation-triangle fa-5x text-warning"></i>
+            </div>
+            
+            <h1 class="display-4 mb-3">Ошибка {{ error_code }}</h1>
+            
+            <h4 class="mb-4">{{ title }}</h4>
+            
+            <p class="lead text-muted mb-4">{{ error_message }}</p>
+            
+            {% if error_code == 404 %}
+                <p class="text-muted">
+                    Страница, которую вы ищете, не существует или была перемещена.
+                </p>
+            {% elif error_code == 500 %}
+                <p class="text-muted">
+                    Произошла внутренняя ошибка сервера. Попробуйте обновить страницу или вернуться позже.
+                </p>
+            {% endif %}
+            
+            <div class="mt-4">
+                <a href="/" class="btn btn-primary btn-lg me-3">
+                    <i class="fas fa-home me-2"></i>На главную
+                </a>
+                <button onclick="history.back()" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-arrow-left me-2"></i>Назад
+                </button>
+            </div>
+            
+            <div class="mt-4">
+                <small class="text-muted">
+                    Если проблема повторяется, свяжитесь с администратором системы.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Быстрые ссылки -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-compass me-2"></i>Полезные ссылки
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="/search" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-search me-2"></i>
+                            Поиск документов
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/upload" class="btn btn-outline-success w-100">
+                            <i class="fas fa-upload me-2"></i>
+                            Загрузка файлов
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/documents" class="btn btn-outline-warning w-100">
+                            <i class="fas fa-file-alt me-2"></i>
+                            Документы
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/analytics" class="btn btn-outline-info w-100">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Аналитика
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

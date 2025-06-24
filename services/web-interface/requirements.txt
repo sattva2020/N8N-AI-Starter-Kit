@@ -1,0 +1,38 @@
+# Web Interface Service Requirements
+# ==================================
+
+# Core FastAPI dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+python-multipart==0.0.6
+
+# Template engine
+jinja2==3.1.2
+
+# Database connections
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.23
+
+# HTTP client
+httpx==0.25.2
+aiohttp==3.9.1
+
+# Data processing
+pandas==2.1.4
+numpy==1.25.2
+
+# File handling
+python-multipart==0.0.6
+
+# Utilities
+python-dotenv==1.0.0
+requests==2.31.0
+
+# Logging and monitoring
+structlog==23.2.0
+
+# Additional utilities for web interface
+plotly==5.17.0
+matplotlib==3.8.2
+seaborn==0.13.0

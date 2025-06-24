@@ -1,0 +1,172 @@
+# Traefik Dynamic Configuration - SSL & Security
+# Production-ready configuration для N8N AI Starter Kit v1.2.0
+
+# ===============================================
+# TLS CONFIGURATION
+# ===============================================
+
+tls:
+  options:
+    # Минимальная версия TLS
+    default:
+      minVersion: "VersionTLS12"
+      sslProtocols:
+        - "TLSv1.2"
+        - "TLSv1.3"
+      cipherSuites:
+        # Современные и безопасные cipher suites
+        - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+        - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+        - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+        - "TLS_RSA_WITH_AES_256_GCM_SHA384"
+        - "TLS_RSA_WITH_AES_128_GCM_SHA256"
+
+# ===============================================
+# HTTP SECURITY HEADERS MIDDLEWARE
+# ===============================================
+
+http:
+  middlewares:
+    # Основные security headers
+    security-headers:
+      headers:
+        # Content Security Policy
+        contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' wss: ws:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';"
+        
+        # Security Headers
+        frameDeny: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        forceSTSHeader: true
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        
+        # Permissions Policy (Feature Policy)
+        permissionsPolicy: "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), speaker=(), ambient-light-sensor=(), accelerometer=(), battery=(), display-capture=(), document-domain=()"
+
+    # CORS для API endpoints
+    api-cors:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        accessControlAllowHeaders:
+          - "Content-Type"
+          - "Authorization"
+          - "X-Requested-With"
+        accessControlAllowOriginList:
+          - "https://*.yourdomain.com"
+        accessControlAllowCredentials: true
+        accessControlMaxAge: 86400
+
+    # Rate limiting для защиты от DDoS
+    rate-limit:
+      rateLimit:
+        burst: 100
+        average: 50
+        period: "1m"
+
+    # Basic Auth для admin панелей
+    admin-auth:
+      basicAuth:
+        users:
+          - "admin:$apr1$1LF8GnRQ$qBinSa/CmAS/lLy4vz6DL1"  # admin:adminpass
+
+    # Redirect HTTP to HTTPS
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+    # Компрессия для улучшения производительности
+    gzip-compression:
+      compress: {}
+
+# ===============================================
+# SERVICES CONFIGURATION
+# ===============================================
+
+  services:
+    # Health check service
+    health-check:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8080/ping"
+
+# ===============================================
+# ROUTERS CONFIGURATION (for production)
+# ===============================================
+
+  routers:
+    # HTTPS редирект роутер (для всех HTTP запросов)
+    http-catchall:
+      rule: "hostregexp(`{host:.+}`)"
+      entryPoints:
+        - web
+      middlewares:
+        - https-redirect
+      service: api@internal
+      priority: 1
+
+    # Пример роутера для N8N с полной защитой
+    n8n-secure:
+      rule: "Host(`n8n.yourdomain.com`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - security-headers
+        - gzip-compression
+        - rate-limit
+      service: n8n@docker
+      tls:
+        certResolver: myresolver
+
+    # Пример роутера для API с CORS
+    api-secure:
+      rule: "Host(`api.yourdomain.com`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - security-headers
+        - api-cors
+        - gzip-compression
+        - rate-limit
+      service: document-processor@docker
+      tls:
+        certResolver: myresolver
+
+    # Admin панели с Basic Auth
+    admin-panels:
+      rule: "Host(`monitor.yourdomain.com`) || Host(`admin.yourdomain.com`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - security-headers
+        - admin-auth
+        - gzip-compression
+      service: api@internal
+      tls:
+        certResolver: myresolver
+
+# ===============================================
+# CERTIFICATES CONFIGURATION
+# ===============================================
+
+certificates:
+  - certFile: "/etc/ssl/certs/yourdomain.com.crt"
+    keyFile: "/etc/ssl/private/yourdomain.com.key"
+    stores:
+      - default
+
+# ===============================================
+# NOTES
+# ===============================================
+# 1. Замените yourdomain.com на ваш реальный домен
+# 2. Обновите users в admin-auth middleware
+# 3. Настройте CORS origins для ваших доменов
+# 4. При необходимости добавьте дополнительные routers

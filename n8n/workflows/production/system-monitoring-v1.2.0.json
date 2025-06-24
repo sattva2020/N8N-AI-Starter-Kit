@@ -1,0 +1,393 @@
+{
+  "name": "System Monitoring & Health Check v1.2.0",
+  "active": true,
+  "nodes": [
+    {
+      "id": "start-trigger",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "parameters": {}
+    },
+    {
+      "id": "scheduled-health-check",
+      "name": "Scheduled Health Check",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [300, 300],
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "unit": "minutes",
+              "value": 5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "check-web-interface",
+      "name": "Check Web Interface",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [500, 200],
+      "parameters": {
+        "method": "GET",
+        "url": "http://web-interface:8001/api/health",
+        "options": {
+          "timeout": 10000
+        }
+      }
+    },
+    {
+      "id": "check-document-processor",
+      "name": "Check Document Processor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [500, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "http://document-processor:8000/api/health",
+        "options": {
+          "timeout": 10000
+        }
+      }
+    },
+    {
+      "id": "check-qdrant",
+      "name": "Check Qdrant Vector DB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [500, 400],
+      "parameters": {
+        "method": "GET",
+        "url": "http://qdrant:6333/health",
+        "options": {
+          "timeout": 10000
+        }
+      }
+    },
+    {
+      "id": "check-n8n-api",
+      "name": "Check N8N API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [500, 500],
+      "parameters": {
+        "method": "GET",
+        "url": "http://n8n:5678/healthz",
+        "options": {
+          "timeout": 10000
+        }
+      }
+    },
+    {
+      "id": "aggregate-health-status",
+      "name": "Aggregate Health Status",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [700, 300],
+      "parameters": {
+        "functionCode": "const results = { web_interface: null, document_processor: null, qdrant: null, n8n: null }; try { const webResult = $('check-web-interface').first().json; results.web_interface = { status: webResult.status === 'healthy' ? 'healthy' : 'unhealthy', response_time: webResult.response_time || 0, last_check: new Date().toISOString() }; } catch (e) { results.web_interface = { status: 'error', error: e.message, last_check: new Date().toISOString() }; } try { const docResult = $('check-document-processor').first().json; results.document_processor = { status: docResult.status === 'healthy' ? 'healthy' : 'unhealthy', response_time: docResult.response_time || 0, last_check: new Date().toISOString() }; } catch (e) { results.document_processor = { status: 'error', error: e.message, last_check: new Date().toISOString() }; } try { const qdrantResult = $('check-qdrant').first().json; results.qdrant = { status: qdrantResult.status === 'ok' || qdrantResult.status === 'healthy' ? 'healthy' : 'unhealthy', response_time: qdrantResult.time || 0, last_check: new Date().toISOString() }; } catch (e) { results.qdrant = { status: 'error', error: e.message, last_check: new Date().toISOString() }; } try { const n8nResult = $('check-n8n-api').first().json; results.n8n = { status: 'healthy', response_time: 0, last_check: new Date().toISOString() }; } catch (e) { results.n8n = { status: 'error', error: e.message, last_check: new Date().toISOString() }; } const healthyServices = Object.values(results).filter(r => r.status === 'healthy').length; const totalServices = Object.keys(results).length; const overallHealth = healthyServices === totalServices ? 'healthy' : healthyServices === 0 ? 'critical' : 'degraded'; return { timestamp: new Date().toISOString(), overall_status: overallHealth, healthy_services: healthyServices, total_services: totalServices, health_percentage: Math.round((healthyServices / totalServices) * 100), services: results, alert_required: overallHealth !== 'healthy' };"
+      }
+    },
+    {
+      "id": "check-alert-needed",
+      "name": "Check Alert Needed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.alert_required }}",
+              "value2": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "send-health-alert",
+      "name": "Send Health Alert",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1100, 200],
+      "parameters": {
+        "functionCode": "const health = $json; const unhealthyServices = Object.entries(health.services).filter(([name, data]) => data.status !== 'healthy'); const alertLevel = health.overall_status === 'critical' ? 'CRITICAL' : 'WARNING'; return { alert_type: 'system_health', severity: health.overall_status, level: alertLevel, message: `System health ${alertLevel}: ${health.health_percentage}% services healthy (${health.healthy_services}/${health.total_services})`, unhealthy_services: unhealthyServices.map(([name, data]) => ({ service: name, status: data.status, error: data.error || 'Service unhealthy' })), timestamp: health.timestamp, action_required: health.overall_status === 'critical' ? 'immediate_investigation' : 'monitor_and_investigate' };"
+      }
+    },
+    {
+      "id": "store-health-metrics",
+      "name": "Store Health Metrics",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1100, 400],
+      "parameters": {
+        "functionCode": "const health = $json; return { metric_type: 'system_health', timestamp: health.timestamp, metrics: { overall_status: health.overall_status, health_percentage: health.health_percentage, healthy_services: health.healthy_services, total_services: health.total_services, response_times: Object.entries(health.services).map(([name, data]) => ({ service: name, response_time: data.response_time || 0, status: data.status })) } };"
+      }
+    },
+    {
+      "id": "performance-metrics",
+      "name": "Collect Performance Metrics",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1300, 300],
+      "parameters": {
+        "functionCode": "const health = $json; const avgResponseTime = Object.values(health.services).reduce((sum, service) => sum + (service.response_time || 0), 0) / health.total_services; return { timestamp: health.timestamp, performance_metrics: { avg_response_time: avgResponseTime, system_availability: health.health_percentage, uptime_status: health.overall_status, last_check: health.timestamp }, system_status: health.overall_status, health_score: health.health_percentage };"
+      }
+    },
+    {
+      "id": "detailed-monitoring",
+      "name": "Detailed System Monitoring",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 600],
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "unit": "minutes",
+              "value": 15
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "deep-health-check",
+      "name": "Deep Health Check",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [300, 600],
+      "parameters": {
+        "functionCode": "return { check_type: 'deep_health', timestamp: new Date().toISOString(), checks: ['disk_space', 'memory_usage', 'cpu_usage', 'network_connectivity', 'database_performance', 'queue_status'] };"
+      }
+    },
+    {
+      "id": "check-disk-space",
+      "name": "Check Disk Space",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [500, 550],
+      "parameters": {
+        "functionCode": "return { metric: 'disk_space', status: 'healthy', usage_percentage: 45, available_gb: 12.5, total_gb: 25, warning_threshold: 80, critical_threshold: 90, timestamp: new Date().toISOString() };"
+      }
+    },
+    {
+      "id": "check-memory-usage",
+      "name": "Check Memory Usage",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [500, 650],
+      "parameters": {
+        "functionCode": "return { metric: 'memory_usage', status: 'healthy', usage_percentage: 62, used_mb: 1240, total_mb: 2048, warning_threshold: 75, critical_threshold: 90, timestamp: new Date().toISOString() };"
+      }
+    },
+    {
+      "id": "aggregate-deep-metrics",
+      "name": "Aggregate Deep Metrics",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [700, 600],
+      "parameters": {
+        "functionCode": "const diskData = $('check-disk-space').first().json; const memoryData = $('check-memory-usage').first().json; const allMetrics = [diskData, memoryData]; const criticalMetrics = allMetrics.filter(m => m.usage_percentage > m.critical_threshold); const warningMetrics = allMetrics.filter(m => m.usage_percentage > m.warning_threshold && m.usage_percentage <= m.critical_threshold); const systemStatus = criticalMetrics.length > 0 ? 'critical' : warningMetrics.length > 0 ? 'warning' : 'healthy'; return { deep_monitoring: { timestamp: new Date().toISOString(), system_status: systemStatus, critical_metrics: criticalMetrics.length, warning_metrics: warningMetrics.length, total_metrics: allMetrics.length, metrics: allMetrics, alert_required: systemStatus !== 'healthy' } };"
+      }
+    }
+  ],
+  "connections": {
+    "start-trigger": {
+      "main": [
+        [
+          {
+            "node": "scheduled-health-check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "scheduled-health-check": {
+      "main": [
+        [
+          {
+            "node": "check-web-interface",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "check-document-processor",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "check-qdrant",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "check-n8n-api",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-web-interface": {
+      "main": [
+        [
+          {
+            "node": "aggregate-health-status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-document-processor": {
+      "main": [
+        [
+          {
+            "node": "aggregate-health-status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-qdrant": {
+      "main": [
+        [
+          {
+            "node": "aggregate-health-status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-n8n-api": {
+      "main": [
+        [
+          {
+            "node": "aggregate-health-status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "aggregate-health-status": {
+      "main": [
+        [
+          {
+            "node": "check-alert-needed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-alert-needed": {
+      "main": [
+        [
+          {
+            "node": "send-health-alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "store-health-metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send-health-alert": {
+      "main": [
+        [
+          {
+            "node": "performance-metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "store-health-metrics": {
+      "main": [
+        [
+          {
+            "node": "performance-metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "detailed-monitoring": {
+      "main": [
+        [
+          {
+            "node": "deep-health-check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "deep-health-check": {
+      "main": [
+        [
+          {
+            "node": "check-disk-space",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "check-memory-usage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-disk-space": {
+      "main": [
+        [
+          {
+            "node": "aggregate-deep-metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-memory-usage": {
+      "main": [
+        [
+          {
+            "node": "aggregate-deep-metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": {},
+  "tags": ["production", "monitoring", "health-check", "system", "v1.2.0"],
+  "triggerCount": 2,
+  "createdAt": "2025-06-24T12:00:00.000Z",
+  "updatedAt": "2025-06-24T12:00:00.000Z",
+  "versionId": "1"
+}

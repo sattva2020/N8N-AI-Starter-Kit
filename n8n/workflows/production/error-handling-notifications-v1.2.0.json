@@ -1,0 +1,352 @@
+{
+  "name": "Error Handling & Notifications v1.2.0",
+  "active": true,
+  "nodes": [
+    {
+      "id": "start-trigger",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "parameters": {}
+    },
+    {
+      "id": "error-webhook",
+      "name": "Error Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [300, 300],
+      "parameters": {
+        "path": "error-handler",
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      }
+    },
+    {
+      "id": "parse-error",
+      "name": "Parse Error",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "parameters": {
+        "functionCode": "const body = $json.body; const error = body.error || 'Unknown error'; const source = body.source || 'unknown'; const severity = body.severity || 'medium'; const user_id = body.user_id || 'anonymous'; const context = body.context || {}; let errorType = 'general'; if (error.includes('timeout') || error.includes('connection')) { errorType = 'network'; } else if (error.includes('permission') || error.includes('unauthorized')) { errorType = 'authentication'; } else if (error.includes('not found') || error.includes('missing')) { errorType = 'resource'; } else if (error.includes('validation') || error.includes('invalid')) { errorType = 'validation'; } else if (error.includes('database') || error.includes('storage')) { errorType = 'data'; } const priority = severity === 'critical' ? 1 : severity === 'high' ? 2 : severity === 'medium' ? 3 : 4; return { error_id: 'err_' + Date.now(), error_message: error, error_type: errorType, severity: severity, priority: priority, source: source, user_id: user_id, context: context, timestamp: new Date().toISOString(), requires_notification: severity === 'critical' || severity === 'high', requires_investigation: severity === 'critical' };"
+      }
+    },
+    {
+      "id": "categorize-error",
+      "name": "Categorize Error",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [700, 300],
+      "parameters": {
+        "values": {
+          "options": [
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.severity }}",
+                    "value2": "critical"
+                  }
+                ]
+              },
+              "outputIndex": 0
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.severity }}",
+                    "value2": "high"
+                  }
+                ]
+              },
+              "outputIndex": 1
+            },
+            {
+              "conditions": {
+                "string": [
+                  {
+                    "value1": "={{ $json.severity }}",
+                    "value2": "medium"
+                  }
+                ]
+              },
+              "outputIndex": 2
+            }
+          ]
+        },
+        "mode": "expression"
+      }
+    },
+    {
+      "id": "critical-error-handler",
+      "name": "Critical Error Handler",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 150],
+      "parameters": {
+        "functionCode": "const error = $json; return { alert_type: 'critical_error', error_id: error.error_id, message: `CRITICAL ERROR: ${error.error_message}`, source: error.source, user_id: error.user_id, context: error.context, timestamp: error.timestamp, action_required: 'immediate_investigation', escalation_level: 'urgent', notification_channels: ['email', 'slack', 'webhook'] };"
+      }
+    },
+    {
+      "id": "high-error-handler",
+      "name": "High Priority Error Handler",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 250],
+      "parameters": {
+        "functionCode": "const error = $json; return { alert_type: 'high_priority_error', error_id: error.error_id, message: `HIGH PRIORITY: ${error.error_message}`, source: error.source, user_id: error.user_id, context: error.context, timestamp: error.timestamp, action_required: 'investigation_within_1h', escalation_level: 'high', notification_channels: ['email', 'slack'] };"
+      }
+    },
+    {
+      "id": "medium-error-handler",
+      "name": "Medium Priority Error Handler",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 350],
+      "parameters": {
+        "functionCode": "const error = $json; return { alert_type: 'medium_priority_error', error_id: error.error_id, message: `Error logged: ${error.error_message}`, source: error.source, user_id: error.user_id, context: error.context, timestamp: error.timestamp, action_required: 'review_daily', escalation_level: 'normal', notification_channels: ['log'] };"
+      }
+    },
+    {
+      "id": "send-email-alert",
+      "name": "Send Email Alert",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1100, 150],
+      "parameters": {
+        "functionCode": "const alert = $json; return { email_type: 'error_alert', to: 'admin@example.com', subject: `[${alert.escalation_level.toUpperCase()}] ${alert.alert_type}`, body: `Error ID: ${alert.error_id}\\nMessage: ${alert.message}\\nSource: ${alert.source}\\nUser: ${alert.user_id}\\nTime: ${alert.timestamp}\\nAction Required: ${alert.action_required}\\n\\nContext: ${JSON.stringify(alert.context, null, 2)}`, timestamp: new Date().toISOString() };"
+      }
+    },
+    {
+      "id": "send-slack-notification",
+      "name": "Send Slack Notification",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1100, 250],
+      "parameters": {
+        "functionCode": "const alert = $json; const emoji = alert.escalation_level === 'urgent' ? '🚨' : alert.escalation_level === 'high' ? '⚠️' : '📝'; return { slack_type: 'error_notification', channel: '#alerts', message: `${emoji} *${alert.alert_type}*\\n*Error:* ${alert.message}\\n*Source:* ${alert.source}\\n*User:* ${alert.user_id}\\n*Time:* ${alert.timestamp}\\n*Action:* ${alert.action_required}`, timestamp: new Date().toISOString() };"
+      }
+    },
+    {
+      "id": "log-error",
+      "name": "Log Error",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1300, 300],
+      "parameters": {
+        "functionCode": "const alert = $json; const originalError = $('parse-error').first().json; return { log_entry: { error_id: originalError.error_id, timestamp: originalError.timestamp, severity: originalError.severity, error_type: originalError.error_type, source: originalError.source, user_id: originalError.user_id, message: originalError.error_message, context: originalError.context, alert_sent: alert.alert_type || 'none', escalation_level: alert.escalation_level || 'none', status: 'logged' } };"
+      }
+    },
+    {
+      "id": "auto-recovery-check",
+      "name": "Auto Recovery Check",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1500, 300],
+      "parameters": {
+        "functionCode": "const error = $('parse-error').first().json; let recoveryAction = null; if (error.error_type === 'network') { recoveryAction = { type: 'retry', delay: 5000, max_retries: 3 }; } else if (error.error_type === 'resource' && error.error_message.includes('file not found')) { recoveryAction = { type: 'skip', reason: 'file_missing' }; } else if (error.error_type === 'validation') { recoveryAction = { type: 'sanitize', action: 'clean_input' }; } return { error_id: error.error_id, recovery_possible: recoveryAction !== null, recovery_action: recoveryAction, auto_recovery_enabled: true, timestamp: new Date().toISOString() };"
+      }
+    },
+    {
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1700, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"error_id\": $json.error_id, \"status\": \"logged\", \"recovery_possible\": $json.recovery_possible, \"recovery_action\": $json.recovery_action, \"timestamp\": $json.timestamp } }}"
+      }
+    },
+    {
+      "id": "scheduled-error-summary",
+      "name": "Scheduled Error Summary",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 600],
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyDay",
+              "hour": 9,
+              "minute": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "generate-error-report",
+      "name": "Generate Daily Error Report",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [300, 600],
+      "parameters": {
+        "functionCode": "const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000); return { report_type: 'daily_error_summary', date: yesterday.toISOString().split('T')[0], period: 'last_24_hours', timestamp: new Date().toISOString(), summary: { critical_errors: 0, high_priority_errors: 0, medium_priority_errors: 0, total_errors: 0, most_common_error_type: 'network', recovery_success_rate: 85 } };"
+      }
+    }
+  ],
+  "connections": {
+    "start-trigger": {
+      "main": [
+        [
+          {
+            "node": "error-webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "error-webhook": {
+      "main": [
+        [
+          {
+            "node": "parse-error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "parse-error": {
+      "main": [
+        [
+          {
+            "node": "categorize-error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "categorize-error": {
+      "main": [
+        [
+          {
+            "node": "critical-error-handler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "high-error-handler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "medium-error-handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "critical-error-handler": {
+      "main": [
+        [
+          {
+            "node": "send-email-alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "send-slack-notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "high-error-handler": {
+      "main": [
+        [
+          {
+            "node": "send-slack-notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "medium-error-handler": {
+      "main": [
+        [
+          {
+            "node": "log-error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send-email-alert": {
+      "main": [
+        [
+          {
+            "node": "log-error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send-slack-notification": {
+      "main": [
+        [
+          {
+            "node": "log-error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "log-error": {
+      "main": [
+        [
+          {
+            "node": "auto-recovery-check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "auto-recovery-check": {
+      "main": [
+        [
+          {
+            "node": "webhook-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "scheduled-error-summary": {
+      "main": [
+        [
+          {
+            "node": "generate-error-report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": {},
+  "tags": ["production", "error-handling", "monitoring", "alerts", "v1.2.0"],
+  "triggerCount": 2,
+  "createdAt": "2025-06-24T12:00:00.000Z",
+  "updatedAt": "2025-06-24T12:00:00.000Z",
+  "versionId": "1"
+}

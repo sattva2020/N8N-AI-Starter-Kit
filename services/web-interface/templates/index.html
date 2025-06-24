@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}N8N AI Starter Kit - Главная{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="text-center mb-5">
+            <h1 class="display-4 mb-3">
+                <i class="fas fa-robot text-primary me-3"></i>
+                N8N AI Starter Kit
+            </h1>
+            <p class="lead text-muted">Advanced RAG Pipeline v1.2.0 - Production Ready</p>
+            <div class="d-flex justify-content-center align-items-center mt-4">
+                <span class="badge bg-success fs-6 me-3">
+                    <i class="fas fa-check-circle me-1"></i>ML-стек активирован
+                </span>
+                <span class="badge bg-primary fs-6 me-3">
+                    <i class="fas fa-brain me-1"></i>SentenceTransformers
+                </span>
+                <span class="badge bg-info fs-6">
+                    <i class="fas fa-database me-1"></i>Qdrant Vector DB
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Поиск документов -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <div class="mb-3">
+                    <i class="fas fa-search fa-3x text-primary"></i>
+                </div>
+                <h5 class="card-title">Семантический поиск</h5>
+                <p class="card-text">Ищите информацию в документах с помощью векторного поиска и ИИ</p>
+                <a href="/search" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>Начать поиск
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Загрузка документов -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <div class="mb-3">
+                    <i class="fas fa-upload fa-3x text-success"></i>
+                </div>
+                <h5 class="card-title">Загрузка документов</h5>
+                <p class="card-text">Добавьте новые документы для обработки и индексации</p>
+                <a href="/upload" class="btn btn-success">
+                    <i class="fas fa-upload me-2"></i>Загрузить
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Управление документами -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <div class="mb-3">
+                    <i class="fas fa-file-alt fa-3x text-warning"></i>
+                </div>
+                <h5 class="card-title">Документы</h5>
+                <p class="card-text">Просматривайте и управляйте загруженными документами</p>
+                <a href="/documents" class="btn btn-warning">
+                    <i class="fas fa-file-alt me-2"></i>Управление
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Аналитика -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <div class="mb-3">
+                    <i class="fas fa-chart-bar fa-3x text-info"></i>
+                </div>
+                <h5 class="card-title">Аналитика</h5>
+                <p class="card-text">Статистика использования и производительности системы</p>
+                <a href="/analytics" class="btn btn-info">
+                    <i class="fas fa-chart-bar me-2"></i>Статистика
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статус системы -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-server me-2"></i>Статус системы
+                </h5>
+                <button class="btn btn-outline-primary btn-sm" onclick="refreshSystemStatus()">
+                    <i class="fas fa-sync-alt me-1"></i>Обновить
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="system-status-details" class="row g-3">
+                    <!-- Статус будет загружен через JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Быстрые действия -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>Быстрые действия
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-outline-primary" onclick="testSearch()">
+                        <i class="fas fa-vial me-1"></i>Тест поиска
+                    </button>
+                    <button class="btn btn-outline-success" onclick="uploadTestDocument()">
+                        <i class="fas fa-file-upload me-1"></i>Загрузить тестовый документ
+                    </button>
+                    <button class="btn btn-outline-info" onclick="checkHealth()">
+                        <i class="fas fa-heartbeat me-1"></i>Проверить здоровье
+                    </button>
+                    <a href="/docs" class="btn btn-outline-secondary" target="_blank">
+                        <i class="fas fa-book me-1"></i>API документация
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Загрузка статуса системы
+    async function refreshSystemStatus() {
+        const statusContainer = document.getElementById('system-status-details');
+        statusContainer.innerHTML = `
+            <div class="col-12 text-center">
+                <div class="spinner"></div>
+                <p class="mt-2">Загрузка статуса...</p>
+            </div>
+        `;
+        
+        try {
+            const response = await fetch('/api/status');
+            const data = await response.json();
+            
+            statusContainer.innerHTML = `
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        <span class="status-indicator ${data.web_interface.status === 'running' ? 'status-healthy' : 'status-unhealthy'}"></span>
+                        <div>
+                            <strong>Web Interface</strong><br>
+                            <small class="text-muted">${data.web_interface.status} - v${data.web_interface.version}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        <span class="status-indicator ${data.document_processor.status === 'healthy' ? 'status-healthy' : 'status-unhealthy'}"></span>
+                        <div>
+                            <strong>Document Processor</strong><br>
+                            <small class="text-muted">${data.document_processor.status}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+        } catch (error) {
+            statusContainer.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Ошибка загрузки статуса: ${error.message}
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    // Тест поиска
+    async function testSearch() {
+        try {
+            const response = await fetch('/api/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: 'тестовый запрос',
+                    limit: 3
+                })
+            });
+            
+            const results = await response.json();
+            showNotification(`Тест поиска выполнен. Найдено результатов: ${results.results ? results.results.length : 0}`, 'success');
+            
+        } catch (error) {
+            showNotification('Ошибка при тестировании поиска: ' + error.message, 'error');
+        }
+    }
+    
+    // Загрузка тестового документа
+    async function uploadTestDocument() {
+        // Создаем тестовый файл
+        const testContent = 'Это тестовый документ для проверки функциональности загрузки и индексации.';
+        const blob = new Blob([testContent], { type: 'text/plain' });
+        const formData = new FormData();
+        formData.append('file', blob, 'test-document.txt');
+        
+        try {
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            if (response.ok) {
+                showNotification('Тестовый документ успешно загружен!', 'success');
+            } else {
+                showNotification('Ошибка загрузки: ' + result.detail, 'error');
+            }
+            
+        } catch (error) {
+            showNotification('Ошибка при загрузке тестового документа: ' + error.message, 'error');
+        }
+    }
+    
+    // Проверка здоровья системы
+    async function checkHealth() {
+        try {
+            const response = await fetch('/health');
+            const data = await response.json();
+            
+            if (data.status === 'healthy') {
+                showNotification('Система работает нормально!', 'success');
+            } else {
+                showNotification('Обнаружены проблемы в системе', 'warning');
+            }
+            
+        } catch (error) {
+            showNotification('Ошибка при проверке здоровья системы: ' + error.message, 'error');
+        }
+    }
+    
+    // Загружаем статус при открытии страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        refreshSystemStatus();
+    });
+</script>
+{% endblock %}

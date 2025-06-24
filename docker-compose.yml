@@ -20,10 +20,12 @@ services:
       - NODE_ENV=production
       - WEBHOOK_URL=${WEBHOOK_URL}
       - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+      - N8N_USER_MANAGEMENT_DISABLED=${N8N_USER_MANAGEMENT_DISABLED}
     volumes:
       - n8n_storage:/home/node/.n8n
       - ./data/n8n-files:/home/node/.n8n/binaryData
-      - ./data/n8n-workflows:/home/node/.n8n/workflows
+      - ./n8n/workflows:/home/node/.n8n/workflows:ro  # Автоматический импорт workflows
+      - ./scripts:/scripts:ro  # Скрипты импорта
     networks:
       - frontend
       - backend
@@ -35,25 +37,10 @@ services:
   # ===== END ANCHOR DEFINITIONS =====
 
 
-  traefik:
-    image: traefik:latest # latest для упрощения поддержки
+  # Общие настройки для Traefik
+  x-traefik-base: &traefik-base
+    image: traefik:latest
     restart: unless-stopped
-    command:
-      - "--api.dashboard=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedByDefault=false"
-      - "--providers.file.directory=/etc/traefik/dynamic"
-      - "--entryPoints.web.address=:80"
-      # For localhost development, use HTTP only (no HTTPS redirect)
-      # Comment these lines for production with real domains:
-      # - "--entryPoints.web.http.redirections.entryPoint.to=websecure"
-      # - "--entryPoints.web.http.redirections.entryPoint.scheme=https"
-      - "--entryPoints.websecure.address=:443"
-      # Disable ACME for localhost development
-      # Uncomment and configure for production with real domains:
-      # - "--certificatesResolvers.myresolver.acme.email=${ACME_EMAIL}"
-      # - "--certificatesResolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-      # - "--certificatesResolvers.myresolver.acme.tlsChallenge=true"
     ports:
       - "80:80"
       - "443:443"
@@ -63,18 +50,6 @@ services:
       - ./config/traefik:/etc/traefik/dynamic
     networks:
       - frontend
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`${TRAEFIK_DASHBOARD_DOMAIN}`)"
-      - "traefik.http.routers.traefik.service=api@internal"
-      # Use HTTP for localhost development
-      - "traefik.http.routers.traefik.entrypoints=web"
-      # Disable TLS for localhost development
-      # Uncomment for production:
-      # - "traefik.http.routers.traefik.entrypoints=websecure"
-      # - "traefik.http.routers.traefik.tls.certresolver=myresolver"
-      - "traefik.http.routers.traefik.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_USERNAME}:${TRAEFIK_PASSWORD_HASHED}"
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 10s
@@ -82,6 +57,59 @@ services:
       retries: 3
       start_period: 5s
 
+  # ===== TRAEFIK PROXY =====
+  
+  traefik:
+    <<: *traefik-base
+    profiles: [default, cpu, developer]
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--entryPoints.web.address=:80"
+      - "--entryPoints.websecure.address=:443"
+      # Development: без SSL редиректов
+      - "--ping=true"
+      - "--log.level=INFO"
+      - "--accesslog=true"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`${TRAEFIK_DASHBOARD_DOMAIN}`)"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_USERNAME}:${TRAEFIK_PASSWORD_HASHED}"
+
+  traefik-production:
+    <<: *traefik-base
+    profiles: [production]
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--entryPoints.web.address=:80"
+      - "--entryPoints.websecure.address=:443"
+      # Production: автоматические HTTPS редиректы
+      - "--entryPoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entryPoints.web.http.redirections.entryPoint.scheme=https"
+      # Let's Encrypt ACME configuration
+      - "--certificatesResolvers.myresolver.acme.email=${ACME_EMAIL}"
+      - "--certificatesResolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesResolvers.myresolver.acme.tlsChallenge=true"
+      # Security настройки
+      - "--ping=true"
+      - "--log.level=INFO"
+      - "--accesslog=true"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`${TRAEFIK_DASHBOARD_DOMAIN}`)"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
+      - "traefik.http.routers.traefik.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_USERNAME}:${TRAEFIK_PASSWORD_HASHED}"
   n8n:
     <<: *service-n8n
     profiles: [default, cpu, developer]
@@ -94,10 +122,6 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`)"
       - "traefik.http.routers.n8n.entrypoints=web"
-      # Disable TLS for localhost development
-      # Uncomment for production:
-      # - "traefik.http.routers.n8n.entrypoints=websecure"
-      # - "traefik.http.routers.n8n.tls.certresolver=myresolver"
       - "traefik.http.services.n8n.loadbalancer.server.port=5678"
     deploy:
       resources:
@@ -113,6 +137,59 @@ services:
       timeout: 10s
       retries: 5
       start_period: 90s  # Увеличиваем время запуска
+
+  # N8N Production with SSL
+  n8n-production:
+    <<: *service-n8n
+    profiles: [production]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.n8n-prod.rule=Host(`${N8N_DOMAIN}`)"
+      - "traefik.http.routers.n8n-prod.entrypoints=websecure"
+      - "traefik.http.routers.n8n-prod.tls.certresolver=myresolver"
+      - "traefik.http.routers.n8n-prod.middlewares=security-headers@file,gzip-compression@file"
+      - "traefik.http.services.n8n-prod.loadbalancer.server.port=5678"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5678/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+  # N8N Workflows Auto-Importer v1.2.0
+  n8n-workflows-importer:
+    build:
+      context: .
+      dockerfile: services/n8n-importer/Dockerfile
+    profiles: [default, cpu, developer, production]
+    depends_on:
+      n8n:
+        condition: service_healthy
+    volumes:
+      - ./n8n/workflows:/workflows:ro
+      - n8n_import_logs:/app/logs  # Логи импорта
+    networks:
+      - frontend
+    environment:
+      - N8N_URL=http://n8n:5678
+      - PYTHONUNBUFFERED=1
+    restart: "no"  # Запускается один раз при развертывании
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
 
   postgres:
     image: pgvector/pgvector:pg17 # Образ с поддержкой pgvector для Graphiti (последняя версия)
@@ -209,6 +286,156 @@ services:
       retries: 5  # Увеличиваем количество попыток
       start_period: 60s  # Увеличиваем время запуска
 
+  document-processor:
+    build: ./services/document-processor
+    restart: unless-stopped
+    profiles: [default, cpu, developer]
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./data/uploads:/app/uploads
+      - ./data/processed:/app/processed
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - MAX_FILE_SIZE=100MB
+      - SUPPORTED_FORMATS=pdf,docx,txt,md,rtf
+    networks:
+      - backend
+      - frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.docprocessor.rule=Host(`${DOCUMENT_PROCESSOR_DOMAIN}`)"
+      - "traefik.http.routers.docprocessor.entrypoints=web"
+      - "traefik.http.services.docprocessor.loadbalancer.server.port=8001"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2'
+        reservations:
+          memory: 1G
+          cpus: '1'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Document Processor Production with SSL  
+  document-processor-production:
+    build: ./services/document-processor
+    restart: unless-stopped
+    profiles: [production]
+    volumes:
+      - ./data/uploads:/app/uploads
+      - ./data/processed:/app/processed
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - MAX_FILE_SIZE=100MB
+      - SUPPORTED_FORMATS=pdf,docx,txt,md,rtf
+    networks:
+      - backend
+      - frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.docprocessor-prod.rule=Host(`${DOCUMENT_PROCESSOR_DOMAIN}`)"
+      - "traefik.http.routers.docprocessor-prod.entrypoints=websecure"
+      - "traefik.http.routers.docprocessor-prod.tls.certresolver=myresolver"
+      - "traefik.http.routers.docprocessor-prod.middlewares=security-headers@file,api-cors@file,gzip-compression@file"
+      - "traefik.http.services.docprocessor-prod.loadbalancer.server.port=8001"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2'
+        reservations:
+          memory: 1G
+          cpus: '1'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  web-interface:
+    build: ./services/web-interface
+    restart: unless-stopped
+    profiles: [default, cpu, developer]
+    ports:
+      - "8002:8002"
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - DOCUMENT_PROCESSOR_URL=http://document-processor:8001
+      - QDRANT_URL=http://qdrant:6333
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      document-processor:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webinterface.rule=Host(`${WEB_INTERFACE_DOMAIN}`)"
+      - "traefik.http.routers.webinterface.entrypoints=web"
+      - "traefik.http.services.webinterface.loadbalancer.server.port=8002"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Web Interface Production with SSL
+  web-interface-production:
+    build: ./services/web-interface
+    restart: unless-stopped
+    profiles: [production]
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - DOCUMENT_PROCESSOR_URL=http://document-processor-production:8001
+      - QDRANT_URL=http://qdrant:6333
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      document-processor-production:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webinterface-prod.rule=Host(`${WEB_INTERFACE_DOMAIN}`)"
+      - "traefik.http.routers.webinterface-prod.entrypoints=websecure"
+      - "traefik.http.routers.webinterface-prod.tls.certresolver=myresolver"
+      - "traefik.http.routers.webinterface-prod.middlewares=security-headers@file,gzip-compression@file"
+      - "traefik.http.services.webinterface-prod.loadbalancer.server.port=8002"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   # ollama:
   #   <<: *service-ollama
   #   profiles: [default, cpu]
@@ -275,6 +502,7 @@ volumes:
   pgadmin_data:
   qdrant_storage:
   jupyter_data:
+  n8n_import_logs:  # Логи автоматического импорта workflows
 
 networks:
   frontend:
