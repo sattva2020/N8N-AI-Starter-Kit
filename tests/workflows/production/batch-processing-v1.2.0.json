@@ -1,0 +1,254 @@
+{
+  "name": "Batch Document Processing v1.2.0",
+  "active": true,
+  "nodes": [
+    {
+      "id": "start-trigger",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "parameters": {}
+    },
+    {
+      "id": "webhook-batch",
+      "name": "Batch Processing Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [300, 300],
+      "parameters": {
+        "path": "batch-process",
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      }
+    },
+    {
+      "id": "validate-batch",
+      "name": "Validate Batch Request",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "parameters": {
+        "functionCode": "const body = $json.body; if (!body || !body.files || !Array.isArray(body.files)) { throw new Error('Missing files array in request body'); } if (body.files.length === 0) { throw new Error('Files array is empty'); } if (body.files.length > 50) { throw new Error('Too many files, maximum 50 files allowed per batch'); } const validFiles = body.files.filter(file => file && typeof file === 'string' && file.trim().length > 0); if (validFiles.length === 0) { throw new Error('No valid file paths found'); } return { files: validFiles, batch_id: 'batch_' + Date.now(), total_files: validFiles.length, user_id: body.user_id || 'anonymous', priority: body.priority || 'normal', notify_on_complete: body.notify_on_complete || false, created_at: new Date().toISOString() };"
+      }
+    },
+    {
+      "id": "create-batch-status",
+      "name": "Create Batch Status",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [700, 300],
+      "parameters": {
+        "functionCode": "const batch = $json; return { batch_id: batch.batch_id, status: 'processing', total_files: batch.total_files, processed_files: 0, successful_files: 0, failed_files: 0, progress_percentage: 0, started_at: new Date().toISOString(), estimated_completion: null, files: batch.files.map(file => ({ file_path: file, status: 'pending', started_at: null, completed_at: null, error: null })) };"
+      }
+    },
+    {
+      "id": "process-files-loop",
+      "name": "Process Files Loop",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      }
+    },
+    {
+      "id": "process-single-file",
+      "name": "Process Single File",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1100, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "http://document-processor:8000/api/upload",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"file_path\": $json, \"document_type\": \"auto\", \"batch_id\": $('validate-batch').first().json.batch_id } }}",
+        "options": {
+          "timeout": 120000
+        }
+      }
+    },
+    {
+      "id": "update-file-status",
+      "name": "Update File Status",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1300, 300],
+      "parameters": {
+        "functionCode": "const result = $json; const batchData = $('validate-batch').first().json; const currentFile = $('process-files-loop').first().json; return { batch_id: batchData.batch_id, file_path: currentFile, status: result.status === 'success' ? 'completed' : 'failed', document_id: result.document_id || null, processing_time: result.processing_time || 0, error: result.error || null, completed_at: new Date().toISOString(), pages: result.pages || 0, chunks_created: result.chunks ? result.chunks.length : 0 };"
+      }
+    },
+    {
+      "id": "check-batch-complete",
+      "name": "Check Batch Complete",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1500, 300],
+      "parameters": {
+        "functionCode": "const fileResult = $json; const allResults = $('update-file-status').all(); const batchData = $('validate-batch').first().json; const totalFiles = batchData.total_files; const processedFiles = allResults.length; const successfulFiles = allResults.filter(r => r.json.status === 'completed').length; const failedFiles = allResults.filter(r => r.json.status === 'failed').length; const progressPercentage = Math.round((processedFiles / totalFiles) * 100); const isComplete = processedFiles >= totalFiles; const totalProcessingTime = allResults.reduce((sum, r) => sum + (r.json.processing_time || 0), 0); const avgProcessingTime = processedFiles > 0 ? totalProcessingTime / processedFiles : 0; return { batch_id: batchData.batch_id, is_complete: isComplete, status: isComplete ? (failedFiles > 0 ? 'completed_with_errors' : 'completed') : 'processing', total_files: totalFiles, processed_files: processedFiles, successful_files: successfulFiles, failed_files: failedFiles, progress_percentage: progressPercentage, avg_processing_time: avgProcessingTime, total_processing_time: totalProcessingTime, completed_at: isComplete ? new Date().toISOString() : null };"
+      }
+    },
+    {
+      "id": "batch-complete-notification",
+      "name": "Batch Complete Notification",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1700, 200],
+      "parameters": {
+        "functionCode": "const batchStatus = $json; const batchData = $('validate-batch').first().json; return { notification_type: 'batch_completed', batch_id: batchStatus.batch_id, user_id: batchData.user_id, status: batchStatus.status, total_files: batchStatus.total_files, successful_files: batchStatus.successful_files, failed_files: batchStatus.failed_files, total_processing_time: batchStatus.total_processing_time, avg_processing_time: batchStatus.avg_processing_time, started_at: batchData.created_at, completed_at: batchStatus.completed_at, message: `Batch processing completed: ${batchStatus.successful_files}/${batchStatus.total_files} files processed successfully` };"
+      }
+    },
+    {
+      "id": "final-response",
+      "name": "Final Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1700, 400],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"batch_id\": $json.batch_id, \"status\": $json.status, \"total_files\": $json.total_files, \"successful_files\": $json.successful_files, \"failed_files\": $json.failed_files, \"progress_percentage\": $json.progress_percentage, \"avg_processing_time\": $json.avg_processing_time, \"message\": $json.is_complete ? \"Batch processing completed\" : \"Batch processing in progress\" } }}"
+      }
+    },
+    {
+      "id": "scheduled-cleanup",
+      "name": "Scheduled Cleanup",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 600],
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyHour"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cleanup-old-batches",
+      "name": "Cleanup Old Batches",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [300, 600],
+      "parameters": {
+        "functionCode": "const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000); return { cleanup_type: 'old_batches', cutoff_time: cutoffTime.toISOString(), message: 'Cleaning up batch data older than 24 hours', timestamp: new Date().toISOString() };"
+      }
+    }
+  ],
+  "connections": {
+    "start-trigger": {
+      "main": [
+        [
+          {
+            "node": "webhook-batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-batch": {
+      "main": [
+        [
+          {
+            "node": "validate-batch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "validate-batch": {
+      "main": [
+        [
+          {
+            "node": "create-batch-status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create-batch-status": {
+      "main": [
+        [
+          {
+            "node": "process-files-loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "process-files-loop": {
+      "main": [
+        [
+          {
+            "node": "process-single-file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "process-single-file": {
+      "main": [
+        [
+          {
+            "node": "update-file-status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update-file-status": {
+      "main": [
+        [
+          {
+            "node": "check-batch-complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-batch-complete": {
+      "main": [
+        [
+          {
+            "node": "batch-complete-notification",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "final-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "scheduled-cleanup": {
+      "main": [
+        [
+          {
+            "node": "cleanup-old-batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": {},
+  "tags": ["production", "batch-processing", "automation", "documents", "v1.2.0"],
+  "triggerCount": 2,
+  "createdAt": "2025-06-24T12:00:00.000Z",
+  "updatedAt": "2025-06-24T12:00:00.000Z",
+  "versionId": "1"
+}

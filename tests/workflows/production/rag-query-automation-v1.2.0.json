@@ -1,0 +1,263 @@
+{
+  "name": "RAG Query Automation v1.2.0",
+  "active": true,
+  "nodes": [
+    {
+      "id": "start-trigger",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "parameters": {}
+    },
+    {
+      "id": "webhook-query",
+      "name": "Query Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [300, 300],
+      "parameters": {
+        "path": "rag-query",
+        "httpMethod": "POST",
+        "responseMode": "responseNode"
+      }
+    },
+    {
+      "id": "validate-query",
+      "name": "Validate Query",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "parameters": {
+        "functionCode": "const body = $json.body; if (!body || !body.query) { throw new Error('Missing query in request body'); } if (body.query.length < 3) { throw new Error('Query too short, minimum 3 characters required'); } if (body.query.length > 1000) { throw new Error('Query too long, maximum 1000 characters allowed'); } return { query: body.query.trim(), max_results: body.max_results || 5, include_metadata: body.include_metadata || false, user_id: body.user_id || 'anonymous', session_id: body.session_id || Date.now().toString(), timestamp: new Date().toISOString() };"
+      }
+    },
+    {
+      "id": "preprocess-query",
+      "name": "Preprocess Query",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [700, 300],
+      "parameters": {
+        "functionCode": "const query = $json.query; const cleanQuery = query.replace(/[^a-zA-Zа-яА-Я0-9\\s\\-_.]/g, '').trim(); const queryType = query.includes('?') ? 'question' : query.includes('найди') || query.includes('покажи') ? 'search' : 'general'; const keywords = cleanQuery.toLowerCase().split(' ').filter(word => word.length > 2); return { original_query: query, clean_query: cleanQuery, query_type: queryType, keywords: keywords, max_results: $json.max_results, include_metadata: $json.include_metadata, user_id: $json.user_id, session_id: $json.session_id, timestamp: $json.timestamp };"
+      }
+    },
+    {
+      "id": "search-vectors",
+      "name": "Search Vectors",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [900, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "http://web-interface:8001/api/search",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"query\": $json.clean_query, \"limit\": $json.max_results, \"include_metadata\": $json.include_metadata } }}",
+        "options": {
+          "timeout": 30000
+        }
+      }
+    },
+    {
+      "id": "process-results",
+      "name": "Process Results",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1100, 300],
+      "parameters": {
+        "functionCode": "const searchData = $json; const queryData = $('preprocess-query').first().json; const results = searchData.results || []; const processedResults = results.map((result, index) => ({ rank: index + 1, score: result.score || 0, content: result.content || '', document_id: result.document_id || '', metadata: result.metadata || {}, relevance: result.score > 0.8 ? 'high' : result.score > 0.6 ? 'medium' : 'low' })); const summary = { total_results: results.length, high_relevance: processedResults.filter(r => r.relevance === 'high').length, medium_relevance: processedResults.filter(r => r.relevance === 'medium').length, low_relevance: processedResults.filter(r => r.relevance === 'low').length, best_score: results.length > 0 ? Math.max(...results.map(r => r.score || 0)) : 0, search_time: searchData.search_time || 0 }; return { query: queryData.original_query, query_type: queryData.query_type, results: processedResults, summary: summary, user_id: queryData.user_id, session_id: queryData.session_id, timestamp: queryData.timestamp, processed_at: new Date().toISOString() };"
+      }
+    },
+    {
+      "id": "generate-answer",
+      "name": "Generate Answer",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1300, 300],
+      "parameters": {
+        "functionCode": "const data = $json; const topResults = data.results.slice(0, 3); const context = topResults.map(r => r.content).join('\\n\\n'); let answer = ''; if (data.summary.total_results === 0) { answer = 'По вашему запросу \"' + data.query + '\" документы не найдены. Попробуйте изменить запрос или проверить правильность написания.'; } else if (data.summary.high_relevance > 0) { answer = 'На основе найденных документов: ' + context.substring(0, 500) + (context.length > 500 ? '...' : ''); } else { answer = 'Найдены документы с низкой релевантностью. Возможно, стоит уточнить запрос: ' + context.substring(0, 300) + '...'; } return { query: data.query, answer: answer, results_count: data.summary.total_results, best_score: data.summary.best_score, search_time: data.summary.search_time, confidence: data.summary.high_relevance > 0 ? 'high' : data.summary.medium_relevance > 0 ? 'medium' : 'low', sources: topResults.map(r => ({ document_id: r.document_id, score: r.score, relevance: r.relevance })), user_id: data.user_id, session_id: data.session_id, timestamp: data.timestamp, answered_at: new Date().toISOString() };"
+      }
+    },
+    {
+      "id": "log-query",
+      "name": "Log Query",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1500, 300],
+      "parameters": {
+        "functionCode": "const answerData = $json; return { log_type: 'rag_query', query: answerData.query, user_id: answerData.user_id, session_id: answerData.session_id, results_count: answerData.results_count, best_score: answerData.best_score, confidence: answerData.confidence, search_time: answerData.search_time, timestamp: answerData.timestamp, answered_at: answerData.answered_at };"
+      }
+    },
+    {
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1700, 300],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"query\": $json.query, \"answer\": $json.answer, \"results_count\": $json.results_count, \"confidence\": $json.confidence, \"sources\": $json.sources, \"search_time\": $json.search_time, \"session_id\": $json.session_id, \"timestamp\": $json.answered_at } }}"
+      }
+    },
+    {
+      "id": "scheduled-trigger",
+      "name": "Scheduled Health Check",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 500],
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "health-check",
+      "name": "RAG System Health Check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [300, 500],
+      "parameters": {
+        "method": "GET",
+        "url": "http://web-interface:8001/api/health",
+        "options": {
+          "timeout": 5000
+        }
+      }
+    },
+    {
+      "id": "health-status",
+      "name": "Check Health Status",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [500, 500],
+      "parameters": {
+        "functionCode": "const health = $json; const isHealthy = health.status === 'healthy'; return { system_status: isHealthy ? 'operational' : 'degraded', last_check: new Date().toISOString(), health_data: health, alert_required: !isHealthy };"
+      }
+    }
+  ],
+  "connections": {
+    "start-trigger": {
+      "main": [
+        [
+          {
+            "node": "webhook-query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook-query": {
+      "main": [
+        [
+          {
+            "node": "validate-query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "validate-query": {
+      "main": [
+        [
+          {
+            "node": "preprocess-query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "preprocess-query": {
+      "main": [
+        [
+          {
+            "node": "search-vectors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search-vectors": {
+      "main": [
+        [
+          {
+            "node": "process-results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "process-results": {
+      "main": [
+        [
+          {
+            "node": "generate-answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate-answer": {
+      "main": [
+        [
+          {
+            "node": "log-query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "log-query": {
+      "main": [
+        [
+          {
+            "node": "webhook-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "scheduled-trigger": {
+      "main": [
+        [
+          {
+            "node": "health-check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "health-check": {
+      "main": [
+        [
+          {
+            "node": "health-status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": {},
+  "tags": ["production", "rag", "query-automation", "search", "v1.2.0"],
+  "triggerCount": 2,
+  "createdAt": "2025-06-24T12:00:00.000Z",
+  "updatedAt": "2025-06-24T12:00:00.000Z",
+  "versionId": "1"
+}

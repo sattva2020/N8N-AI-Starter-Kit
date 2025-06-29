@@ -1,0 +1,36 @@
+clickhouse:
+  host: clickhouse
+  port: 9000
+  user: analytics_user
+  password: clickhouse_pass_2024
+  database: n8n_analytics
+
+redis:
+  url: redis://redis:6379/2
+
+api:
+  require_api_key: false
+  api_keys: []
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://localhost:8088"
+    - "http://localhost:8089"
+
+cache:
+  ttl_default: 600      # 10 minutes
+  ttl_long: 3600        # 1 hour
+  ttl_short: 300        # 5 minutes
+
+rate_limiting:
+  requests: 1000
+  window: 3600          # 1 hour
+
+query_limits:
+  max_range_days: 90
+  max_results_per_query: 10000
+
+logging:
+  level: INFO
+  file: /app/logs/analytics-api.log
+  max_size: 100MB
+  backup_count: 5

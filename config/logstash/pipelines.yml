@@ -1,0 +1,20 @@
+# Logstash pipelines configuration
+- pipeline.id: main
+  path.config: "/usr/share/logstash/pipeline/main.conf"
+  pipeline.workers: 2
+  pipeline.batch.size: 1000
+
+- pipeline.id: n8n
+  path.config: "/usr/share/logstash/pipeline/n8n.conf"
+  pipeline.workers: 1
+  pipeline.batch.size: 500
+
+- pipeline.id: docker
+  path.config: "/usr/share/logstash/pipeline/docker.conf"
+  pipeline.workers: 1
+  pipeline.batch.size: 500
+
+- pipeline.id: system
+  path.config: "/usr/share/logstash/pipeline/system.conf"
+  pipeline.workers: 1
+  pipeline.batch.size: 200

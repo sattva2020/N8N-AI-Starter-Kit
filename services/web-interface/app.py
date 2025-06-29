@@ -50,13 +50,19 @@ DOCUMENT_PROCESSOR_URL = os.getenv("DOCUMENT_PROCESSOR_URL", "http://document-pr
 class SearchRequest(BaseModel):
     query: str
     limit: int = 10
+    categories: Optional[List[str]] = None
+    tags: Optional[List[str]] = None
 
 class DocumentInfo(BaseModel):
     id: str
     title: str
     content: str
     metadata: Optional[Dict[str, Any]] = None
+    categories: Optional[List[str]] = None
+    tags: Optional[List[str]] = None
+    version: Optional[str] = None
     created_at: Optional[str] = None
+    last_modified_at: Optional[str] = None
 
 # Health Check
 @app.get("/health")
@@ -124,7 +130,11 @@ async def documents_page(request: Request):
 
 # API endpoints
 @app.post("/api/upload")
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(
+    file: UploadFile = File(...),
+    categories: Optional[str] = Form(None),
+    tags: Optional[str] = Form(None)
+):
     """API для загрузки документов"""
     try:
         # Проксируем запрос к document-processor
@@ -133,6 +143,10 @@ async def upload_document(file: UploadFile = File(...)):
             data.add_field('file', await file.read(), 
                           filename=file.filename, 
                           content_type=file.content_type)
+            if categories:
+                data.add_field('categories', categories)
+            if tags:
+                data.add_field('tags', tags)
             
             async with session.post(f"{DOCUMENT_PROCESSOR_URL}/documents/upload", 
                                   data=data) as response:
@@ -151,7 +165,7 @@ async def search_documents(request: SearchRequest):
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 f"{DOCUMENT_PROCESSOR_URL}/documents/search",
-                json=request.dict()
+                json=request.dict(exclude_unset=True)
             ) as response:
                 result = await response.json()
                 return result
@@ -161,12 +175,33 @@ async def search_documents(request: SearchRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/documents")
-async def list_documents():
-    """API для получения списка документов"""
+async def list_documents(
+    request: Request,
+    query: Optional[str] = None,
+    category: Optional[str] = None,
+    tag: Optional[str] = None,
+    sort_by: Optional[str] = "created_at",
+    sort_order: Optional[str] = "desc",
+    limit: int = 10,
+    offset: int = 0
+):
+    """API для получения списка документов с фильтрацией и сортировкой"""
     try:
-        # Получаем документы от document-processor
+        params = {
+            "query": query,
+            "category": category,
+            "tag": tag,
+            "sort_by": sort_by,
+            "sort_order": sort_order,
+            "limit": limit,
+            "offset": offset
+        }
+        # Удаляем None значения из параметров
+        params = {k: v for k, v in params.items() if v is not None}
+
+        # Проксируем запрос к document-processor
         async with aiohttp.ClientSession() as session:
-            async with session.get(f"{DOCUMENT_PROCESSOR_URL}/documents") as response:
+            async with session.get(f"{DOCUMENT_PROCESSOR_URL}/documents", params=params) as response:
                 if response.status == 200:
                     data = await response.json()
                     return data
@@ -179,20 +214,56 @@ async def list_documents():
                             "title": "Тестовый документ 1",
                             "content": "Содержимое первого документа о машинном обучении...",
                             "metadata": {"type": "text", "size": 1024},
-                            "created_at": datetime.now().isoformat()
+                            "categories": ["AI", "Machine Learning"],
+                            "tags": ["tutorial", "basics"],
+                            "version": "1.0",
+                            "created_at": "2024-01-01T10:00:00Z",
+                            "last_modified_at": datetime.now().isoformat()
                         },
                         {
                             "id": "doc_2", 
                             "title": "Тестовый документ 2",
                             "content": "Содержимое второго документа об искусственном интеллекте...",
                             "metadata": {"type": "pdf", "size": 2048},
-                            "created_at": datetime.now().isoformat()
+                            "categories": ["AI", "Research"],
+                            "tags": ["paper", "advanced"],
+                            "version": "1.1",
+                            "created_at": "2024-01-15T11:30:00Z",
+                            "last_modified_at": datetime.now().isoformat()
+                        },
+                        {
+                            "id": "doc_3", 
+                            "title": "Тестовый документ 3",
+                            "content": "Содержимое третьего документа о нейронных сетях...",
+                            "metadata": {"type": "text", "size": 1500},
+                            "categories": ["Neural Networks"],
+                            "tags": ["deep learning"],
+                            "version": "1.0",
+                            "created_at": "2024-02-01T12:00:00Z",
+                            "last_modified_at": datetime.now().isoformat()
                         }
                     ]
                     
+                    # Применяем фильтрацию к тестовым данным
+                    filtered_documents = []
+                    for doc in documents:
+                        match = True
+                        if query and query.lower() not in doc["content"].lower() and query.lower() not in doc["title"].lower():
+                            match = False
+                        if category and (not doc["categories"] or category not in doc["categories"]):
+                            match = False
+                        if tag and (not doc["tags"] or tag not in doc["tags"]):
+                            match = False
+                        if match:
+                            filtered_documents.append(doc)
+
+                    # Применяем сортировку к тестовым данным
+                    if sort_by:
+                        filtered_documents.sort(key=lambda x: x.get(sort_by, ''), reverse=(sort_order == 'desc'))
+
                     return {
-                        "documents": documents,
-                        "total": len(documents)
+                        "documents": filtered_documents[offset:offset+limit],
+                        "total": len(filtered_documents)
                     }
         
     except Exception as e:

@@ -172,17 +172,41 @@ services:
     build:
       context: .
       dockerfile: services/n8n-importer/Dockerfile
-    profiles: [default, cpu, developer, production]
+    profiles: [default, cpu, developer]
     depends_on:
       n8n:
         condition: service_healthy
     volumes:
-      - ./n8n/workflows:/workflows:ro
+      - ./n8n/workflows:/workflows:ro  # Логи импорта
       - n8n_import_logs:/app/logs  # Логи импорта
     networks:
       - frontend
     environment:
       - N8N_URL=http://n8n:5678
+      - PYTHONUNBUFFERED=1
+    restart: "no"  # Запускается один раз при развертывании
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+
+  # N8N Workflows Auto-Importer for Production v1.2.0
+  n8n-workflows-importer-production:
+    build:
+      context: .
+      dockerfile: services/n8n-importer/Dockerfile
+    profiles: [production]
+    depends_on:
+      n8n-production:
+        condition: service_healthy
+    volumes:
+      - ./n8n/workflows:/workflows:ro  # Логи импорта
+      - n8n_import_logs:/app/logs  # Логи импорта
+    networks:
+      - frontend
+    environment:
+      - N8N_URL=http://n8n-production:5678
       - PYTHONUNBUFFERED=1
     restart: "no"  # Запускается один раз при развертывании
     deploy:

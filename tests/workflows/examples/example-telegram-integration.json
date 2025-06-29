@@ -1,0 +1,509 @@
+{
+  "name": "Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1020,
+        100
+      ],
+      "id": "3e27c688-7fc0-442a-8ff8-4489e24c47fa",
+      "name": "When chat message received",
+      "webhookId": "5b79c33c-df51-4e33-9b73-00d484c5844e",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        560
+      ],
+      "id": "fa6f1f49-f5e9-4500-b9f3-fd31c94521e4",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "model": "openai/o3-mini-high",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        120,
+        500
+      ],
+      "id": "b4f36da1-7644-4b58-8878-386e4693a1fb",
+      "name": "03 mini Hight"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Ты — агент маршрутизации.\n\nТвоя задача — принимать запросы пользователей и решать, какая модель лучше всего подходит для каждого случая использования, который может возникнуть у пользователя. У тебя есть 3 модели, которые ты можешь выбрать для обработки запроса пользователя:\n\n1.) \"perplexity/sonar\"\n2.) \"openai/o3-mini-high\"\n3.) \"anthropic/claude-3.7-sonnet\"\n\nКаждая модель имеет свои сильные стороны и может дать лучшие ответы для определенных вопросов и команд пользователя. Давай разберемся в сильных сторонах каждой модели, чтобы ты мог выбрать ту, которая лучше всего подходит для запроса пользователя:\n\nМодель:\nperplexity/sonar\n\nСильные стороны:\n- Встроенный поиск по интернету.\n- Возможность использовать цитаты и настраивать источники.\n- Может искать данные в интернете в реальном времени.\n\nМодель:\nopenai/o3-mini-high\n\nСильные стороны:\n- o3-mini — это экономичная языковая модель, оптимизированная для сложных задач рассуждения.\n- Превосходит в науке и математике.\n- Эта модель лучше всего подходит для ситуаций, когда требуются тщательные, хорошо продуманные ответы на задачи с несколькими переменными или взаимосвязями.\n\nМодель:\nanthropic/claude-3.7-sonnet\n\nСильные стороны:\n- это усовершенствованная языковая модель с улучшенными возможностями рассуждения, кодирования и решения проблем.\n- Вводит гибридный подход к рассуждениям, позволяя пользователям выбирать между быстрыми ответами и расширенной обработкой шаг за шагом для сложных задач.\n- Модель демонстрирует заметные улучшения в кодировании, особенно в разработке фронтенда и обновлениях полного стека.\n- Превосходно работает в агентных рабочих процессах, где она может автономно навигировать по многошаговым процессам.\n- сохраняет производительность на уровне предыдущей модели в стандартном режиме, но предлагает расширенный режим рассуждения для повышения точности в задачах по математике, кодированию и выполнению инструкций.\n\nТы должен передавать запрос пользователя и решать, какую модель использовать, используя структурированный JSON объект, как показано ниже:\n\n\nJSON структура объекта:\n\nJSON Object Structure:\n{\n\"uperQuery\": \"user query here\",\n\"model\": \"selected model here\"\n}\n\n\nПримеры:\nПример 1:\n{\n  \"userQuery\": \"Найти в интернете свежие новости по ИИ в маркетинге.\",\n  \"model\": \"perplexity/sonar\"\n}\n\nПример 2:\n{\n  \"userQuery\": \"Создать контент план для фитнес тренера на неделю, чтобы набрать больше подписчиков в Инстаграм.\",\n  \"model\": \"openai/o3-mini-high\"\n}\n\nПример 3:\n{\n  \"userQuery\": \"Напиши код для создания игры Тетрис на Python.\",\n  \"model\": \"anthropic/claude-3.7-sonnet\"\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        220,
+        300
+      ],
+      "id": "86cb2077-4871-4bd5-b920-031879c3637d",
+      "name": "AI Agent (Выбирает модель)"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output.uperQuery }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        620,
+        260
+      ],
+      "id": "4696386e-f11f-4b1a-922a-3cfc56c3b2ab",
+      "name": "AI Agent1 (конечный ответ)"
+    },
+    {
+      "parameters": {
+        "model": "={{ $json.output.model }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        620,
+        560
+      ],
+      "id": "ce703698-c14a-4eaf-9c35-089d164d02b3",
+      "name": "OpenRouter Chat Model"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        740,
+        500
+      ],
+      "id": "c3a0bb8d-28a7-46fb-9302-b7350be3e8a1",
+      "name": "Window Buffer Memory1"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "02e33a29-4031-4b8e-95c1-af088863c81b",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1560,
+        380
+      ],
+      "webhookId": "2194a6b2-2302-4406-9c8c-207161b7eb22"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9d8e573-3830-4e93-9f74-4838b5ff49b5",
+              "name": "text",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -720,
+        220
+      ],
+      "id": "d5a906df-09a4-431b-bdb7-203f1b67444a",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Telegram Trigger').item.json.message.voice.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -820,
+        480
+      ],
+      "id": "de8670c6-6039-4754-bb05-7df8c3da8959",
+      "name": "Telegram",
+      "webhookId": "c66673cf-72f0-4233-82d8-70fe313d8765"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -620,
+        480
+      ],
+      "id": "48414417-9192-42d0-a7ca-4728a7a40a72",
+      "name": "OpenAI"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ca9cc06c-dcf8-457b-854b-4c03d3d15dcc",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1100,
+        380
+      ],
+      "id": "75ce9088-a6e5-48a4-a7e8-0f7ea3d990dc",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1320,
+        380
+      ],
+      "id": "11135b40-5576-4279-b1ef-df0f23b4d3b9",
+      "name": "Telegram2",
+      "webhookId": "8cd99b7a-3eca-4fd9-9b9a-168ea002f4b1"
+    },
+    {
+      "parameters": {
+        "content": "## СТАРТ И ЗАПУСК\n**Работа с текстом и голосом**",
+        "height": 680,
+        "width": 1380
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1620,
+        40
+      ],
+      "typeVersion": 1,
+      "id": "e0930767-68d0-4d77-b672-604de7c70f5b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "8920b14c-7be8-4e9f-9dee-6ef1a20c435f",
+      "name": "Respond to Me",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1440,
+        260
+      ],
+      "webhookId": "cd45388a-451a-42a0-b4aa-94857c5cc9f2"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\"uperQuery\": \"user query here\",\n\"model\": \"selected model here\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        380,
+        620
+      ],
+      "id": "c22e4cda-aa33-4743-a94d-d20d85296851",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "content": "## Динамическая модель\n",
+        "height": 940,
+        "width": 1080,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "bd37819f-b35c-4fd2-b2dd-8b91866c41e4",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent (Выбирает модель)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent (Выбирает модель)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "03 mini Hight": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent (Выбирает модель)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent (Выбирает модель)": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1 (конечный ответ)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1 (конечный ответ)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1 (конечный ответ)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Telegram2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram2": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "AI Agent (Выбирает модель)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent (Выбирает модель)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1 (конечный ответ)": {
+      "main": [
+        [
+          {
+            "node": "Respond to Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent (Выбирает модель)",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "81bd0b32-3317-4102-96ae-9a4c650a0457",
+  "meta": {
+    "instanceId": "ca8caa61a83f420fdc05c213faa0cf5c47ce8b5aabb954f66c96ea62e07126ef"
+  },
+  "id": "74hvNZTZarWLQnbx",
+  "tags": [
+    {
+      "createdAt": "2025-05-18T14:35:04.758Z",
+      "updatedAt": "2025-05-18T14:35:04.758Z",
+      "id": "4Uwk4ULSvTYlwIPf",
+      "name": "video"
+    },
+    {
+      "name": "Готовый сценарий",
+      "id": "jrGNi71NffgrxYxP",
+      "createdAt": "2025-05-18T15:09:02.551Z",
+      "updatedAt": "2025-05-18T15:09:02.551Z"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+clickhouse:
+  host: clickhouse
+  port: 9000
+  user: analytics_user
+  password: clickhouse_pass_2024
+  database: n8n_analytics
+
+postgresql:
+  host: n8n-postgres
+  port: 5432
+  user: root
+  password: password
+  database: n8n
+
+n8n_api:
+  url: http://n8n:5678
+  api_key: null
+
+redis:
+  url: redis://redis:6379/2
+
+etl:
+  batch_size: 1000
+  max_retries: 3
+  retry_delay: 60
+  
+  # Job schedules (cron format)
+  schedules:
+    recent_executions: "*/5 * * * *"     # Every 5 minutes
+    workflow_metrics: "*/30 * * * *"     # Every 30 minutes
+    node_performance: "0 * * * *"        # Every hour
+    error_analysis: "0 */6 * * *"        # Every 6 hours
+    full_sync: "0 2 * * *"               # Daily at 2 AM
+
+logging:
+  level: INFO
+  file: /app/logs/etl.log
+  max_size: 100MB
+  backup_count: 5

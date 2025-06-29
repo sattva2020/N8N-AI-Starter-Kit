@@ -113,3 +113,4 @@ scripts/add-missing-env-vars.ps1
 
 # Служебные файлы документации (только для локального использования)
 LOCAL_SCRIPTS_EXCLUSION.md
+.internal/
