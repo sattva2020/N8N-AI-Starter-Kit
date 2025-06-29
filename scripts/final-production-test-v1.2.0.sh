@@ -35,7 +35,7 @@ warning() {
 # Проверка статуса сервисов
 echo ""
 info "1. Проверка статуса всех сервисов..."
-docker-compose ps
+docker compose ps
 
 # Проверка health endpoints
 echo ""
@@ -150,14 +150,14 @@ success "Векторная база данных Qdrant работает ста
 success "Многоязычность поддерживается"
 
 echo ""
-echo "🎯 СТАТУС: Advanced RAG Pipeline v1.2.0 - PRODUCTION READY!"
+echo "🎯 СТАТУС: Advanced RAG Pipeline v1.2.0 - ГОТОВ К ТЕСТИРОВАНИЮ!"
 echo ""
 
 # Создаем финальный статусный файл
 cat > FINAL_STATUS_v1.2.0.json << EOF
 {
   "version": "1.2.0",
-  "status": "PRODUCTION_READY",
+  "status": "TESTING_READY",
   "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)",
   "components": {
     "document_processor": "HEALTHY",
@@ -199,5 +199,5 @@ EOF
 success "Финальный статусный файл создан: FINAL_STATUS_v1.2.0.json"
 
 echo ""
-echo "🎉 МИССИЯ ВЫПОЛНЕНА! Advanced RAG Pipeline готов к продакшену!"
+echo "🎉 МИССИЯ ВЫПОЛНЕНА! Advanced RAG Pipeline готов к тестированию!"
 echo "=================================================="
