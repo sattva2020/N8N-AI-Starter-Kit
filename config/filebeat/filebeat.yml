@@ -1,0 +1,168 @@
+# Filebeat configuration for N8N AI Starter Kit logging
+filebeat.inputs:
+# Docker container logs
+- type: container
+  paths:
+    - '/var/lib/docker/containers/*/*.log'
+  exclude_files: 
+    - '/var/lib/docker/containers/*filebeat*/*.log'
+    - '/var/lib/docker/containers/*elasticsearch*/*.log'
+    - '/var/lib/docker/containers/*logstash*/*.log'
+    - '/var/lib/docker/containers/*kibana*/*.log'
+  fields:
+    log_type: docker
+    environment: production
+    project: n8n-ai-starter-kit
+  fields_under_root: true
+  processors:
+    - add_docker_metadata:
+        host: "unix:///var/run/docker.sock"
+    - decode_json_fields:
+        fields: ["message"]
+        target: ""
+        overwrite_keys: true
+
+# N8N application logs
+- type: log
+  paths:
+    - '/var/log/n8n/*.log'
+    - '/app/logs/n8n/*.log'
+  fields:
+    service: n8n
+    service_type: workflow_automation
+    log_type: application
+    environment: production
+  fields_under_root: true
+  multiline.pattern: '^\d{4}-\d{2}-\d{2}'
+  multiline.negate: true
+  multiline.match: after
+  json.keys_under_root: true
+  json.add_error_key: true
+
+# Ollama service logs
+- type: log
+  paths:
+    - '/var/log/ollama/*.log'
+    - '/app/logs/ollama/*.log'
+  fields:
+    service: ollama
+    service_type: llm_service
+    log_type: application
+    environment: production
+  fields_under_root: true
+
+# Qdrant vector database logs
+- type: log
+  paths:
+    - '/var/log/qdrant/*.log'
+    - '/app/logs/qdrant/*.log'
+  fields:
+    service: qdrant
+    service_type: vector_database
+    log_type: application
+    environment: production
+  fields_under_root: true
+
+# PostgreSQL database logs
+- type: log
+  paths:
+    - '/var/log/postgresql/*.log'
+    - '/app/logs/postgresql/*.log'
+  fields:
+    service: postgresql
+    service_type: database
+    log_type: application
+    environment: production
+  fields_under_root: true
+  multiline.pattern: '^\d{4}-\d{2}-\d{2}'
+  multiline.negate: true
+  multiline.match: after
+
+# System logs
+- type: log
+  paths:
+    - '/var/log/syslog'
+    - '/var/log/messages'
+    - '/var/log/auth.log'
+    - '/var/log/kern.log'
+  fields:
+    log_type: system
+    environment: production
+  fields_under_root: true
+
+# Application specific logs
+- type: log
+  paths:
+    - '/app/logs/*.log'
+    - '/app/logs/**/*.log'
+  exclude_files: ['*.gz', '*.zip', '*.tar']
+  fields:
+    log_type: application
+    environment: production
+    project: n8n-ai-starter-kit
+  fields_under_root: true
+
+# Global processors
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - timestamp:
+      field: "@timestamp"
+      layouts:
+        - '2006-01-02T15:04:05.000Z'
+        - '2006-01-02T15:04:05Z'
+      test:
+        - '2019-06-22T16:33:51.000Z'
+
+# Output configuration
+output.logstash:
+  hosts: ["logstash:5044"]
+  compression_level: 3
+  bulk_max_size: 2048
+  worker: 2
+
+# Alternative output to Elasticsearch (disabled by default)
+#output.elasticsearch:
+#  hosts: ["elasticsearch:9200"]
+#  index: "filebeat-%{+yyyy.MM.dd}"
+#  template.name: "filebeat"
+#  template.pattern: "filebeat-*"
+
+# Logging configuration
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644
+
+# Monitoring
+monitoring.enabled: false
+
+# Performance settings
+queue.mem.events: 4096
+queue.mem.flush.min_events: 512
+queue.mem.flush.timeout: 1s
+
+# Index lifecycle management
+setup.ilm.enabled: false
+setup.template.enabled: true
+setup.template.settings:
+  index.number_of_shards: 1
+  index.number_of_replicas: 0
+  index.refresh_interval: "30s"
+
+# Dashboards and index patterns (disabled, managed by Kibana)
+setup.dashboards.enabled: false
+setup.kibana:
+  host: "kibana:5601"
+
+# Security settings (disabled for internal use)
+ssl.verification_mode: none
+
+# Performance tuning
+filebeat.shutdown_timeout: 5s
+max_procs: 2

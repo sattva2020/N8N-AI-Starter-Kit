@@ -12,7 +12,7 @@ import shutil
 import time
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, BackgroundTasks
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, BackgroundTasks, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -27,6 +27,8 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import aiohttp
 import asyncpg
+
+import json
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -55,11 +57,29 @@ class DocumentModel(BaseModel):
     title: str
     content: str
     metadata: Optional[Dict[str, Any]] = None
+    categories: Optional[List[str]] = None
+    tags: Optional[List[str]] = None
+    version: Optional[str] = None
+    created_at: Optional[str] = None
+    last_modified_at: Optional[str] = None
+
+class DocumentInfo(BaseModel):
+    id: str
+    title: str
+    content: str
+    metadata: Optional[Dict[str, Any]] = None
+    categories: Optional[List[str]] = None
+    tags: Optional[List[str]] = None
+    version: Optional[str] = None
+    created_at: Optional[str] = None
+    last_modified_at: Optional[str] = None
 
 class SearchRequest(BaseModel):
     query: str = Field(..., description="Поисковый запрос")
     limit: int = Field(default=5, ge=1, le=100, description="Количество результатов")
     threshold: float = Field(default=0.05, ge=0.0, le=1.0, description="Порог релевантности")
+    categories: Optional[List[str]] = Field(None, description="Список категорий для фильтрации")
+    tags: Optional[List[str]] = Field(None, description="Список тегов для фильтрации")
 
 class SearchResult(BaseModel):
     document_id: str
@@ -178,7 +198,9 @@ async def root():
 async def upload_document(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    metadata: Optional[str] = None
+    metadata: Optional[str] = Form(None),
+    categories: Optional[str] = Form(None),
+    tags: Optional[str] = Form(None)
 ):
     """Загрузка и обработка документа"""
     try:
@@ -197,7 +219,7 @@ async def upload_document(
             tmp_file_path = tmp_file.name
         
         # Добавление задачи в фон
-        background_tasks.add_task(process_document_async, tmp_file_path, file.filename, metadata)
+        background_tasks.add_task(process_document_async, tmp_file_path, file.filename, metadata, categories, tags)
         
         return {
             "message": "Документ принят к обработке",
@@ -229,9 +251,23 @@ async def search_documents(request: SearchRequest):
         query_embedding = embedding_model.encode([request.query])[0].tolist()
         
         # Поиск в Qdrant
+        # Формирование фильтра для Qdrant
+        qdrant_filter = models.Filter(must=[])
+        if request.categories:
+            qdrant_filter.must.append(models.FieldCondition(
+                key="categories",
+                match=models.MatchAny(any=request.categories)
+            ))
+        if request.tags:
+            qdrant_filter.must.append(models.FieldCondition(
+                key="tags",
+                match=models.MatchAny(any=request.tags)
+            ))
+
         search_results = qdrant_client.search(
             collection_name="documents",
             query_vector=query_embedding,
+            query_filter=qdrant_filter if qdrant_filter.must else None,
             limit=request.limit,
             score_threshold=request.threshold
         )
@@ -355,47 +391,89 @@ async def delete_document(document_id: str):
         logger.error(f"Ошибка удаления документа: {e}")
         raise HTTPException(status_code=500, detail=f"Ошибка удаления документа: {str(e)}")
 
-@app.get("/documents")
-async def list_documents(limit: int = 10, offset: int = 0):
-    """Получение списка документов"""
+@app.get("/documents", response_model=Dict[str, Any])
+async def list_documents(
+    query: Optional[str] = None,
+    category: Optional[str] = None,
+    tag: Optional[str] = None,
+    sort_by: str = "created_at",
+    sort_order: str = "desc",
+    limit: int = 10,
+    offset: int = 0
+):
+    """Получение списка документов с фильтрацией и сортировкой"""
     try:
-        if not qdrant_client:
-            raise HTTPException(status_code=503, detail="Qdrant клиент не инициализирован")
-        
-        # Получение списка документов из Qdrant
-        result = qdrant_client.scroll(
-            collection_name="documents",
-            limit=limit,
-            offset=offset,
-            with_payload=True
-        )
-        
-        documents = []
-        for point in result[0]:  # result[0] содержит точки, result[1] - next_page_offset
-            payload = point.payload or {}
-            
-            document = {
-                "document_id": str(point.id),
-                "title": payload.get("title", "Без названия"),
-                "content_preview": payload.get("content", "")[:100] + "..." if len(payload.get("content", "")) > 100 else payload.get("content", ""),
-                "metadata": payload.get("metadata", {}),
-                "size": payload.get("size", 0)
+        if not db_pool:
+            logger.warning("PostgreSQL pool не инициализирован, возвращаем пустой список документов.")
+            return {"documents": [], "total": 0, "limit": limit, "offset": offset, "error": "Database not initialized"}
+
+        async with db_pool.acquire() as conn:
+            sql_query = "SELECT filename, content, metadata, categories, tags, version, created_at, last_modified_at FROM documents WHERE 1=1"
+            params = []
+            param_idx = 1
+
+            if query:
+                sql_query += f" AND (filename ILIKE ${param_idx} OR content ILIKE ${param_idx})"
+                params.append(f"%{query}%")
+                param_idx += 1
+            if category:
+                sql_query += f" AND categories @> ARRAY[${param_idx}]::text[]"
+                params.append(category)
+                param_idx += 1
+            if tag:
+                sql_query += f" AND tags @> ARRAY[${param_idx}]::text[]"
+                params.append(tag)
+                param_idx += 1
+
+            # Подсчет общего количества документов
+            count_query = f"SELECT COUNT(*) FROM ({sql_query}) AS subquery"
+            total_count = await conn.fetchval(count_query, *params)
+
+            # Добавление сортировки и пагинации
+            order_by_clause = ""
+            if sort_by in ["filename", "created_at", "last_modified_at"]:
+                order_by_clause = f" ORDER BY {sort_by}"
+                if sort_order.lower() == "desc":
+                    order_by_clause += " DESC"
+                else:
+                    order_by_clause += " ASC"
+            else:
+                order_by_clause = " ORDER BY created_at DESC" # По умолчанию
+
+            sql_query += f"{order_by_clause} LIMIT ${param_idx} OFFSET ${param_idx + 1}"
+            params.append(limit)
+            params.append(offset)
+
+            records = await conn.fetch(sql_query, *params)
+
+            documents = []
+            for record in records:
+                doc_id = abs(hash(record["filename"] + record["content"][:100])) # Генерируем ID как в Qdrant
+                documents.append(DocumentInfo(
+                    id=str(doc_id),
+                    title=record["filename"],
+                    content=record["content"],
+                    metadata=record["metadata"],
+                    categories=record["categories"],
+                    tags=record["tags"],
+                    version=record["version"],
+                    created_at=record["created_at"].isoformat() if record["created_at"] else None,
+                    last_modified_at=record["last_modified_at"].isoformat() if record["last_modified_at"] else None
+                ).dict())
+
+            return {
+                "documents": documents,
+                "total": total_count,
+                "limit": limit,
+                "offset": offset
             }
-            documents.append(document)
-        
-        return {
-            "documents": documents,
-            "total": len(documents),
-            "limit": limit,
-            "offset": offset
-        }
-        
+
     except Exception as e:
         logger.error(f"Ошибка получения списка документов: {e}")
         raise HTTPException(status_code=500, detail=f"Ошибка получения списка документов: {str(e)}")
 
 # Служебные функции
-async def process_document_async(file_path: str, filename: str, metadata: Optional[str]):
+async def process_document_async(file_path: str, filename: str, metadata: Optional[str], categories: Optional[str], tags: Optional[str]):
     """Асинхронная обработка документа"""
     try:
         logger.info(f"Начало обработки документа: {filename}")
@@ -410,6 +488,14 @@ async def process_document_async(file_path: str, filename: str, metadata: Option
               # Сохранение в Qdrant
             doc_id = abs(hash(filename + content[:100]))  # Используем abs() для положительного числа
             
+            # Парсинг категорий и тегов
+            parsed_categories = [c.strip() for c in categories.split(',')] if categories else []
+            parsed_tags = [t.strip() for t in tags.split(',')] if tags else []
+
+            # Сохранение в Qdrant
+            doc_id = abs(hash(filename + content[:100]))  # Используем abs() для положительного числа
+            current_time = datetime.now().isoformat()
+            
             qdrant_client.upsert(
                 collection_name="documents",
                 points=[
@@ -419,7 +505,12 @@ async def process_document_async(file_path: str, filename: str, metadata: Option
                         payload={
                             "title": filename,
                             "content": content,
-                            "metadata": {"filename": filename, "upload_date": datetime.now().isoformat()},
+                            "metadata": {"filename": filename, "upload_date": current_time, **(json.loads(metadata) if metadata else {})},
+                            "categories": parsed_categories,
+                            "tags": parsed_tags,
+                            "version": "1.0", # Начальная версия
+                            "created_at": current_time,
+                            "last_modified_at": current_time,
                             "size": len(content)
                         }
                     )
@@ -432,13 +523,26 @@ async def process_document_async(file_path: str, filename: str, metadata: Option
         if db_pool:
             async with db_pool.acquire() as conn:
                 await conn.execute("""
-                    INSERT INTO documents (filename, content, metadata, created_at)
-                    VALUES ($1, $2, $3, $4)
+                    INSERT INTO documents (filename, content, metadata, categories, tags, version, created_at, last_modified_at)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                     ON CONFLICT (filename) DO UPDATE SET
                         content = EXCLUDED.content,
                         metadata = EXCLUDED.metadata,
+                        categories = EXCLUDED.categories,
+                        tags = EXCLUDED.tags,
+                        version = EXCLUDED.version,
+                        last_modified_at = EXCLUDED.last_modified_at,
                         updated_at = NOW()
-                """, filename, content, metadata or {}, datetime.now())
+                """, 
+                filename, 
+                content, 
+                json.dumps(json.loads(metadata) if metadata else {}), 
+                json.dumps(parsed_categories), 
+                json.dumps(parsed_tags), 
+                "1.0", # Начальная версия
+                datetime.now(),
+                datetime.now()
+                )
                 
             logger.info(f"Метаданные документа {filename} сохранены в PostgreSQL")
         

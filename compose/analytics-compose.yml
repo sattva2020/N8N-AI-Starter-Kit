@@ -1,0 +1,247 @@
+version: '3.8'
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.8
+    container_name: n8n_clickhouse
+    hostname: clickhouse
+    ports:
+      - "8123:8123"    # HTTP interface
+      - "9000:9000"    # Native interface
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./config/clickhouse/config.xml:/etc/clickhouse-server/config.xml:ro
+      - ./config/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml:ro
+      - ./logs/clickhouse:/var/log/clickhouse-server
+    environment:
+      CLICKHOUSE_DB: n8n_analytics
+      CLICKHOUSE_USER: analytics_user
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse_pass_2024}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    networks:
+      - analytics_network
+    restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD", "clickhouse", "client", "--query", "SELECT 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  superset:
+    image: apache/superset:latest
+    container_name: n8n_superset
+    hostname: superset
+    ports:
+      - "8088:8088"
+    environment:
+      - SUPERSET_CONFIG_PATH=/app/pythonpath/superset_config.py
+      - DATABASE_URL=postgresql+psycopg2://superset:${POSTGRES_PASSWORD:-postgres}@postgres:5432/superset
+      - REDIS_URL=redis://redis:6379/0
+      - SUPERSET_SECRET_KEY=${SUPERSET_SECRET_KEY:-your-secret-key-change-in-production}
+      - PYTHONPATH=/app/pythonpath:/app/superset_home/pythonpath
+    volumes:
+      # Используем относительный путь для bind mount конфига
+      - ./config/superset/superset_config.py:/app/pythonpath/superset_config.py:ro
+      - superset_data:/app/superset_home
+      - ./logs/superset:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - analytics_network
+    restart: unless-stopped
+    command: >
+      bash -c "
+      pip install clickhouse-connect psycopg2-binary &&
+      superset fab create-admin --username admin --firstname Admin --lastname User --email admin@superset.com --password admin &&
+      superset db upgrade &&
+      superset init &&
+      superset run -h 0.0.0.0 -p 8088 --with-threads --reload --debugger
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  superset-init:
+    image: apache/superset:latest
+    container_name: n8n_superset_init
+    volumes:
+      - superset_data:/app/superset_home
+      - ./config/superset:/app/config:ro
+      - ./scripts/analytics:/app/scripts:ro
+    environment:
+      - SUPERSET_CONFIG_PATH=/app/config/superset_config.py
+      - SUPERSET_SECRET_KEY=${SUPERSET_SECRET_KEY:-superset_secret_key_2024}
+      - DATABASE_URL=postgresql://superset:${POSTGRES_PASSWORD:-postgres}@postgres:5432/superset
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - analytics_network
+    command: >
+      bash -c "
+        /app/scripts/init-superset.sh
+      "
+    restart: "no"
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: n8n_analytics_postgres
+    hostname: postgres
+    environment:
+      POSTGRES_DB: superset
+      POSTGRES_USER: superset
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_analytics_data:/var/lib/postgresql/data
+      - ./logs/postgres:/var/log/postgresql
+    networks:
+      - analytics_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superset -d superset"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: n8n_analytics_redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_analytics_data:/data
+      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./logs/redis:/var/log/redis
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - analytics_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  etl-processor:
+    build:
+      context: ..
+      dockerfile: services/etl-processor/Dockerfile
+    container_name: n8n_etl_processor
+    hostname: etl-processor
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./config/etl:/app/config:ro
+      - ./logs/etl-processor:/app/logs
+      - ./data/etl-processor:/app/data
+    environment:
+      - ETL_CONFIG_PATH=/app/config/etl_config.yaml
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=9000
+      - CLICKHOUSE_USER=analytics_user
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-clickhouse_pass_2024}
+      - CLICKHOUSE_DATABASE=n8n_analytics
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=superset
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DATABASE=superset
+      - REDIS_URL=redis://redis:6379/1
+      - LOG_LEVEL=INFO
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - analytics_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  analytics-api:
+    build:
+      context: ..
+      dockerfile: services/analytics-api/Dockerfile
+    container_name: n8n_analytics_api
+    hostname: analytics-api
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./config/analytics-api:/app/config:ro
+      - ./logs/analytics-api:/app/logs
+    environment:
+      - API_CONFIG_PATH=/app/config/api_config.yaml
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=9000
+      - CLICKHOUSE_USER=analytics_user
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-clickhouse_pass_2024}
+      - CLICKHOUSE_DATABASE=n8n_analytics
+      - REDIS_URL=redis://redis:6379/2
+      - LOG_LEVEL=INFO
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      etl-processor:
+        condition: service_healthy
+    networks:
+      - analytics_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  clickhouse_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/clickhouse
+  superset_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/superset
+  postgres_analytics_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/postgres-analytics
+  redis_analytics_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/redis-analytics
+
+networks:
+  analytics_network:
+    driver: bridge
+    name: n8n_analytics_network

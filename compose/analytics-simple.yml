@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.8
+    container_name: n8n_clickhouse
+    hostname: clickhouse
+    ports:
+      - "8123:8123"    # HTTP interface
+      - "9000:9000"    # Native interface
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./logs/clickhouse:/var/log/clickhouse-server
+    environment:
+      CLICKHOUSE_DB: n8n_analytics
+      CLICKHOUSE_USER: analytics_user
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse_pass_2024}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    networks:
+      - analytics_network
+    restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD", "clickhouse", "client", "--query", "SELECT 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: n8n_analytics_postgres
+    hostname: postgres
+    environment:
+      POSTGRES_DB: superset
+      POSTGRES_USER: superset
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_analytics_data:/var/lib/postgresql/data
+      - ./logs/postgres:/var/log/postgresql
+    networks:
+      - analytics_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superset -d superset"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: n8n_analytics_redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_analytics_data:/data
+      - ./logs/redis:/var/log/redis
+    command: redis-server
+    networks:
+      - analytics_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  clickhouse_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/clickhouse
+  postgres_analytics_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/postgres-analytics
+  redis_analytics_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/redis-analytics
+
+networks:
+  analytics_network:
+    driver: bridge
+    name: n8n_analytics_network

@@ -994,7 +994,7 @@ ZEP_API_SECRET=${zep_api_secret}
 ZEP_MEMORY_STORE_POSTGRES_DSN=postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
 
 # ---- GRAPHITI НАСТРОЙКИ ----
-NEO4J_URI=bolt://neo4j-zep:7687
+NEO4J_URI=bolt://neo4j-graphiti:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=zepzepzep
 

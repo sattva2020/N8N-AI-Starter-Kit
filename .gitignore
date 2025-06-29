@@ -23,8 +23,7 @@ volumes/
 !/data/.gitkeep
 
 # Тестовые файлы
-tests/tmp/
-tests/reports/*.log
+tests/
 *test*.yml
 *test*.yaml
 
@@ -113,3 +112,14 @@ scripts/add-missing-env-vars.ps1
 
 # Служебные файлы документации (только для локального использования)
 LOCAL_SCRIPTS_EXCLUSION.md
+.internal/
+
+# Публикуются только основные файлы:
+# README.md, LICENSE, docker-compose.yml, .env.example, template.env
+# Все остальные .md-файлы в корне исключаются
+!README.md
+!LICENSE
+!docker-compose.yml
+!.env.example
+!template.env
+*.md

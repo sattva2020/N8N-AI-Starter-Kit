@@ -1,0 +1,16 @@
+# Grafana Dashboard Providers Configuration
+# Auto-provision dashboards from file system
+
+apiVersion: 1
+
+providers:
+  - name: 'N8N AI Starter Kit'
+    orgId: 1
+    folder: 'N8N AI Monitoring'
+    folderUid: 'n8n_ai_monitoring'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards

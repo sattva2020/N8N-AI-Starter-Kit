@@ -1,0 +1,254 @@
+# Prometheus Alert Rules для N8N AI Starter Kit
+# Определяет условия для срабатывания алертов
+
+groups:
+  - name: system.rules
+    rules:
+      # Высокое использование CPU
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for more than 5 minutes on instance {{ $labels.instance }}"
+
+      # Критическое использование CPU
+      - alert: CriticalCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 2m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "Critical CPU usage detected"
+          description: "CPU usage is above 90% for more than 2 minutes on instance {{ $labels.instance }}"
+
+      # Высокое использование памяти
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 80% for more than 5 minutes on instance {{ $labels.instance }}"
+
+      # Критическое использование памяти
+      - alert: CriticalMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 2m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "Critical memory usage detected"
+          description: "Memory usage is above 90% for more than 2 minutes on instance {{ $labels.instance }}"
+
+      # Мало места на диске
+      - alert: LowDiskSpace
+        expr: (node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_avail_bytes{fstype!="tmpfs"}) / node_filesystem_size_bytes{fstype!="tmpfs"} * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "Low disk space"
+          description: "Disk usage is above 80% on {{ $labels.mountpoint }} ({{ $labels.instance }})"
+
+      # Критически мало места на диске
+      - alert: CriticalDiskSpace
+        expr: (node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_avail_bytes{fstype!="tmpfs"}) / node_filesystem_size_bytes{fstype!="tmpfs"} * 100 > 90
+        for: 1m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "Critical disk space"
+          description: "Disk usage is above 90% on {{ $labels.mountpoint }} ({{ $labels.instance }})"
+
+  # Docker container alerts
+  - name: docker.rules
+    rules:
+      - alert: ContainerDown
+        expr: absent(container_last_seen{name=~".+"})
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container {{ $labels.name }} is down"
+          description: "Container {{ $labels.name }} has been down for more than 5 minutes."
+
+      - alert: ContainerHighCpuUsage
+        expr: rate(container_cpu_usage_seconds_total{name=~".+"}[5m]) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage in container {{ $labels.name }}"
+          description: "Container {{ $labels.name }} CPU usage is above 80%."
+
+      - alert: ContainerHighMemoryUsage
+        expr: (container_memory_usage_bytes{name=~".+"} / container_spec_memory_limit_bytes{name=~".+"}) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High memory usage in container {{ $labels.name }}"
+          description: "Container {{ $labels.name }} memory usage is above 90%."
+
+  # N8N specific alerts
+  - name: n8n.rules
+    rules:
+      - alert: N8NDown
+        expr: up{job="n8n"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "N8N service is down"
+          description: "N8N automation platform has been down for more than 2 minutes."
+
+      - alert: N8NHighWorkflowErrors
+        expr: rate(n8n_workflow_executions_total{status="error"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High N8N workflow error rate"
+          description: "N8N workflow error rate is above 10% for the last 5 minutes."
+
+      - alert: N8NWorkflowExecutionSlow
+        expr: histogram_quantile(0.95, rate(n8n_workflow_execution_duration_seconds_bucket[5m])) > 300
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow N8N workflow executions"
+          description: "95th percentile of N8N workflow execution time is above 5 minutes."
+
+      - alert: N8NQueueBacklog
+        expr: n8n_workflow_queue_size > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "N8N workflow queue backlog"
+          description: "N8N workflow queue has more than 100 pending executions."
+
+  # Database alerts
+  - name: database.rules
+    rules:
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL database has been down for more than 2 minutes."
+
+      - alert: PostgreSQLHighConnections
+        expr: sum(pg_stat_activity_count) by (instance) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High PostgreSQL connection count"
+          description: "PostgreSQL has more than 80 active connections."
+
+  # Vector database alerts
+  - name: qdrant.rules
+    rules:
+      - alert: QdrantDown
+        expr: up{job="qdrant"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Qdrant vector database is down"
+          description: "Qdrant vector database has been down for more than 2 minutes."
+
+      - alert: QdrantHighSearchLatency
+        expr: histogram_quantile(0.95, rate(qdrant_search_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Qdrant search latency"
+          description: "95th percentile of Qdrant search latency is above 1 second."
+
+  # AI services alerts
+  - name: ai_services.rules
+    rules:
+      - alert: OllamaDown
+        expr: up{job="ollama"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Ollama AI service is down"
+          description: "Ollama AI service has been down for more than 2 minutes."
+
+      - alert: GraphitiDown
+        expr: up{job="graphiti"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Graphiti knowledge graph service is down"
+          description: "Graphiti service has been down for more than 2 minutes."
+
+      - alert: HighAIResponseTime
+        expr: histogram_quantile(0.95, rate(ollama_request_duration_seconds_bucket[5m])) > 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High AI model response time"
+          description: "95th percentile of AI model response time is above 30 seconds."
+
+  # Web services alerts
+  - name: web_services.rules
+    rules:
+      - alert: TraefikDown
+        expr: up{job="traefik"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Traefik reverse proxy is down"
+          description: "Traefik reverse proxy has been down for more than 2 minutes."
+
+      - alert: HighHttpErrorRate
+        expr: rate(traefik_service_requests_total{code=~"5.."}[5m]) / rate(traefik_service_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High HTTP error rate"
+          description: "HTTP 5xx error rate is above 5% for the last 5 minutes."
+
+  # Custom services alerts
+  - name: custom_services.rules
+    rules:
+      - alert: DocumentProcessorDown
+        expr: up{job="document-processor"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Document processor service is down"
+          description: "Document processor service has been down for more than 5 minutes."
+
+      - alert: WorkflowImporterFailed
+        expr: n8n_importer_import_failures_total > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "N8N workflow import failures detected"
+          description: "{{ $value }} workflow import failures in the last minute."

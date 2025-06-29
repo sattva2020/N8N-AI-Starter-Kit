@@ -1,0 +1,138 @@
+# Prometheus Configuration для N8N AI Starter Kit
+# Собирает метрики от всех сервисов системы
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'n8n-ai-starter-kit'
+    environment: '${ENVIRONMENT:-development}'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - "alert.rules"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+  # Node Exporter - System metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+  # cAdvisor - Container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+  # N8N Application metrics
+  - job_name: 'n8n'
+    static_configs:
+      - targets: ['n8n:5678']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # N8N Custom Exporter
+  - job_name: 'n8n-exporter'
+    static_configs:
+      - targets: ['n8n-exporter:9101']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # PostgreSQL metrics
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    # Note: Requires postgres_exporter to be added
+
+  # Qdrant Vector DB metrics
+  - job_name: 'qdrant'
+    static_configs:
+      - targets: ['qdrant:6333']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # Traefik metrics
+  - job_name: 'traefik'
+    static_configs:
+      - targets: ['traefik:8080']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+  # Ollama metrics (if available)
+  - job_name: 'ollama'
+    static_configs:
+      - targets: ['ollama:11434']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # Graphiti metrics (if available)
+  - job_name: 'graphiti'
+    static_configs:
+      - targets: ['graphiti:8000']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # Document Processor service
+  - job_name: 'document-processor'
+    static_configs:
+      - targets: ['document-processor:8001']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # Web Interface service
+  - job_name: 'web-interface'
+    static_configs:
+      - targets: ['web-interface:8002']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # N8N Workflow Importer service
+  - job_name: 'n8n-importer'
+    static_configs:
+      - targets: ['n8n-importer:8003']
+    scrape_interval: 60s
+    metrics_path: /metrics
+
+# Additional scrape configs for dynamic service discovery
+  # Docker service discovery
+  - job_name: 'docker-containers'
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: label
+            values: ["prometheus.scrape=true"]
+    relabel_configs:
+      - source_labels: [__meta_docker_container_label_prometheus_job]
+        target_label: job
+      - source_labels: [__meta_docker_container_label_prometheus_port]
+        target_label: __address__
+        regex: (.+)
+        replacement: ${__meta_docker_container_network_ip}:${1}
+
+# Recording rules for frequently used queries
+  # Can be added later for performance optimization
