@@ -25,6 +25,13 @@ x-service-n8n: &service-n8n
     - N8N_HOST=${N8N_HOST}
     - N8N_PORT=${N8N_PORT}
     - N8N_PROTOCOL=${N8N_PROTOCOL}
+    # Database configuration
+    - DB_TYPE=${DB_TYPE}
+    - DB_POSTGRESDB_HOST=${DB_POSTGRESDB_HOST}
+    - DB_POSTGRESDB_PORT=${DB_POSTGRESDB_PORT}
+    - DB_POSTGRESDB_DATABASE=${DB_POSTGRESDB_DATABASE}
+    - DB_POSTGRESDB_USER=${DB_POSTGRESDB_USER}
+    - DB_POSTGRESDB_PASSWORD=${DB_POSTGRESDB_PASSWORD}
     # ...другие переменные окружения...
   networks:
     - frontend

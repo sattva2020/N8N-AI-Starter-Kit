@@ -18,6 +18,7 @@
 - ✅ **НОВОЕ**: Workflow Management Hub в `n8n/workflows/management/`
 - ✅ **НОВОЕ**: Категоризация scripts по функциональности (deployment, maintenance, utils)
 - ✅ **ИСПРАВЛЕНО**: Навигация в README.md - все ссылки теперь кликабельны
+- ✅ **ИСПРАВЛЕНО**: PostgreSQL authentication для Document Processor (исправлен root cause)
 - ✅ **УЛУЧШЕНО**: Профессиональная структура проекта для production
 - ✅ **ГОТОВО**: Enterprise-ready организация с расширенными возможностями
 
