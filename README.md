@@ -11,6 +11,16 @@
 
 ## 🔄 Последние обновления
 
+**Июль 2025 (v1.2.0)**: Project Reorganization & Zie619 Workflow Integration.
+- ✅ **НОВОЕ**: Интеграция с Zie619 репозиторием (2,053+ готовых N8N workflows)
+- ✅ **НОВОЕ**: Interactive CLI для импорта workflows с фильтрацией по категориям
+- ✅ **НОВОЕ**: Реорганизация структуры проекта - логическое разделение скриптов
+- ✅ **НОВОЕ**: Workflow Management Hub в `n8n/workflows/management/`
+- ✅ **НОВОЕ**: Категоризация scripts по функциональности (deployment, maintenance, utils)
+- ✅ **ИСПРАВЛЕНО**: Навигация в README.md - все ссылки теперь кликабельны
+- ✅ **УЛУЧШЕНО**: Профессиональная структура проекта для production
+- ✅ **ГОТОВО**: Enterprise-ready организация с расширенными возможностями
+
 **Июнь 2025 (v1.1.4)**: Advanced N8N Workflows & Production Automation.
 - ✅ **НОВОЕ**: 6 продвинутых Production Workflows для полной автоматизации
 - ✅ **НОВОЕ**: Document Processing Pipeline - автоматическая обработка документов
@@ -22,15 +32,6 @@
 - ✅ **НОВОЕ**: Auto-Import N8N Workflows - автоматический импорт при запуске
 - ✅ **НОВОЕ**: SSL Production Setup - Let's Encrypt, Traefik, Security Headers
 - ✅ **ГОТОВО**: Enterprise-ready AI система с полной автоматизацией
-
-**Январь 2025 (v1.2.0)**: Advanced RAG Pipeline - Web Interface.
-- ✅ **НОВОЕ**: Современный веб-интерфейс для управления документами (FastAPI + Jinja2)
-- ✅ **НОВОЕ**: Document Processor - специализированный сервис обработки файлов
-- ✅ **НОВОЕ**: Advanced Search - семантический поиск с фильтрами и аналитикой
-- ✅ **НОВОЕ**: Enhanced Analytics - детальная статистика и мониторинг системы
-- ✅ **НОВОЕ**: Batch Processing - массовая обработка и импорт документов
-- ✅ **НОВОЕ**: Real-time UI - WebSocket интерфейс с live-обновлениями
-- ✅ **ГОТОВО**: Production-ready Advanced RAG Pipeline
 
 **Июнь 2025 (v1.1.3)**: Миграция с Zep на Graphiti.
 - ✅ **МИГРАЦИЯ**: Полный переход с архивированного Zep Community Edition на Graphiti
@@ -47,17 +48,17 @@
 - ✅ **ОБНОВЛЕНО**: Документация по обновлению на Ubuntu
 - ✅ **ГОТОВО**: Production-окружение полностью готово к развёртыванию
 
-**🚀 Быстрое обновление на Ubuntu:**
+**🚀 Быстрое обновление до v1.2.0:**
 ```bash
 cd ~/N8N-AI-Starter-Kit
 git pull origin main
-chmod +x scripts/fix-ubuntu.sh
-./scripts/fix-ubuntu.sh
+git checkout v1.2.0
+./start.sh
 ```
 
-**🌐 Быстрый доступ v1.1.4:**
+**🌐 Быстрый доступ v1.2.0:**
 ```bash
-# Запуск системы с новыми Advanced Workflows
+# Запуск системы с новыми возможностями
 docker-compose --profile cpu up -d
 
 # Доступ к интерфейсам:
@@ -65,18 +66,18 @@ docker-compose --profile cpu up -d
 # Web Interface: http://localhost:8001  
 # Qdrant Admin: http://localhost:6333/dashboard
 
-# Новые API endpoints для автоматизации:
-# POST /webhook/document-upload - загрузка документов
-# POST /webhook/rag-query - поиск по документам
-# POST /webhook/batch-process - массовая обработка
-# POST /webhook/error-handler - обработка ошибок
-# POST /webhook/send-email - отправка уведомлений
-```
+# Новые возможности v1.2.0:
+# Workflow Management CLI
+cd n8n/workflows/management
+python workflow-import-cli.py
 
-# Доступ к новым сервисам
-echo "Web Interface: http://localhost:8002"
-echo "Document Processor: http://localhost:8001" 
-echo "N8N: http://localhost:5678"
+# Импорт из Zie619 (2,053+ workflows)
+python import-zie619-workflows.py --category ai_ml --limit 50
+
+# Быстрые команды для обслуживания
+./scripts/deployment/deploy-server.sh
+./scripts/maintenance/monitor.sh
+./scripts/utils/check-server-status.sh
 ```
 
 **Май 2025 (v1.0.6)**: Улучшение GitHub-интеграции и документации.
@@ -87,7 +88,7 @@ echo "N8N: http://localhost:5678"
 - Обновлены инструкции по публикации на GitHub
 - Оптимизирован скрипт `entrypoint.sh` для Ollama с индикатором прогресса загрузки моделей
 
-[Подробнее о версии 1.0.4](./CHANGELOG.md) | [Руководство по документации](./docs/DOCUMENTATION_GUIDE.md) | [Распространенные проблемы](./docs/COMMON_ISSUES.md) | [Руководство по установке](./docs/SETUP_SCRIPT.md)
+[Подробнее о версии 1.2.0](./CHANGELOG.md) | [Реорганизация проекта](./REORGANIZATION_COMPLETE.md) | [Навигация исправлена](./README_NAVIGATION_FIXED.md) | [Руководство по установке](./docs/SETUP_SCRIPT.md)
 
 ## 📋 Оглавление
 - [🔄 Последние обновления](#-последние-обновления)
@@ -240,6 +241,13 @@ N8N AI Starter Kit создан для построения моста межд�
 
 #### Импорт workflow из внешних источников
 ✅ [**Zie619 Workflow Import**](#-импорт-workflow-из-zie619) - Интеграция с крупнейшим репозиторием N8N workflow (2,053+ готовых автоматизаций) с возможностью фильтрации по категориям, сложности и интеграциям.
+
+#### Инструменты управления workflow (v1.2.0)
+✅ [**Workflow Management CLI**](./n8n/workflows/management/) - Интерактивный командный интерфейс для импорта и управления workflow с поддержкой фильтрации и предварительного просмотра.
+
+✅ [**Workflow Import Tools**](./n8n/workflows/management/) - Набор Python скриптов для автоматического импорта workflow из различных источников с настройкой зависимостей.
+
+✅ [**Project Organization Tools**](./scripts/) - Структурированная система скриптов для deployment, maintenance, workflow-management и utilities.
 
 ### Расширенные компоненты (профиль developer)
 
@@ -398,7 +406,7 @@ graph TD
 ## 📁 Структура проекта
 
 <pre>
-N8N-AI-Starter-Kit/
+N8N-AI-Starter-Kit/ (v1.2.0 - Reorganized)
 ├── 🐳 docker-compose.yml     # Основной файл конфигурации Docker Compose
 ├── 🔐 .env                   # Файл с переменными окружения (создается из template.env)
 ├── 📋 .env.example           # Пример файла переменных окружения
@@ -411,6 +419,38 @@ N8N-AI-Starter-Kit/
 ├── 🔧 TROUBLESHOOTING.md     # Руководство по устранению неполадок
 ├── 📄 LICENSE                # Лицензия проекта
 ├── 🔍 .gitignore             # Файлы, игнорируемые Git
+├── 🔄 **n8n/workflows/management/** # 🆕 Центр управления Workflow (v1.2.0)
+│   ├── 🎮 workflow-import-cli.py    # Интерактивный CLI для импорта
+│   ├── 📥 import-zie619-workflows.py # Импорт из Zie619 репозитория
+│   ├── 🔗 import-to-n8n.py         # Интеграция с N8N API
+│   ├── ⚙️ setup-workflow-import.py  # Настройка зависимостей
+│   ├── 📦 requirements-workflow-import.txt # Python зависимости
+│   └── 📖 README.md                 # Документация управления workflow
+├── 🔧 **scripts/** (v1.2.0 - Reorganized) # Структурированные операционные скрипты
+│   ├── 🚀 **deployment/**           # Развертывание
+│   │   ├── deploy-server.sh
+│   │   ├── deploy-production.sh
+│   │   └── deploy-production.ps1
+│   ├── 🔧 **maintenance/**          # Обслуживание
+│   │   ├── backup.sh
+│   │   ├── monitor.sh
+│   │   ├── monitor-n8n.sh
+│   │   ├── update.sh
+│   │   └── update-server.sh
+│   ├── 🔄 **workflow-management/**  # Workflow операции
+│   │   ├── auto-import-workflows.sh
+│   │   ├── auto-import-workflows-api.sh
+│   │   ├── simple-workflows-import.sh
+│   │   └── n8n-workflows-import-check.sh
+│   ├── 🔨 **utils/**                # Утилиты
+│   │   ├── check-auto-import-status.sh
+│   │   ├── check-networks.sh
+│   │   ├── check-ollama.sh
+│   │   ├── check-ollama-models.sh
+│   │   ├── check-server-status.sh
+│   │   ├── check-user-setup.sh
+│   │   └── clean-docker.sh
+│   └── 📖 README.md                 # Документация структуры scripts
 ├── 🤖 ai-instructions/       # Инструкции для AI-агентов
 │   ├── 📖 AI_AGENT_GUIDE.md  # Основное руководство для AI-агентов
 │   ├── 🔄 GRAPHITI_MIGRATION_INSTRUCTIONS.md # Инструкции миграции Zep → Graphiti
@@ -1149,27 +1189,30 @@ n8n полон полезного контента для быстрого ст�
 
 N8N AI Starter Kit теперь поддерживает **автоматический импорт workflow** из крупнейшего сообщественного репозитория [Zie619/n8n-workflows](https://github.com/Zie619/n8n-workflows), содержащего **2,053+ готовых автоматизаций**.
 
-### 🚀 Быстрый старт
+### 🚀 Быстрый старт (v1.2.0)
 
 #### Интерактивный импорт (Рекомендуется):
 ```bash
+# Переход в центр управления workflow
+cd n8n/workflows/management
+
 # Установка зависимостей (один раз)
-python scripts/setup-workflow-import.py
+python setup-workflow-import.py
 
 # Запуск интерактивного импорта
-python scripts/workflow-import-cli.py
+python workflow-import-cli.py
 ```
 
 #### Прямой импорт с фильтрами:
 ```bash
 # AI и машинное обучение (ChatGPT, OpenAI, Anthropic)
-python scripts/import-zie619-workflows.py --category ai_ml --limit 25
+python import-zie619-workflows.py --category ai_ml --limit 25
 
 # Бизнес-автоматизация (email, мессенджеры, проект-менеджмент)  
-python scripts/import-zie619-workflows.py --category messaging email --min-nodes 3 --limit 30
+python import-zie619-workflows.py --category messaging email --min-nodes 3 --limit 30
 
 # Инструменты разработчика (webhooks, APIs, GitHub)
-python scripts/import-zie619-workflows.py --category development --keywords webhook api github --limit 20
+python import-zie619-workflows.py --category development --keywords webhook api github --limit 20
 ```
 
 ### 📂 Доступные категории
@@ -1207,13 +1250,13 @@ python scripts/import-zie619-workflows.py --preset developer_tools
 
 ```bash
 # Импорт через API (рекомендуется)
-python scripts/import-to-n8n.py n8n/workflows/imported
+python import-to-n8n.py ../imported
 
 # Импорт через CLI (резервный способ)
-python scripts/import-to-n8n.py n8n/workflows/imported --use-cli
+python import-to-n8n.py ../imported --use-cli
 
 # Фильтрация при импорте в N8N
-python scripts/import-to-n8n.py n8n/workflows/imported --min-nodes 3 --complexity medium high
+python import-to-n8n.py ../imported --min-nodes 3 --complexity medium high
 ```
 
 ### 📊 Структура импортированных workflow
