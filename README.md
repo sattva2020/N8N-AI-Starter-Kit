@@ -1382,11 +1382,30 @@ Self-hosted AI starter kit создаст общую папку (по умолч
 
 N8N AI Starter Kit включает подробное руководство по устранению распространенных проблем, с которыми вы можете столкнуться при работе с системой.
 
-### Частые проблемы
+### Частые проблемы v1.2.0
 
-#### 1. Конфликт сетей Docker
+#### 1. Ошибка аутентификации Document Processor
+```
+ERROR:app:Ошибка инициализации: password authentication failed for user "n8n"
+WARNING:app:Сервис запущен в режиме ограниченной функциональности
+```
+
+**Быстрое решение:**
+```bash
+# Автоматическое исправление
+./scripts/utils/fix-document-processor.sh
+
+# Или проверьте .env файл:
+grep -E "(POSTGRES|N8N).*PASSWORD" .env
+
+# Убедитесь что есть:
+# POSTGRES_PASSWORD=changeme
+# N8N_DB_PASSWORD=changeme
+```
+
+#### 2. Конфликт сетей Docker
 Если вы сталкиваетесь с ошибками типа "networks.backend conflicts with imported resource", используйте специальные скрипты для решения проблемы:
-```powershell
+```bash
 # Linux/macOS
 ./scripts/fix-and-start.sh
 
@@ -1394,10 +1413,8 @@ N8N AI Starter Kit включает подробное руководство п
 .\scripts\fix-and-start.ps1
 ```
 
-#### 2. Проблемы с переменными окружения
+#### 3. Проблемы с переменными окружения
 Если Docker Compose выдает предупреждения о неопределенных переменных, используйте:
-```powershell
-# Linux/macOS
 ./scripts/fix-env-vars.sh
 
 # Windows PowerShell
