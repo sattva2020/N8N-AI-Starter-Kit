@@ -1,64 +1,39 @@
+x-traefik-base: &traefik-base
+  image: traefik:latest
+  restart: unless-stopped
+  ports:
+    - "0.0.0.0:80:80"
+    - "0.0.0.0:443:443"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    - traefik_letsencrypt:/letsencrypt
+    - ./config/traefik:/etc/traefik/dynamic
+  networks:
+    - frontend
+  healthcheck:
+    test: ["CMD", "traefik", "healthcheck", "--ping"]
+    interval: 10s
+    timeout: 5s
+    retries: 3
+    start_period: 5s
+
+x-service-n8n: &service-n8n
+  image: n8nio/n8n:latest
+  restart: unless-stopped
+  environment:
+    - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+    - N8N_HOST=${N8N_HOST}
+    - N8N_PORT=${N8N_PORT}
+    - N8N_PROTOCOL=${N8N_PROTOCOL}
+    # ...другие переменные окружения...
+  networks:
+    - frontend
+    - backend
+  volumes:
+    - n8n_storage:/home/node/.n8n
+  # ...другие общие параметры...
+
 services:
-
-  # ===== ANCHOR DEFINITIONS =====
-
-  # Общие настройки для N8N
-  x-service-n8n: &service-n8n
-    image: n8nio/n8n:latest
-    restart: unless-stopped
-    environment:
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=${POSTGRES_HOST}
-      - DB_POSTGRESDB_PORT=${POSTGRES_PORT}
-      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
-      - DB_POSTGRESDB_USER=${POSTGRES_USER}
-      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
-      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
-      - N8N_HOST=${N8N_HOST}
-      - N8N_PORT=5678
-      - N8N_PROTOCOL=${N8N_PROTOCOL}
-      - NODE_ENV=production
-      - WEBHOOK_URL=${WEBHOOK_URL}
-      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
-      - N8N_USER_MANAGEMENT_DISABLED=${N8N_USER_MANAGEMENT_DISABLED}
-    volumes:
-      - n8n_storage:/home/node/.n8n
-      - ./data/n8n-files:/home/node/.n8n/binaryData
-      - ./n8n/workflows:/home/node/.n8n/workflows:ro  # Автоматический импорт workflows
-      - ./scripts:/scripts:ro  # Скрипты импорта
-    networks:
-      - frontend
-      - backend
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-
-  # ===== END ANCHOR DEFINITIONS =====
-
-
-  # Общие настройки для Traefik
-  x-traefik-base: &traefik-base
-    image: traefik:latest
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik_letsencrypt:/letsencrypt
-      - ./config/traefik:/etc/traefik/dynamic
-    networks:
-      - frontend
-    healthcheck:
-      test: ["CMD", "traefik", "healthcheck", "--ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
-
-  # ===== TRAEFIK PROXY =====
-  
   traefik:
     <<: *traefik-base
     profiles: [default, cpu, developer]
@@ -69,7 +44,10 @@ services:
       - "--providers.file.directory=/etc/traefik/dynamic"
       - "--entryPoints.web.address=:80"
       - "--entryPoints.websecure.address=:443"
-      # Development: без SSL редиректов
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
       - "--ping=true"
       - "--log.level=INFO"
       - "--accesslog=true"
@@ -81,6 +59,7 @@ services:
       - "traefik.http.routers.traefik.middlewares=auth"
       - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_USERNAME}:${TRAEFIK_PASSWORD_HASHED}"
 
+  # Общие настройки для N8N
   n8n:
     <<: *service-n8n
     profiles: [default, cpu, developer]
@@ -92,7 +71,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`)"
-      - "traefik.http.routers.n8n.entrypoints=web"
+      - "traefik.http.routers.n8n.entrypoints=websecure"
+      - "traefik.http.routers.n8n.tls.certresolver=myresolver"
       - "traefik.http.services.n8n.loadbalancer.server.port=5678"
     deploy:
       resources:
@@ -103,7 +83,7 @@ services:
           cpus: '1'
           memory: 1G
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5678/healthz || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:5678/healthz || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -196,7 +176,7 @@ services:
       start_period: 40s
 
   qdrant:
-    image: qdrant/qdrant:latest # latest для упрощения поддержки
+    image: qdrant/qdrant:latest # latest для упрощения поддержкиcat 
     restart: unless-stopped
     profiles: [default, cpu, developer]
     ports:
@@ -222,7 +202,7 @@ services:
         reservations:
           memory: 1G
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:6333/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5  # Увеличиваем количество попыток
@@ -242,6 +222,11 @@ services:
       - PYTHONUNBUFFERED=1
       - MAX_FILE_SIZE=100MB
       - SUPPORTED_FORMATS=pdf,docx,txt,md,rtf
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=n8n
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=n8n
     networks:
       - backend
       - frontend
@@ -259,7 +244,7 @@ services:
           memory: 1G
           cpus: '1'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8001/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -376,6 +361,4 @@ networks:
   backend:
     driver: bridge
   database:
-    driver: bridge
-  zep-network:
     driver: bridge

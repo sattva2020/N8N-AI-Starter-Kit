@@ -123,3 +123,17 @@ LOCAL_SCRIPTS_EXCLUSION.md
 !.env.example
 !template.env
 *.md
+
+# Временные отчеты разработки
+*_v*.md
+*SUCCESS*.md
+*FINAL*.md
+*REPORT*.md
+*STAGE*.md
+*PLAN*.md
+*COMPLETION*.md
+*ACCOMPLISHED*.md
+*RESOLVED*.md
+*TEST*.md
+MISSION_*.md
+CRITICAL_*.md

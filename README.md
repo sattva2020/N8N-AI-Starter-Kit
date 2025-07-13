@@ -98,6 +98,7 @@ echo "N8N: http://localhost:5678"
 - [Системные требования](#-системные-требования)
 - [Установка](#-установка)
   - [Быстрая установка](#️-быстрая-установка-рекомендуется)
+  - [Развертывание на сервере](#-развертывание-на-сервере-ssh)
   - [Профили запуска](#профили-запуска)
 - [Быстрый старт](#️-быстрый-старт-и-использование)
 - [Обслуживание системы](#-обслуживание-системы)
@@ -229,6 +230,9 @@ N8N AI Starter Kit создан для построения моста межд�
 ✅ [**JupyterLab**](https://jupyter.org/) - Веб-интерактивная среда разработки для создания и анализа документов, содержащих живой код, формулы, визуализацию и текст. *(Профиль: developer)*
 
 ✅ [**Supabase**](https://supabase.com/) - Альтернатива Firebase с открытым исходным кодом, предоставляющая базу данных, аутентификацию и хранилище файлов.
+
+#### Импорт workflow из внешних источников
+✅ [**Zie619 Workflow Import**](#-импорт-workflow-из-zie619) - Интеграция с крупнейшим репозиторием N8N workflow (2,053+ готовых автоматизаций) с возможностью фильтрации по категориям, сложности и интеграциям.
 
 ### Расширенные компоненты (профиль developer)
 
@@ -674,6 +678,44 @@ cd N8N-AI-Starter-Kit
 > - 🚫 **НЕ запускайте** скрипты развертывания от root пользователя
 > - ✅ **Используйте** обычного пользователя с sudo правами  
 > - 🔧 **Новые скрипты** автоматически создают пользователя и настраивают права
+
+### 🌐 Развертывание на сервере (SSH)
+
+**Новое в v1.1.4!** Автоматическое развертывание на удаленном сервере через SSH.
+
+#### Быстрое развертывание:
+
+```bash
+# Автоматическая установка на удаленном сервере
+ssh user@your-server-ip
+curl -fsSL https://raw.githubusercontent.com/sattva2020/N8N-AI-Starter-Kit/main/scripts/deploy-server.sh | bash
+```
+
+#### Управление сервером с Windows:
+
+```powershell
+# Загрузка скрипта управления
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sattva2020/N8N-AI-Starter-Kit/main/scripts/manage-server.ps1" -OutFile "manage-server.ps1"
+
+# Развертывание на сервере
+.\manage-server.ps1 -ServerIP "192.168.1.100" -Username "root" -Action "deploy"
+
+# Проверка статуса
+.\manage-server.ps1 -ServerIP "192.168.1.100" -Action "status"
+
+# Обновление системы
+.\manage-server.ps1 -ServerIP "192.168.1.100" -Action "update"
+```
+
+#### Поддерживаемые команды управления:
+- `deploy` - Развертывание системы
+- `status` - Проверка статуса
+- `update` - Обновление до последней версии
+- `start/stop/restart` - Управление сервисами
+- `logs` - Просмотр логов
+- `backup` - Создание резервной копии
+
+> [📖 Полное руководство по серверному развертыванию](./docs/SERVER_DEPLOYMENT.md)
 > - 📖 **Подробная инструкция**: [docs/UBUNTU_VM_COMPLETE_GUIDE.md](./docs/UBUNTU_VM_COMPLETE_GUIDE.md)
 
 > **✨ Что нового в v1.1.3**: 
@@ -1095,6 +1137,136 @@ n8n полон полезного контента для быстрого ст�
 ### Изучите ключевые концепции ИИ
 
 - [AI Agent Chat](https://n8n.io/workflows/1954-ai-agent-chat/)
+
+## 🔄 Импорт workflow из Zie619
+
+N8N AI Starter Kit теперь поддерживает **автоматический импорт workflow** из крупнейшего сообщественного репозитория [Zie619/n8n-workflows](https://github.com/Zie619/n8n-workflows), содержащего **2,053+ готовых автоматизаций**.
+
+### 🚀 Быстрый старт
+
+#### Интерактивный импорт (Рекомендуется):
+```bash
+# Установка зависимостей (один раз)
+python scripts/setup-workflow-import.py
+
+# Запуск интерактивного импорта
+python scripts/workflow-import-cli.py
+```
+
+#### Прямой импорт с фильтрами:
+```bash
+# AI и машинное обучение (ChatGPT, OpenAI, Anthropic)
+python scripts/import-zie619-workflows.py --category ai_ml --limit 25
+
+# Бизнес-автоматизация (email, мессенджеры, проект-менеджмент)  
+python scripts/import-zie619-workflows.py --category messaging email --min-nodes 3 --limit 30
+
+# Инструменты разработчика (webhooks, APIs, GitHub)
+python scripts/import-zie619-workflows.py --category development --keywords webhook api github --limit 20
+```
+
+### 📂 Доступные категории
+
+| Категория | Описание | Примеры интеграций |
+|-----------|----------|-------------------|
+| `ai_ml` | 🤖 ИИ и машинное обучение | OpenAI, Anthropic, ChatGPT, Claude |
+| `messaging` | 💬 Мессенджеры и чат-боты | Telegram, Discord, Slack, WhatsApp |
+| `email` | 📧 Email автоматизация | Gmail, Outlook, SMTP/IMAP |
+| `database` | 🗄️ Базы данных | PostgreSQL, MySQL, MongoDB, Airtable |
+| `cloud_storage` | ☁️ Облачные хранилища | Google Drive, Dropbox, OneDrive |
+| `development` | ⚙️ Инструменты разработки | Webhook, HTTP Request, GitHub, GitLab |
+| `project_management` | 📋 Управление проектами | Jira, Trello, Asana, Monday |
+| `ecommerce` | 🛒 Электронная коммерция | Shopify, Stripe, PayPal |
+
+### 🎯 Готовые пресеты
+
+```bash
+# Стартовый набор для новичков (простые workflow)
+python scripts/import-zie619-workflows.py --preset starter_pack
+
+# AI автоматизация (продвинутые ИИ-workflow)
+python scripts/import-zie619-workflows.py --preset ai_workflows
+
+# Бизнес-процессы (корпоративная автоматизация)
+python scripts/import-zie619-workflows.py --preset business_automation
+
+# Инструменты разработчика
+python scripts/import-zie619-workflows.py --preset developer_tools
+```
+
+### 🔗 Интеграция с N8N
+
+После импорта workflow, автоматически импортируйте их в ваш N8N инстанс:
+
+```bash
+# Импорт через API (рекомендуется)
+python scripts/import-to-n8n.py n8n/workflows/imported
+
+# Импорт через CLI (резервный способ)
+python scripts/import-to-n8n.py n8n/workflows/imported --use-cli
+
+# Фильтрация при импорте в N8N
+python scripts/import-to-n8n.py n8n/workflows/imported --min-nodes 3 --complexity medium high
+```
+
+### 📊 Структура импортированных workflow
+
+```
+n8n/workflows/imported/
+├── ai_ml/                     # ИИ и машинное обучение
+│   ├── ChatGPT_Document_Analysis.json
+│   ├── OpenAI_Content_Generator.json
+│   └── Anthropic_Claude_Assistant.json
+├── messaging/                 # Мессенджеры и боты
+│   ├── Telegram_Bot_Automation.json
+│   ├── Discord_Notification_System.json
+│   └── Slack_Workflow_Integration.json
+├── development/               # Инструменты разработчика
+│   ├── GitHub_Issue_Tracker.json
+│   ├── Webhook_Data_Processor.json
+│   └── API_Integration_Helper.json
+└── zie619_import_report.md   # Отчет об импорте
+```
+
+### ⚡ Примеры использования
+
+#### Импорт ИИ-workflow для начинающих:
+```bash
+python scripts/import-zie619-workflows.py \
+  --category ai_ml \
+  --complexity low medium \
+  --max-nodes 10 \
+  --limit 15
+```
+
+#### Продвинутая бизнес-автоматизация:
+```bash
+python scripts/import-zie619-workflows.py \
+  --category messaging email project_management \
+  --min-nodes 5 \
+  --keywords automation notification \
+  --limit 40
+```
+
+#### Интеграционные инструменты для разработчиков:
+```bash
+python scripts/import-zie619-workflows.py \
+  --category development \
+  --keywords webhook api github gitlab \
+  --min-nodes 3 \
+  --limit 25
+```
+
+### 🔧 Дополнительные возможности
+
+- **Автоматическая категоризация** workflow по типу интеграций
+- **Фильтрация по сложности** (количество узлов: low/medium/high)
+- **Поиск по ключевым словам** в названиях workflow
+- **Пакетная обработка** с отчетами об импорте
+- **История импорта** с SQLite базой данных
+- **Интеграция с N8N API** для прямого импорта
+
+📚 **Подробная документация**: [docs/WORKFLOW_IMPORT_GUIDE.md](docs/WORKFLOW_IMPORT_GUIDE.md)
 - [AI chat with any data source (using the n8n workflow too)](https://n8n.io/workflows/2026-ai-chat-with-any-data-source-using-the-n8n-workflow-tool/)
 - [Chat with OpenAI Assistant (by adding a memory)](https://n8n.io/workflows/2098-chat-with-openai-assistant-by-adding-a-memory/)
 - [Use an open-source LLM (via Hugging Face)](https://n8n.io/workflows/1980-use-an-open-source-llm-via-huggingface/)
