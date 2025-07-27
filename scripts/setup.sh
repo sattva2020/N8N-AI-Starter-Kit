@@ -34,6 +34,40 @@ else
   DC_CMD="docker compose"
 fi
 
+# Обработка аргументов командной строки
+SETUP_MODE=""
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --template)
+      SETUP_MODE="template"
+      shift
+      ;;
+    --interactive)
+      SETUP_MODE="interactive"
+      shift
+      ;;
+    -h|--help)
+      echo "Использование: $0 [ОПЦИИ]"
+      echo ""
+      echo "ОПЦИИ:"
+      echo "  --template      Быстрый режим (использует template.env)"
+      echo "  --interactive   Интерактивный режим (запрашивает все параметры)"
+      echo "  -h, --help      Показать эту справку"
+      echo ""
+      echo "Примеры:"
+      echo "  $0 --template      # Быстрая настройка с template.env"
+      echo "  $0 --interactive   # Пошаговая настройка"
+      echo "  $0                 # Интерактивный выбор режима"
+      exit 0
+      ;;
+    *)
+      echo "Неизвестный параметр: $1"
+      echo "Используйте --help для справки"
+      exit 1
+      ;;
+  esac
+done
+
 print_banner() {
   echo -e "${BLUE}====================================================${NC}"
   echo -e "${BOLD}     N8N AI Starter Kit - Установка и настройка     ${NC}"
@@ -896,7 +930,11 @@ update_template_with_user_settings() {
 
 # Основная логика скрипта
 print_banner
-choose_setup_mode
+
+# Если режим не был установлен через параметры командной строки, запрашиваем выбор
+if [ -z "$SETUP_MODE" ]; then
+  choose_setup_mode
+fi
 
 # Проверяем что режим установлен корректно
 if [ -z "$SETUP_MODE" ]; then
