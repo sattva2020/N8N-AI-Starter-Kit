@@ -114,6 +114,7 @@ scripts/add-missing-env-vars.ps1
 # Служебные файлы документации (только для локального использования)
 LOCAL_SCRIPTS_EXCLUSION.md
 .internal/
+*.exe
 
 # Публикуются только основные файлы:
 # README.md, LICENSE, docker-compose.yml, .env.example, template.env
@@ -138,5 +139,5 @@ LOCAL_SCRIPTS_EXCLUSION.md
 *TEST*.md
 MISSION_*.md
 CRITICAL_*.md
-"# ���஥��� Git ९����ਨ"  
+"# ���஥��� Git ९����ਨ"  
 "n8n-workflows-es-main/" 
