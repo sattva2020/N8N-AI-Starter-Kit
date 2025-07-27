@@ -103,12 +103,13 @@ services:
         reservations:
           cpus: '1'
           memory: 1G
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:5678/healthz || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 90s  # Увеличиваем время запуска
+    # Временно отключен healthcheck для диагностики проблемы с Traefik
+    # healthcheck:
+    #   test: ["CMD-SHELL", "wget -q --spider http://localhost:5678/healthz || exit 1"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 5
+    #   start_period: 90s  # Увеличиваем время запуска
 
   # N8N Workflows Auto-Importer v1.2.0
   n8n-workflows-importer:
