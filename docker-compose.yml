@@ -4,10 +4,10 @@ x-traefik-base: &traefik-base
   ports:
     - "0.0.0.0:80:80"
     - "0.0.0.0:443:443"
+    - "127.0.0.1:8080:8080"
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock:ro
     - traefik_letsencrypt:/letsencrypt
-    - ./config/traefik:/etc/traefik/dynamic
   networks:
     - frontend
   healthcheck:
@@ -50,9 +50,9 @@ services:
     profiles: [default, cpu, gpu-nvidia, developer]
     command:
       - "--api.dashboard=true"
+      - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedByDefault=false"
-      - "--providers.file.directory=/etc/traefik/dynamic"
       - "--entryPoints.web.address=:80"
       - "--entryPoints.websecure.address=:443"
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
@@ -89,6 +89,12 @@ services:
       - "traefik.http.routers.n8n-secure.entrypoints=websecure"
       - "traefik.http.routers.n8n-secure.tls.certresolver=myresolver"
       - "traefik.http.routers.n8n-secure.service=n8n"
+      # Security middlewares
+      - "traefik.http.middlewares.n8n-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.n8n-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.n8n-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
+      - "traefik.http.middlewares.n8n-compress.compress=true"
+      - "traefik.http.routers.n8n-secure.middlewares=n8n-headers,n8n-compress"
     deploy:
       resources:
         limits:
