@@ -764,6 +764,57 @@ wait_for_postgres() {
   return 1
 }
 
+# Функция для обновления конфигурации Traefik с правильными доменами
+update_traefik_config() {
+  if [ ! -f ".env" ]; then
+    print_warning "Файл .env не найден, пропускаем обновление конфигурации Traefik"
+    return 0
+  fi
+
+  # Загружаем переменные из .env
+  source .env
+
+  if [ -z "$DOMAIN_NAME" ]; then
+    print_warning "DOMAIN_NAME не задан в .env, пропускаем обновление Traefik"
+    return 0
+  fi
+
+  print_info "Обновление конфигурации Traefik для домена: $DOMAIN_NAME"
+
+  # Обновляем ssl-security.yml если он существует
+  if [ -f "config/traefik/dynamic/ssl-security.yml" ]; then
+    print_info "Обновляем ssl-security.yml..."
+    
+    # Создаем резервную копию если ее еще нет
+    if [ ! -f "config/traefik/dynamic/ssl-security.yml.backup" ]; then
+      cp config/traefik/dynamic/ssl-security.yml config/traefik/dynamic/ssl-security.yml.backup
+    fi
+    
+    # Заменяем старые домены на новые
+    sed -i "s/yourdomain\.com/${DOMAIN_NAME}/g" config/traefik/dynamic/ssl-security.yml
+    sed -i "s/n8n\.yourdomain\.com/n8n.${DOMAIN_NAME}/g" config/traefik/dynamic/ssl-security.yml
+    sed -i "s/api\.yourdomain\.com/api.${DOMAIN_NAME}/g" config/traefik/dynamic/ssl-security.yml
+    sed -i "s/monitor\.yourdomain\.com/monitor.${DOMAIN_NAME}/g" config/traefik/dynamic/ssl-security.yml
+    sed -i "s/admin\.yourdomain\.com/admin.${DOMAIN_NAME}/g" config/traefik/dynamic/ssl-security.yml
+    
+    print_success "ssl-security.yml обновлен"
+  fi
+
+  # Обновляем development.yml если есть жестко заданные домены
+  if [ -f "config/traefik/dynamic/development.yml" ]; then
+    if grep -q "yourdomain\.com\|sattva-ai\.top" config/traefik/dynamic/development.yml; then
+      if [ ! -f "config/traefik/dynamic/development.yml.backup" ]; then
+        cp config/traefik/dynamic/development.yml config/traefik/dynamic/development.yml.backup
+      fi
+      sed -i "s/sattva-ai\.top/${DOMAIN_NAME}/g" config/traefik/dynamic/development.yml
+      sed -i "s/yourdomain\.com/${DOMAIN_NAME}/g" config/traefik/dynamic/development.yml
+      print_success "development.yml обновлен"
+    fi
+  fi
+
+  print_success "Конфигурация Traefik обновлена для домена: $DOMAIN_NAME"
+}
+
 # Функция для обновления существующего .env файла с интерактивными настройками
 update_existing_env_with_interactive_settings() {
   print_info "Обновление существующего .env файла с новыми настройками..."
@@ -800,6 +851,9 @@ update_existing_env_with_interactive_settings() {
     fi
     print_success "OpenAI API ключ обновлен"
   fi
+  
+  # Обновляем конфигурацию Traefik после изменения доменов
+  update_traefik_config
 }
 
 interactive_setup() {
@@ -892,6 +946,11 @@ update_template_with_user_settings() {
   mv template.env.tmp template.env
   
   print_success "Template.env обновлен успешно!"
+  
+  # Также обновляем конфигурацию Traefik, если .env уже существует
+  if [ -f ".env" ]; then
+    update_traefik_config
+  fi
 }
 
 # Основная логика скрипта
