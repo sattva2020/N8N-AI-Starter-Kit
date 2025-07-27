@@ -13,6 +13,15 @@ BLUE='\033[0;34m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
+# Определяем команду timeout (для совместимости с разными системами)
+if command -v timeout >/dev/null 2>&1; then
+  TIMEOUT_CMD="timeout"
+elif command -v gtimeout >/dev/null 2>&1; then
+  TIMEOUT_CMD="gtimeout"  # macOS with coreutils
+else
+  TIMEOUT_CMD=""  # Будем использовать без таймаута
+fi
+
 # Определяем команду docker compose в зависимости от установленной версии - в начале скрипта
 if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
   # Новая команда docker compose (без дефиса) доступна
@@ -273,8 +282,17 @@ check_port_availability() {
   if [ "$port_issues" = true ]; then
     print_warning "Обнаружены проблемы с портами. Traefik требует доступные порты 80 и 443 для работы с Let's Encrypt и SSL."
     print_info "Вы можете продолжить установку, но могут возникнуть проблемы с SSL-сертификатами."
-    read -p "Продолжить установку? (y/n): " continue_setup
-    if [ "$continue_setup" != "y" ]; then
+    
+    # В интерактивном режиме более подробно объясняем
+    if [ "$SETUP_MODE" = "interactive" ]; then
+      print_info "💡 В интерактивном режиме вы сможете настроить альтернативные порты или отключить SSL."
+      read -p "Продолжить установку? (Y/n): " continue_setup
+      continue_setup=${continue_setup:-Y}  # По умолчанию Y
+    else
+      read -p "Продолжить установку? (y/n): " continue_setup
+    fi
+    
+    if [[ ! "$continue_setup" =~ ^[Yy]$ ]]; then
       print_info "Установка прервана пользователем."
       exit 1
     fi
@@ -357,6 +375,40 @@ check_cpu_resources() {
   fi
 }
 
+# Функция для клонирования дополнительных репозиториев с workflow'ами
+clone_additional_workflows() {
+  print_info "Клонирование дополнительных репозиториев с workflow'ами..."
+  
+  # Репозиторий с испанскими workflow'ами от DragonJAR
+  local repo_url="https://github.com/DragonJAR/n8n-workflows-es.git"
+  local target_dir="n8n-workflows-es-main"
+  
+  if [ -d "$target_dir" ]; then
+    print_info "Директория $target_dir уже существует, обновляем..."
+    cd "$target_dir"
+    if git pull origin main >/dev/null 2>&1; then
+      print_success "Репозиторий обновлен: $target_dir"
+    else
+      print_warning "Не удалось обновить репозиторий $target_dir"
+    fi
+    cd ..
+  else
+    print_info "Клонирование репозитория n8n-workflows-es..."
+    if git clone "$repo_url" "$target_dir" >/dev/null 2>&1; then
+      print_success "Успешно склонирован репозиторий: $target_dir"
+      
+      # Проверяем наличие папки workflows
+      if [ -d "$target_dir/workflows" ]; then
+        local workflow_count=$(find "$target_dir/workflows" -name "*.json" | wc -l)
+        print_info "Найдено $workflow_count дополнительных workflow'ов"
+      fi
+    else
+      print_warning "Не удалось клонировать репозиторий $repo_url"
+      print_info "Проверьте подключение к интернету или доступность репозитория"
+    fi
+  fi
+}
+
 # Функция для создания файла с советами по устранению неполадок
 create_troubleshooting_file() {
   print_info "Создание файла с советами по устранению неполадок..."
@@ -431,45 +483,429 @@ EOF
 }
 
 # Проверка здоровья Docker
+# Проверка здоровья Docker
+docker_error_help() {
+  if [ "$(uname)" == "Darwin" ]; then
+    print_info "Для macOS: Запустите приложение Docker Desktop."
+  elif [[ "$(uname -r)" == *"microsoft"* ]] || [[ "$(uname -r)" == *"WSL"* ]]; then
+    print_info "Для WSL: Запустите Docker Desktop в Windows."
+    print_info "Убедитесь, что в настройках Docker Desktop включен 'Use the WSL 2 based engine'."
+  else
+    print_info "Попробуйте выполнить: sudo systemctl start docker"
+    print_info "Или добавьте текущего пользователя в группу docker: sudo usermod -aG docker $USER"
+    print_info "После добавления в группу выполните: newgrp docker"
+  fi
+}
+
+docker_permission_help() {
+  if [[ "$(uname -r)" == *"microsoft"* ]] || [[ "$(uname -r)" == *"WSL"* ]]; then
+    print_info "Для WSL: Убедитесь, что Docker Desktop запущен в Windows."
+  else
+    print_info "Добавьте текущего пользователя в группу docker: sudo usermod -aG docker $USER"
+    print_info "Затем перезагрузите систему или выполните: newgrp docker"
+  fi
+}
+
 check_docker_health() {
   print_info "Проверка состояния Docker..."
   if ! command -v docker &> /dev/null; then
     print_error "Docker не установлен или не доступен в PATH."
     return 1
   fi
-  # Проверка запущен ли демон Docker
-  if ! docker info &> /dev/null; then
-    print_error "Демон Docker не запущен или у вас нет прав для его использования."
-    if [ "$(uname)" == "Darwin" ]; then
-      print_info "Для macOS: Запустите приложение Docker Desktop."
+  
+  # Проверка запущен ли демон Docker с таймаутом
+  print_info "Проверка демона Docker (таймаут 10 сек)..."
+  if [ -n "$TIMEOUT_CMD" ]; then
+    if $TIMEOUT_CMD 10 docker info &> /dev/null; then
+      print_success "Демон Docker работает!"
     else
-      print_info "Попробуйте выполнить: sudo systemctl start docker"
-      print_info "Или добавьте текущего пользователя в группу docker: sudo usermod -aG docker $USER"
-      print_info "После добавления в группу выполните: newgrp docker"
+      print_error "Демон Docker не запущен или недоступен."
+      docker_error_help
+      return 1
     fi
-    return 1
-  fi
-  # Проверка наличия прав у текущего пользователя
-  if ! docker ps &> /dev/null; then
-    print_error "У вас недостаточно прав для использования Docker."
-    print_info "Добавьте текущего пользователя в группу docker: sudo usermod -aG docker $USER"
-    print_info "Затем перезагрузите систему или выполните: newgrp docker"
-    return 1
-  fi
-  # Проверка возможности загрузки образов
-  if ! docker pull hello-world &> /dev/null; then
-    print_warning "Не удалось загрузить тестовый образ. Возможны проблемы с сетью или Docker Hub."
-    print_info "Проверьте настройки сети и доступность Docker Hub."
-    return 2
   else
-    docker rmi hello-world &> /dev/null
+    # Без таймаута
+    if docker info &> /dev/null; then
+      print_success "Демон Docker работает!"
+    else
+      print_error "Демон Docker не запущен или недоступен."
+      docker_error_help
+      return 1
+    fi
   fi
-  print_success "Docker работает корректно!"
+  # Проверка наличия прав у текущего пользователя с таймаутом
+  print_info "Проверка прав пользователя Docker (таймаут 5 сек)..."
+  if [ -n "$TIMEOUT_CMD" ]; then
+    if $TIMEOUT_CMD 5 docker ps &> /dev/null; then
+      print_success "Права пользователя Docker корректны!"
+    else
+      print_error "У вас недостаточно прав для использования Docker."
+      docker_permission_help
+      return 1
+    fi
+  else
+    # Без таймаута
+    if docker ps &> /dev/null; then
+      print_success "Права пользователя Docker корректны!"
+    else
+      print_error "У вас недостаточно прав для использования Docker."
+      docker_permission_help
+      return 1
+    fi
+  fi
+  # Быстрая проверка возможности запуска контейнеров (опционально)
+  print_info "Быстрая проверка возможности запуска контейнеров..."
+  if [ -n "$TIMEOUT_CMD" ]; then
+    if $TIMEOUT_CMD 15 docker run --rm hello-world &> /dev/null; then
+      print_success "Docker полностью функционален!"
+      docker rmi hello-world &> /dev/null 2>&1
+    else
+      print_warning "Тест запуска контейнера не прошёл, но Docker может работать."
+      print_info "Это может быть связано с сетью или настройками Docker Hub."
+      print_info "Попробуйте запустить проект - основной функционал может работать."
+    fi
+  else
+    # Без таймаута - пропускаем эту проверку
+    print_warning "Пропуск теста контейнера (timeout недоступен)."
+    print_info "Основные проверки Docker прошли успешно."
+  fi
+  
+  print_success "Проверка Docker завершена!"
   return 0
+}
+
+# Функция выбора режима работы
+choose_setup_mode() {
+  echo ""
+  print_info "Выберите режим настройки N8N AI Starter Kit:"
+  echo ""
+  echo "1. 🎯 Интерактивный режим (рекомендуется для новых пользователей)"
+  echo "   - Пошаговая настройка всех параметров"
+  echo "   - Ввод доменов, паролей и API ключей"
+  echo "   - Автоматическая генерация безопасных паролей"
+  echo ""
+  echo "2. ⚡ Быстрый режим (template.env)"
+  echo "   - Использование предустановленных шаблонов"
+  echo "   - Подходит для разработки и тестирования"  
+  echo "   - Автоматическая настройка с доменами sattva-ai.top"
+  echo ""
+  echo "3. 📝 Показать инструкции по настройке hosts файла"
+  echo ""
+  
+  while true; do
+    read -p "Введите номер режима (1-3): " setup_mode
+    case $setup_mode in
+      1)
+        print_success "Выбран интерактивный режим"
+        SETUP_MODE="interactive"
+        break
+        ;;
+      2)
+        print_success "Выбран быстрый режим (template.env)"
+        SETUP_MODE="template"
+        break
+        ;;
+      3)
+        show_hosts_instructions
+        continue
+        ;;
+      *)
+        print_error "Пожалуйста, выберите 1, 2 или 3"
+        continue
+        ;;
+    esac
+  done
+}
+
+# Функция для отображения инструкций по hosts файлу
+show_hosts_instructions() {
+  echo ""
+  print_info "=== Настройка локального hosts файла ==="
+  echo ""
+  echo -e "${YELLOW}Для работы с доменами .sattva-ai.top в быстром режиме необходимо${NC}"
+  echo -e "${YELLOW}добавить записи в hosts файл системы:${NC}"
+  echo ""
+  echo -e "${BOLD}Windows:${NC} C:\\Windows\\System32\\drivers\\etc\\hosts"
+  echo -e "${BOLD}Linux/macOS:${NC} /etc/hosts"
+  echo ""
+  echo -e "${BLUE}Добавьте следующие строки:${NC}"
+  echo ""
+  echo "127.0.0.1 n8n.sattva-ai.top"
+  echo "127.0.0.1 qdrant.sattva-ai.top"
+  echo "127.0.0.1 traefik.sattva-ai.top"
+  echo "127.0.0.1 doc-processor.sattva-ai.top"
+  echo "127.0.0.1 web.sattva-ai.top"
+  echo "127.0.0.1 pgadmin.sattva-ai.top"
+  echo "127.0.0.1 jupyter.sattva-ai.top"
+  echo ""
+  echo -e "${GREEN}После настройки hosts файла сервисы будут доступны по адресам:${NC}"
+  echo "• N8N: http://n8n.sattva-ai.top"
+  echo "• Traefik: http://traefik.sattva-ai.top"
+  echo "• Qdrant: http://qdrant.sattva-ai.top"
+  echo ""
+  print_info "Для автоматической настройки используйте:"
+  echo "  Windows: scripts/setup-hosts-windows.bat (от имени администратора)"
+  echo "  Linux/macOS: scripts/setup-hosts-unix.sh"
+  echo ""
+  read -p "Нажмите Enter для возврата к выбору режима..."
+}
+
+# Функция создания .env из template.env
+create_env_from_template() {
+  if [ ! -f template.env ]; then
+    print_error "Файл template.env не найден!"
+    print_info "Убедитесь, что вы запускаете скрипт из корневой директории проекта"
+    exit 1
+  fi
+  
+  print_info "Создание .env файла из template.env..."
+  
+  # Создаем резервную копию если .env уже существует
+  if [ -f .env ]; then
+    backup_existing_config
+  fi
+  
+  # ВАЖНО: Очищаем volumes при создании нового .env
+  # Это предотвращает конфликт паролей и ключей шифрования
+  print_info "Очистка данных для предотвращения конфликта паролей..."
+  if docker volume ls | grep -q "n8n_storage"; then
+    docker volume rm n8n-ai-starter-kit_n8n_storage 2>/dev/null || true
+    print_success "Данные N8N очищены"
+  fi
+  if docker volume ls | grep -q "postgres_storage"; then
+    docker volume rm n8n-ai-starter-kit_postgres_storage 2>/dev/null || true
+    print_success "Данные PostgreSQL очищены"
+  fi
+  
+  # Генерируем случайные значения для безопасных переменных
+  print_info "Генерация безопасных паролей и ключей..."
+  
+  # Генерируем пароли и ключи
+  postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+  n8n_encryption_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+  n8n_jwt_secret=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+  pgadmin_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+  traefik_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
+  traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1)
+  
+  # Копируем template.env в .env
+  cp template.env .env
+  
+  # Заменяем placeholder значения (глобально с флагом /g)
+  sed -i "s/change_this_secure_password_123/${postgres_pwd}/g" .env
+  sed -i "s/your_32_char_encryption_key_here_/${n8n_encryption_key}/g" .env
+  sed -i "s/your_jwt_secret_key_here_min_32_chars/${n8n_jwt_secret}/g" .env
+  sed -i "s/pgadmin_secure_password_123/${pgadmin_pwd}/g" .env
+  sed -i "s/admin@example.com/admin@sattva-ai.top/g" .env
+  sed -i "s/\\\$\\\$\\\$\\\$apr1\\\$\\\$\\\$\\\$1LF8GnRQ\\\$\\\$\\\$\\\$qBinSa\/CmAS\/lLy4vz6DL1/${traefik_pwd_hash}/g" .env
+  
+  print_success "Файл .env создан успешно!"
+  
+  # Проверяем что файл создался правильно
+  if [ ! -f .env ]; then
+    print_error "Ошибка: .env файл не был создан!"
+    exit 1
+  fi
+  
+  # Проверяем что placeholder значения заменены
+  if grep -q "your_32_char_encryption_key_here_" .env; then
+    print_error "Ошибка: N8N encryption key не был заменен!"
+    exit 1
+  fi
+  
+  if grep -q "change_this_secure_password_123" .env; then
+    print_error "Ошибка: PostgreSQL пароль не был заменен!"
+    exit 1
+  fi
+  
+  if grep -q "pgladmin_secure_password_123" .env; then
+    print_error "Ошибка: PgAdmin пароль не был заменен!"
+    exit 1
+  fi
+  
+  # Проверяем что пароли PostgreSQL синхронизированы
+  postgres_pwd_count=$(grep -c "${postgres_pwd}" .env)
+  if [ "$postgres_pwd_count" -lt 2 ]; then
+    print_error "Ошибка: PostgreSQL пароль не синхронизирован между переменными!"
+    print_info "Найдено вхождений: $postgres_pwd_count (ожидается минимум 2)"
+    exit 1
+  fi
+  
+  print_info "Сгенерированные пароли:"
+  echo "  PostgreSQL: ${BOLD}${postgres_pwd}${NC}"
+  echo "  N8N Encryption Key: ${BOLD}${n8n_encryption_key}${NC}"
+  echo "  N8N JWT Secret: ${BOLD}${n8n_jwt_secret}${NC}"
+  echo "  PgAdmin: ${BOLD}${pgadmin_pwd}${NC}" 
+  echo "  Traefik Dashboard: ${BOLD}${traefik_pwd}${NC}"
+  echo ""
+  print_warning "Сохраните эти пароли в безопасном месте!"
+  echo ""
+}
+
+# Функция ожидания готовности PostgreSQL
+wait_for_postgres() {
+  print_info "Ожидание готовности PostgreSQL..."
+  
+  local max_attempts=30
+  local attempt=1
+  
+  while [ $attempt -le $max_attempts ]; do
+    if docker exec n8n-ai-starter-kit-postgres-1 pg_isready -U postgres >/dev/null 2>&1; then
+      print_success "PostgreSQL готов к работе"
+      return 0
+    fi
+    
+    echo -n "."
+    sleep 2
+    attempt=$((attempt + 1))
+  done
+  
+  print_error "PostgreSQL не готов после $max_attempts попыток"
+  return 1
+}
+
+# Функция для обновления существующего .env файла с интерактивными настройками
+update_existing_env_with_interactive_settings() {
+  print_info "Обновление существующего .env файла с новыми настройками..."
+  
+  # Обновляем домен
+  if [ -n "$domain_name" ]; then
+    sed -i "s/^DOMAIN_NAME=.*/DOMAIN_NAME=$domain_name/" .env
+    sed -i "s/^N8N_HOST=.*/N8N_HOST=n8n.$domain_name/" .env
+    sed -i "s/^N8N_DOMAIN=.*/N8N_DOMAIN=n8n.$domain_name/" .env
+    sed -i "s/^TRAEFIK_DASHBOARD_DOMAIN=.*/TRAEFIK_DASHBOARD_DOMAIN=traefik.$domain_name/" .env
+    sed -i "s/^QDRANT_DOMAIN=.*/QDRANT_DOMAIN=qdrant.$domain_name/" .env
+    sed -i "s/^DOCUMENT_PROCESSOR_DOMAIN=.*/DOCUMENT_PROCESSOR_DOMAIN=doc-processor.$domain_name/" .env
+    sed -i "s/^WEB_INTERFACE_DOMAIN=.*/WEB_INTERFACE_DOMAIN=web.$domain_name/" .env
+    sed -i "s/^OLLAMA_DOMAIN=.*/OLLAMA_DOMAIN=ollama.$domain_name/" .env
+    print_success "Домены обновлены на: $domain_name"
+  fi
+  
+  # Обновляем email для Let's Encrypt
+  if [ -n "$acme_email" ]; then
+    if grep -q "^ACME_EMAIL=" .env; then
+      sed -i "s/^ACME_EMAIL=.*/ACME_EMAIL=$acme_email/" .env
+    else
+      echo "ACME_EMAIL=$acme_email" >> .env
+    fi
+    print_success "Email для Let's Encrypt обновлен: $acme_email"
+  fi
+  
+  # Обновляем API ключи
+  if [ -n "$openai_api_key" ]; then
+    if grep -q "^OPENAI_API_KEY=" .env; then
+      sed -i "s/^OPENAI_API_KEY=.*/OPENAI_API_KEY=$openai_api_key/" .env
+    else
+      echo "OPENAI_API_KEY=$openai_api_key" >> .env
+    fi
+    print_success "OpenAI API ключ обновлен"
+  fi
+}
+
+interactive_setup() {
+  print_info "Интерактивная настройка N8N AI Starter Kit"
+  echo ""
+  
+  # Запрашиваем домен
+  read -p "Введите ваш основной домен (например, example.com): " domain_name
+  while [ -z "$domain_name" ]; do
+    print_error "Домен не может быть пустым!"
+    read -p "Введите ваш основной домен (например, example.com): " domain_name
+  done
+  
+  # Запрашиваем email для Let's Encrypt
+  read -p "Введите email для Let's Encrypt (для SSL сертификатов): " acme_email
+  while [ -z "$acme_email" ]; do
+    print_error "Email не может быть пустым!"
+    read -p "Введите email для Let's Encrypt (для SSL сертификатов): " acme_email
+  done
+  
+  # Запрашиваем API ключи (опционально)
+  echo ""
+  print_info "API ключи (оставьте пустым если не используете):"
+  
+  read -p "OpenAI API ключ (для Graphiti): " openai_api_key
+  read -p "Другие API ключи (через запятую): " other_api_keys
+  
+  # Подтверждение
+  echo ""
+  print_info "Настройки:"
+  echo "  Домен: $domain_name"
+  echo "  Email для Let's Encrypt: $acme_email"
+  if [ -n "$openai_api_key" ]; then
+    echo "  OpenAI API ключ: Задан"
+  else
+    echo "  OpenAI API ключ: Не задан"
+  fi
+  echo ""
+  
+  read -p "Продолжить с этими настройками? (y/N): " confirm
+  case $confirm in
+    [Yy]* ) ;;
+    * ) 
+      print_info "Настройка отменена"
+      exit 0
+      ;;
+  esac
+  
+  # Обновляем template.env с новыми значениями
+  update_template_with_user_settings "$domain_name" "$acme_email" "$openai_api_key"
+}
+
+update_template_with_user_settings() {
+  local domain_name=$1
+  local acme_email=$2
+  local openai_api_key=$3
+  
+  print_info "Обновление template.env с пользовательскими настройками..."
+  
+  # Создаем временную копию template.env
+  cp template.env template.env.tmp
+  
+  # Обновляем домен
+  sed -i "s/DOMAIN_NAME=sattva-ai.top/DOMAIN_NAME=${domain_name}/g" template.env.tmp
+  
+  # Обновляем email для Let's Encrypt
+  sed -i "s/ACME_EMAIL=admin@example.com/ACME_EMAIL=${acme_email}/g" template.env.tmp
+  sed -i "s/PGADMIN_DEFAULT_EMAIL=admin@example.com/PGADMIN_DEFAULT_EMAIL=${acme_email}/g" template.env.tmp
+  
+  # Обновляем домены
+  sed -i "s/n8n.sattva-ai.top/n8n.${domain_name}/g" template.env.tmp
+  sed -i "s/web.sattva-ai.top/web.${domain_name}/g" template.env.tmp
+  sed -i "s/doc-processor.sattva-ai.top/doc-processor.${domain_name}/g" template.env.tmp
+  sed -i "s/qdrant.sattva-ai.top/qdrant.${domain_name}/g" template.env.tmp
+  sed -i "s/ollama.sattva-ai.top/ollama.${domain_name}/g" template.env.tmp
+  sed -i "s/traefik.sattva-ai.top/traefik.${domain_name}/g" template.env.tmp
+  sed -i "s/supabase.sattva-ai.top/supabase.${domain_name}/g" template.env.tmp
+  sed -i "s/api.sattva-ai.top/api.${domain_name}/g" template.env.tmp
+  sed -i "s/pgadmin.sattva-ai.top/pgadmin.${domain_name}/g" template.env.tmp
+  sed -i "s/jupyter.sattva-ai.top/jupyter.${domain_name}/g" template.env.tmp
+  sed -i "s/zep.sattva-ai.top/zep.${domain_name}/g" template.env.tmp
+  sed -i "s/graphiti.sattva-ai.top/graphiti.${domain_name}/g" template.env.tmp
+  
+  # Обновляем OpenAI API ключ если задан
+  if [ -n "$openai_api_key" ]; then
+    sed -i "s/OPENAI_API_KEY=your_openai_api_key_here/OPENAI_API_KEY=${openai_api_key}/g" template.env.tmp
+  fi
+  
+  # Перемещаем обновленный файл
+  mv template.env.tmp template.env
+  
+  print_success "Template.env обновлен успешно!"
 }
 
 # Основная логика скрипта
 print_banner
+choose_setup_mode
+
+# Проверяем что режим установлен корректно
+if [ -z "$SETUP_MODE" ]; then
+  print_error "Режим установки не определен! Установлен интерактивный режим по умолчанию."
+  SETUP_MODE="interactive"
+fi
+
+print_info "Выбранный режим: $SETUP_MODE"
+
 detect_os
 
 # Проверка Docker Desktop на macOS
@@ -477,6 +913,9 @@ if [[ "$OS_TYPE" == "macOS" && ! -x "/Applications/Docker.app/Contents/Resources
   print_error "Docker Desktop не установлен. Установите с https://www.docker.com/products/docker-desktop "
   exit 1
 fi
+
+# Клонирование дополнительных репозиториев с workflow'ами
+clone_additional_workflows
 
 # Вызов функции установки утилит
 install_required_utils
@@ -731,355 +1170,224 @@ else
   fi
 fi
 
-# Создание .env файла
-if [ -f .env ]; then
-  print_warning "Файл .env уже существует."
-  
-  # Проверяем и исправляем переменные окружения для Supabase если файл существует
-  print_info "Проверка переменных окружения Supabase в существующем .env файле..."
-  
-  # Проверяем ANON_KEY
-  if grep -q "SUPABASE_ANON_KEY" .env && ! grep -q "^ANON_KEY=" .env; then
-    # Получаем значение SUPABASE_ANON_KEY
-    ANON_KEY_VALUE=$(grep -E "^SUPABASE_ANON_KEY=" .env | cut -d '=' -f2)
-    echo "# ---- SUPABASE ВНУТРЕННИЕ ПЕРЕМЕННЫЕ ----" >> .env
-    echo "ANON_KEY=$ANON_KEY_VALUE" >> .env
-    print_success "Добавлена переменная ANON_KEY на основе существующей SUPABASE_ANON_KEY"
+# Создание .env файла в зависимости от выбранного режима
+print_info "Создание .env файла в режиме: $SETUP_MODE"
+
+if [ "$SETUP_MODE" = "template" ]; then
+  print_info "Выполняется быстрый режим (template.env)..."
+  # Быстрый режим - используем template.env
+  if [ -f .env ]; then
+    print_warning "Файл .env уже существует."
+    read -p "Создать резервную копию и перезаписать? (y/n): " overwrite
+    
+    if [ "$overwrite" = "y" ]; then
+      backup_existing_config
+    else
+      print_info "Сохранение существующего файла .env"
+      exit 0
+    fi
   fi
   
-  # Проверяем SERVICE_ROLE_KEY
-  if grep -q "SUPABASE_SERVICE_ROLE_KEY" .env && ! grep -q "^SERVICE_ROLE_KEY=" .env; then
-    # Получаем значение SUPABASE_SERVICE_ROLE_KEY
-    SERVICE_KEY_VALUE=$(grep -E "^SUPABASE_SERVICE_ROLE_KEY=" .env | cut -d '=' -f2)
-    echo "SERVICE_ROLE_KEY=$SERVICE_KEY_VALUE" >> .env
-    print_success "Добавлена переменная SERVICE_ROLE_KEY на основе существующей SUPABASE_SERVICE_ROLE_KEY"
-  fi
+  create_env_from_template
+  print_success "Быстрый режим завершен успешно"
   
-  # Проверяем JWT_SECRET
-  if grep -q "SUPABASE_JWT_SECRET" .env && ! grep -q "^JWT_SECRET=" .env; then
-    JWT_SECRET_VALUE=$(grep -E "^SUPABASE_JWT_SECRET=" .env | cut -d '=' -f2)
-    echo "JWT_SECRET=$JWT_SECRET_VALUE" >> .env
-    print_success "Добавлена переменная JWT_SECRET на основе существующей SUPABASE_JWT_SECRET"
-  fi
+elif [ "$SETUP_MODE" = "interactive" ]; then
+  # Интерактивный режим - запрашиваем все параметры
+  print_info "🎯 Интерактивный режим настройки"
   
-  print_info "Рекомендуется создать резервную копию перед перезаписью."
-  read -p "Создать резервную копию и перезаписать? (y/n): " overwrite
+  # Сначала запускаем интерактивную настройку
+  interactive_setup
   
-  if [ "$overwrite" = "y" ]; then
-    # Создаем резервную копию
-    backup_existing_config
-  else
-    print_info "Сохранение существующего файла .env"
-    exit 0
+  # Проверяем существующий .env файл ПОСЛЕ получения настроек
+  if [ -f .env ]; then
+    print_warning "Файл .env уже существует."
+    print_info "Рекомендуется создать резервную копию перед перезаписью."
+    read -p "Создать резервную копию и перезаписать? (y/n): " overwrite
+    
+    if [ "$overwrite" = "y" ]; then
+      # Создаем резервную копию
+      backup_existing_config
+    else
+      print_info "Использование существующего .env файла с новыми настройками"
+      # Применяем новые настройки к существующему файлу
+      update_existing_env_with_interactive_settings
+      print_success "Интерактивная настройка завершена!"
+      return 0
+    fi
   fi
-fi
 
-# Ввод базовых настроек
-print_info "\n--- Настройка основных параметров ---"
-read -p "Введите основное доменное имя (например, example.com): " domain_name
-while [ -z "$domain_name" ] || ! validate_domain_name "$domain_name"; do
-  print_error "Доменное имя не может быть пустым и должно иметь корректный формат (например, example.com)."
-  read -p "Введите основное доменное имя (например, example.com): " domain_name
-done
+  # Создаем новый .env файл на основе template.env с интерактивными настройками
+  print_info "Создание нового .env файла с вашими настройками..."
+  
+  # Копируем template.env в .env
+  cp template.env .env
+  
+  # Применяем интерактивные настройки
+  update_existing_env_with_interactive_settings
 
-# Проверка корректности доменного имени
-validate_domain_name "$domain_name"
-while [ $? -ne 0 ]; do
-  print_error "Некорректное доменное имя: $domain_name"
-  read -p "Введите корректное доменное имя (например, example.com): " domain_name
-  validate_domain_name "$domain_name"
-done
+  # Генерация паролей и ключей для интерактивного режима
+  print_info "Генерация безопасных паролей и ключей..."
 
-read -p "Введите ваш email (для Let's Encrypt и уведомлений): " email
-while [ -z "$email" ] || ! validate_email "$email"; do
-  print_error "Введите корректный email адрес."
-  read -p "Введите ваш email (для Let's Encrypt и уведомлений): " email
-done
+  # Проверяем существующий N8N_ENCRYPTION_KEY если .env файл существует
+  existing_encryption_key=""
+  if [ -f .env.backup ] && [ -f .env ]; then
+    existing_encryption_key=$(grep -E "^N8N_ENCRYPTION_KEY=" .env.backup 2>/dev/null | cut -d '=' -f2)
+    if [ -n "$existing_encryption_key" ]; then
+      print_success "Найден существующий ключ шифрования N8N, будет использован для сохранения совместимости"
+    fi
+  fi
 
-# Генерация паролей и ключей
-print_info "Генерация безопасных паролей и ключей..."
+  # Используем только алфавитно-цифровые символы
+  postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
 
-# Проверяем существующий N8N_ENCRYPTION_KEY если .env файл существует
-existing_encryption_key=""
-if [ -f .env.backup ] && [ -f .env ]; then
-  existing_encryption_key=$(grep -E "^N8N_ENCRYPTION_KEY=" .env.backup 2>/dev/null | cut -d '=' -f2)
+  # Используем существующий ключ шифрования или генерируем новый
   if [ -n "$existing_encryption_key" ]; then
-    print_success "Найден существующий ключ шифрования N8N, будет использован для сохранения совместимости"
-  fi
-fi
-
-# Используем только алфавитно-цифровые символы
-postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
-
-# Используем существующий ключ шифрования или генерируем новый
-if [ -n "$existing_encryption_key" ]; then
-  n8n_encryption_key="$existing_encryption_key"
-  print_info "Используется существующий ключ шифрования N8N"
-else
-  n8n_encryption_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
-  print_info "Сгенерирован новый ключ шифрования N8N"
-fi
-n8n_jwt_secret=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
-supabase_postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
-supabase_anon_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
-supabase_service_role_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
-supabase_jwt_secret=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
-jwt_expiry="3600"
-logflare_api_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
-secret_key_base=$(openssl rand -base64 96 | tr -cd '[:alnum:]' | cut -c1-64)
-vault_enc_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
-pooler_tenant_id="n8n_$(openssl rand -hex 8)"
-pooler_default_pool_size="20"
-pooler_max_client_conn="100"
-pooler_proxy_port_transaction="6543"
-pgadmin_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
-zep_api_secret=$(openssl rand -base64 64 | tr -cd '[:alnum:]' | cut -c1-48)
-grafana_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
-jupyter_ds_token=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
-dashboard_password=$(openssl rand -base64 24 | tr -cd '[:alnum:]' | cut -c1-12)
-
-# Генерация хэша пароля для Traefik Dashboard
-read -p "Введите пароль для панели управления Traefik (оставьте пустым для автогенерации): " traefik_pwd
-if [ -z "$traefik_pwd" ]; then
-  traefik_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
-  print_info "Сгенерирован случайный пароль: ${BOLD}$traefik_pwd${NC} (сохраните его в безопасном месте)"
-fi
-
-# Генерация хэша пароля с улучшенной обработкой ошибок
-# Используем простой MD5-хэш вместо сложного Apache-хэша для избежания проблем с экранированием
-traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1)
-if [ -z "$traefik_pwd_hash" ]; then
-  # Fallback метод с базовым хэшированием
-  traefik_pwd_hash=$(echo -n "${traefik_pwd}salt" | sha256sum | cut -c1-32)
-fi
-print_info "Сгенерированный хэш пароля: $traefik_pwd_hash"
-
-# Запрос API ключей
-echo ""
-print_info "--- Настройка внешних API (необязательно) ---"
-read -p "Введите ваш OpenAI API ключ (или оставьте пустым, чтобы настроить позже): " openai_key
-if [ -n "$openai_key" ]; then
-    print_success "OpenAI API ключ будет добавлен в конфигурацию"
-else
-    print_info "OpenAI API ключ можно добавить позже в файл .env"
-fi
-
-read -p "Введите ваш Anthropic API ключ (или оставьте пустым): " anthropic_key
-if [ -n "$anthropic_key" ]; then
-    print_success "Anthropic API ключ будет добавлен в конфигурацию"
-fi
-
-# Создание файла .env
-print_info "Создание файла .env..."
-
-cat > .env << EOF
-# =============================================
-# N8N AI Starter Kit - Конфигурация окружения
-# =============================================
-# Создано автоматически $(date)
-# Версия: 1.0.6
-
-# ---- БАЗОВЫЕ НАСТРОЙКИ ----
-DOMAIN_NAME=${domain_name}
-GENERIC_TIMEZONE=Europe/Moscow
-NODE_ENV=production
-
-# ---- POSTGRESQL ----
-POSTGRES_USER=n8n
-POSTGRES_PASSWORD=${postgres_pwd}
-POSTGRES_DB=n8n
-POSTGRES_NON_ROOT_USER=n8n
-POSTGRES_NON_ROOT_PASSWORD=${postgres_pwd}
-POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
-
-# ---- N8N НАСТРОЙКИ ----
-N8N_HOST=localhost
-N8N_PORT=5678
-N8N_PROTOCOL=http
-N8N_ENCRYPTION_KEY=${n8n_encryption_key}
-N8N_USER_MANAGEMENT_JWT_SECRET=${n8n_jwt_secret}
-N8N_DEFAULT_BINARY_DATA_MODE=filesystem
-N8N_LOG_LEVEL=info
-
-# ---- N8N DATABASE CONNECTION ----
-DB_TYPE=postgresdb
-DB_POSTGRESDB_HOST=postgres
-DB_POSTGRESDB_PORT=5432
-DB_POSTGRESDB_DATABASE=n8n
-DB_POSTGRESDB_USER=n8n
-DB_POSTGRESDB_PASSWORD=${postgres_pwd}
-
-# ---- AI SERVICES ----
-OLLAMA_HOST=http://ollama:11434
-OLLAMA_MODEL=llama3.2
-
-# ---- QDRANT VECTOR DATABASE ----
-QDRANT_URL=http://qdrant:6333
-QDRANT_API_KEY=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
-
-# ---- EXTERNAL APIs ----
-$([ -n "$openai_key" ] && echo "OPENAI_API_KEY=${openai_key}" || echo "# OPENAI_API_KEY=")
-
-# ---- ANTHROPIC API (необязательно) ----
-$([ -n "$anthropic_key" ] && echo "ANTHROPIC_API_KEY=${anthropic_key}" || echo "# ANTHROPIC_API_KEY=")
-
-# ---- WEBHOOK НАСТРОЙКИ ----
-WEBHOOK_URL=
-
-# ---- SUPABASE НАСТРОЙКИ ----
-SUPABASE_POSTGRES_PASSWORD=${supabase_postgres_pwd}
-SUPABASE_ANON_KEY=${supabase_anon_key}
-SUPABASE_SERVICE_ROLE_KEY=${supabase_service_role_key}
-SUPABASE_JWT_SECRET=${supabase_jwt_secret}
-JWT_SECRET=${supabase_jwt_secret}
-JWT_EXPIRY=${jwt_expiry}
-SECRET_KEY_BASE=${secret_key_base}
-VAULT_ENC_KEY=${vault_enc_key}
-POOLER_TENANT_ID=${pooler_tenant_id}
-POOLER_DEFAULT_POOL_SIZE=${pooler_default_pool_size}
-POOLER_MAX_CLIENT_CONN=${pooler_max_client_conn}
-POOLER_PROXY_PORT_TRANSACTION=${pooler_proxy_port_transaction}
-LOGFLARE_API_KEY=${logflare_api_key}
-IMGPROXY_ENABLE_WEBP_DETECTION=true
-KONG_HTTP_PORT=8000
-KONG_HTTPS_PORT=8443
-DASHBOARD_USERNAME=admin
-DASHBOARD_PASSWORD=${dashboard_password}
-FUNCTIONS_VERIFY_JWT=false
-SUPABASE_PUBLIC_URL=http://localhost:8000
-
-# ---- SUPABASE STUDIO НАСТРОЙКИ ----
-STUDIO_DEFAULT_ORGANIZATION=n8n
-STUDIO_DEFAULT_PROJECT=n8n-ai-project
-
-# ---- REST API НАСТРОЙКИ ----
-PGRST_DB_SCHEMAS=public,storage,graphql_public
-
-# ---- НАСТРОЙКИ АУТЕНТИФИКАЦИИ ----
-SMTP_ADMIN_EMAIL=${email}
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USER=smtp_user
-SMTP_PASS=$(openssl rand -base64 12 | tr -d "=" | tr -d "/+")
-SMTP_SENDER_NAME=N8N AI Starter Kit
-SITE_URL=http://localhost:8000
-API_EXTERNAL_URL=http://localhost:8000
-ADDITIONAL_REDIRECT_URLS=
-DISABLE_SIGNUP=false
-ENABLE_EMAIL_SIGNUP=true
-ENABLE_EMAIL_AUTOCONFIRM=true
-ENABLE_PHONE_SIGNUP=false
-ENABLE_PHONE_AUTOCONFIRM=false
-ENABLE_ANONYMOUS_USERS=false
-MAILER_URLPATHS_INVITE=/auth/v1/verify
-MAILER_URLPATHS_CONFIRMATION=/auth/v1/verify
-MAILER_URLPATHS_RECOVERY=/auth/v1/verify
-MAILER_URLPATHS_EMAIL_CHANGE=/auth/v1/verify
-
-# ---- PGADMIN НАСТРОЙКИ ----
-PGADMIN_DEFAULT_EMAIL=${email}
-PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
-
-# ---- TRAEFIK НАСТРОЙКИ ----
-ACME_EMAIL=${email}
-TRAEFIK_USERNAME=admin
-TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
-
-# ---- ZEP НАСТРОЙКИ ----
-ZEP_POSTGRES_USER=postgres
-ZEP_POSTGRES_PASSWORD=postgres
-ZEP_POSTGRES_DB=postgres
-ZEP_API_SECRET=${zep_api_secret}
-ZEP_MEMORY_STORE_POSTGRES_DSN=postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
-
-# ---- GRAPHITI НАСТРОЙКИ ----
-NEO4J_URI=bolt://neo4j-graphiti:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=zepzepzep
-
-# ---- GRAFANA НАСТРОЙКИ ----
-GRAFANA_ADMIN_USER=admin
-GRAFANA_ADMIN_PASSWORD=${grafana_pwd}
-
-# ---- JUPYTER DATA SCIENCE НАСТРОЙКИ ----
-JUPYTER_DS_TOKEN=${jupyter_ds_token}
-
-# ---- ДОМЕНЫ СЕРВИСОВ ----
-N8N_DOMAIN=n8n.${domain_name}
-OLLAMA_DOMAIN=ollama.${domain_name}
-QDRANT_DOMAIN=qdrant.${domain_name}
-SUPABASE_STUDIO_DOMAIN=supabase.${domain_name}
-SUPABASE_API_DOMAIN=api.supabase.${domain_name}
-PGADMIN_DOMAIN=pgadmin.${domain_name}
-JUPYTER_DOMAIN=jupyter.${domain_name}
-TRAEFIK_DASHBOARD_DOMAIN=traefik.${domain_name}
-ZEP_DOMAIN=zep.${domain_name}
-GRAPHITI_DOMAIN=graphiti.${domain_name}
-PROMETHEUS_DOMAIN=prometheus.${domain_name}
-GRAFANA_DOMAIN=grafana.${domain_name}
-CADVISOR_DOMAIN=cadvisor.${domain_name}
-LOKI_DOMAIN=loki.${domain_name}
-KIBANA_DOMAIN=kibana.${domain_name}
-JUPYTER_DS_DOMAIN=jupyter-ds.${domain_name}
-LANGSMITH_DOMAIN=langsmith.${domain_name}
-WANDB_DOMAIN=wandb.${domain_name}
-
-# ---- ЛОКАЛЬНОЕ ХРАНИЛИЩЕ N8N ----
-N8N_DEFAULT_BINARY_DATA_MODE=filesystem
-FILE_SIZE_LIMIT=52428800
-
-# ---- DOCKER CONFIGURATION ----
-COMPOSE_PROJECT_NAME=n8n-ai-starter-kit
-DOCKER_BUILDKIT=1
-COMPOSE_DOCKER_CLI_BUILD=1
-COMPOSE_PARALLEL_LIMIT=1
-
-# ---- SUPABASE ВНУТРЕННИЕ ПЕРЕМЕННЫЕ ----
-ANON_KEY=${supabase_anon_key}
-SERVICE_ROLE_KEY=${supabase_service_role_key}
-EOF
-
-print_success "Файл .env успешно создан!"
-print_warning "ВАЖНО: Сохраните копию файла .env в безопасном месте!"
-
-# Отображение важной информации
-echo -e "\n${BLUE}===============================================${NC}"
-echo -e "${BOLD}Важная информация о паролях и ключах:${NC}"
-echo -e "${BLUE}===============================================${NC}"
-echo -e "${YELLOW}Traefik Dashboard пароль:${NC} ${BOLD}$traefik_pwd${NC}"
-echo -e "${YELLOW}PgAdmin пароль:${NC} ${BOLD}$pgadmin_pwd${NC}"
-echo -e "${YELLOW}Grafana пароль:${NC} ${BOLD}$grafana_pwd${NC}"
-echo -e "${YELLOW}Jupyter Token:${NC} ${BOLD}$jupyter_ds_token${NC}"
-if [ -n "$openai_key" ]; then
-  echo -e "${YELLOW}OpenAI API:${NC} ${GREEN}✅ Настроен${NC}"
-else
-  echo -e "${YELLOW}OpenAI API:${NC} ${RED}❌ Не настроен${NC} (добавьте позже в .env)"
-fi
-if [ -n "$anthropic_key" ]; then
-  echo -e "${YELLOW}Anthropic API:${NC} ${GREEN}✅ Настроен${NC}"
-fi
-echo -e "${BLUE}===============================================${NC}"
-
-# Создаем файл с советами по устранению неполадок
-create_troubleshooting_file
-
-# Предложение предзагрузки моделей
-echo -e "\n${BLUE}===============================================${NC}"
-echo -e "${BOLD}Предварительная загрузка моделей для Ollama${NC}"
-echo -e "${BLUE}===============================================${NC}"
-echo -e "Загрузка моделей сейчас позволит избежать ожидания при первом запуске системы."
-
-read -p "Хотите загрузить модели Ollama сейчас? (y/n): " preload_models
-
-if [[ "$preload_models" =~ ^[Yy]$ ]]; then
-  if [ -f "./scripts/preload-models.sh" ]; then
-    chmod +x ./scripts/preload-models.sh
-    ./scripts/preload-models.sh
+    n8n_encryption_key="$existing_encryption_key"
+    print_info "Используется существующий ключ шифрования N8N"
   else
-    print_warning "Скрипт preload-models.sh не найден."
+    n8n_encryption_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+    print_info "Сгенерирован новый ключ шифрования N8N"
   fi
-fi
+  n8n_jwt_secret=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+  supabase_postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+  supabase_anon_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+  supabase_service_role_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+  supabase_jwt_secret=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+  jwt_expiry="3600"
+  logflare_api_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+  secret_key_base=$(openssl rand -base64 96 | tr -cd '[:alnum:]' | cut -c1-64)
+  vault_enc_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+  pooler_tenant_id="n8n_$(openssl rand -hex 8)"
+  pooler_default_pool_size="20"
+  pooler_max_client_conn="100"
+  pooler_proxy_port_transaction="6543"
+  pgadmin_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+  zep_api_secret=$(openssl rand -base64 64 | tr -cd '[:alnum:]' | cut -c1-48)
+  grafana_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+  jupyter_ds_token=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+  dashboard_password=$(openssl rand -base64 24 | tr -cd '[:alnum:]' | cut -c1-12)
+
+  # Генерация хэша пароля для Traefik Dashboard
+  read -p "Введите пароль для панели управления Traefik (оставьте пустым для автогенерации): " traefik_pwd
+  if [ -z "$traefik_pwd" ]; then
+    traefik_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
+    print_info "Сгенерирован случайный пароль: ${BOLD}$traefik_pwd${NC} (сохраните его в безопасном месте)"
+  fi
+
+  # Генерация хэша пароля с улучшенной обработкой ошибок
+  # Используем простой MD5-хэш вместо сложного Apache-хэша для избежания проблем с экранированием
+  traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1)
+  if [ -z "$traefik_pwd_hash" ]; then
+    # Fallback метод с базовым хэшированием
+    traefik_pwd_hash=$(echo -n "${traefik_pwd}salt" | sha256sum | cut -c1-32)
+  fi
+  print_info "Сгенерированный хэш пароля: $traefik_pwd_hash"
+
+  # Запрос API ключей
+  echo ""
+  print_info "--- Настройка внешних API (необязательно) ---"
+  read -p "Введите ваш OpenAI API ключ (или оставьте пустым, чтобы настроить позже): " openai_key
+  if [ -n "$openai_key" ]; then
+      print_success "OpenAI API ключ будет добавлен в конфигурацию"
+  else
+      print_info "OpenAI API ключ можно добавить позже в файл .env"
+  fi
+
+  read -p "Введите ваш Anthropic API ключ (или оставьте пустым): " anthropic_key
+  if [ -n "$anthropic_key" ]; then
+      print_success "Anthropic API ключ будет добавлен в конфигурацию"
+  fi
+
+  # Создание файла .env из template.env в интерактивном режиме
+  print_info "Создание файла .env из шаблона template.env..."
+
+  # Проверяем существование template.env
+  if [ ! -f "template.env" ]; then
+    print_error "Файл template.env не найден!"
+    exit 1
+  fi
+
+  # Копируем template.env в .env
+  cp template.env .env
+
+  # Добавляем метку времени создания
+  sed -i "1i# Создано автоматически $(date)" .env
+  sed -i "2i# Версия: 1.0.6\n" .env
+
+  # Заменяем плейсхолдеры на сгенерированные значения в интерактивном режиме
+  sed -i "s/change_this_secure_password_123/${postgres_pwd}/g" .env
+  sed -i "s/your_32_char_encryption_key_here_/${n8n_encryption_key}/" .env
+  sed -i "s/your_jwt_secret_key_here_min_32_chars/${n8n_jwt_secret}/" .env
+  sed -i "s/supabase_secure_password_123/${supabase_postgres_pwd}/" .env
+  sed -i "s/your_supabase_anon_key_here/${supabase_anon_key}/g" .env
+  sed -i "s/your_supabase_service_role_key_here/${supabase_service_role_key}/g" .env
+  sed -i "s/your_supabase_jwt_secret_32_chars_min/${supabase_jwt_secret}/g" .env
+  sed -i "s/admin@sattva-ai.top/${email}/g" .env
+  sed -i "s/pgadmin_secure_password_123/${pgadmin_pwd}/" .env
+  sed -i "s/\\\$\\\$\\\$\\\$apr1\\\$\\\$\\\$\\\$1LF8GnRQ\\\$\\\$\\\$\\\$qBinSa\/CmAS\/lLy4vz6DL1/${traefik_pwd_hash}/" .env
+  sed -i "s/your_openai_api_key_here/${openai_key:-}/" .env
+
+  # Генерируем недостающие значения и добавляем их
+  echo "" >> .env
+  echo "# ---- ДОПОЛНИТЕЛЬНЫЕ СГЕНЕРИРОВАННЫЕ ПЕРЕМЕННЫЕ ----" >> .env
+  echo "ZEP_API_SECRET=${zep_api_secret}" >> .env
+  echo "GRAFANA_ADMIN_PASSWORD=${grafana_pwd}" >> .env
+  echo "JUPYTER_DS_TOKEN=${jupyter_ds_token}" >> .env
+  echo "DASHBOARD_PASSWORD=${dashboard_password}" >> .env
+  echo "SECRET_KEY_BASE=${secret_key_base}" >> .env
+  echo "VAULT_ENC_KEY=${vault_enc_key}" >> .env
+  echo "POOLER_TENANT_ID=${pooler_tenant_id}" >> .env
+  echo "LOGFLARE_API_KEY=${logflare_api_key}" >> .env
+  echo "QDRANT_API_KEY=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)" >> .env
+
+  # Обновляем домены на пользовательские
+  sed -i "s/sattva-ai.top/${domain_name}/g" .env
+
+  print_success "Файл .env успешно создан!"
+  print_warning "ВАЖНО: Сохраните копию файла .env в безопасном месте!"
+
+  # Отображение важной информации
+  echo -e "\n${BLUE}===============================================${NC}"
+  echo -e "${BOLD}Важная информация о паролях и ключах:${NC}"
+  echo -e "${BLUE}===============================================${NC}"
+  echo -e "${YELLOW}Traefik Dashboard пароль:${NC} ${BOLD}$traefik_pwd${NC}"
+  echo -e "${YELLOW}PgAdmin пароль:${NC} ${BOLD}$pgadmin_pwd${NC}"
+  echo -e "${YELLOW}Grafana пароль:${NC} ${BOLD}$grafana_pwd${NC}"
+  echo -e "${YELLOW}Jupyter Token:${NC} ${BOLD}$jupyter_ds_token${NC}"
+  if [ -n "$openai_key" ]; then
+    echo -e "${YELLOW}OpenAI API:${NC} ${GREEN}✅ Настроен${NC}"
+  else
+    echo -e "${YELLOW}OpenAI API:${NC} ${RED}❌ Не настроен${NC} (добавьте позже в .env)"
+  fi
+  if [ -n "$anthropic_key" ]; then
+    echo -e "${YELLOW}Anthropic API:${NC} ${GREEN}✅ Настроен${NC}"
+  fi
+  echo -e "${BLUE}===============================================${NC}"
+
+  # Создаем файл с советами по устранению неполадок
+  create_troubleshooting_file
+
+  # Предложение предзагрузки моделей
+  echo -e "\n${BLUE}===============================================${NC}"
+  echo -e "${BOLD}Предварительная загрузка моделей для Ollama${NC}"
+  echo -e "${BLUE}===============================================${NC}"
+  echo -e "Загрузка моделей сейчас позволит избежать ожидания при первом запуске системы."
+
+  read -p "Хотите загрузить модели Ollama сейчас? (y/n): " preload_models
+
+  if [[ "$preload_models" =~ ^[Yy]$ ]]; then
+    if [ -f "./scripts/preload-models.sh" ]; then
+      chmod +x ./scripts/preload-models.sh
+      ./scripts/preload-models.sh
+    else
+      print_warning "Скрипт preload-models.sh не найден."
+    fi
+  fi
+
+fi # Закрываем блок интерактивного режима
+
+# Создаем файл с советами по устранению неполадок (общий для всех режимов)
+create_troubleshooting_file
 
 # Запуск сервисов
 print_info "Теперь вы можете запустить N8N AI Starter Kit с помощью команды:"
@@ -1096,11 +1404,25 @@ print_info "${BOLD}./start.sh${NC} - Автоматический выбор о�
 print_info "${BOLD}./start.sh cpu${NC} - Запуск с процессорными AI-сервисами"
 print_info "${BOLD}./start.sh gpu-nvidia${NC} - Запуск с NVIDIA GPU AI-сервисами"
 
-print_info "\nПосле запуска, доступ к сервисам будет по адресам:"
-print_info "N8N: https://n8n.${domain_name} или http://localhost:5678"
-print_info "Ollama: http://localhost:11434"
-print_info "Qdrant: http://localhost:6333/dashboard"
-print_info "Traefik Dashboard: http://localhost:8080"
+# Показываем адреса в зависимости от режима
+if [ "$SETUP_MODE" = "template" ]; then
+  print_info "\nПосле запуска и настройки hosts файла, доступ к сервисам по адресам:"
+  print_info "N8N: http://n8n.sattva-ai.top"
+  print_info "Traefik Dashboard: http://traefik.sattva-ai.top"
+  print_info "Qdrant: http://qdrant.sattva-ai.top"
+  print_info "Document Processor: http://doc-processor.sattva-ai.top"
+  print_info "Web Interface: http://web.sattva-ai.top"
+  print_info ""
+  print_warning "Не забудьте настроить hosts файл с помощью:"
+  print_info "Windows: scripts/setup-hosts-windows.bat (от имени администратора)"
+  print_info "Linux/macOS: scripts/setup-hosts-unix.sh"
+elif [ "$SETUP_MODE" = "interactive" ]; then
+  print_info "\nПосле запуска, доступ к сервисам будет по адресам:"
+  print_info "N8N: https://n8n.${domain_name}"
+  print_info "Traefik Dashboard: http://traefik.${domain_name}"
+  print_info "Qdrant: http://qdrant.${domain_name}"
+  print_info "Document Processor: http://doc-processor.${domain_name}"
+fi
 
 print_success "Установка успешно завершена!"
 print_info "Полная документация: https://github.com/n8n-io/n8n-ai-starter-kit"

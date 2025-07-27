@@ -138,3 +138,5 @@ LOCAL_SCRIPTS_EXCLUSION.md
 *TEST*.md
 MISSION_*.md
 CRITICAL_*.md
+"# Встроенные Git репозитории"  
+"n8n-workflows-es-main/" 

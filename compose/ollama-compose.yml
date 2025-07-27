@@ -5,7 +5,7 @@ services:
     image: ollama/ollama:latest
     container_name: ollama
     restart: unless-stopped
-    profiles: [default, cpu, gpu-nvidia]
+    profiles: [default, cpu]
     ports:
       - "11434:11434"
     volumes:
@@ -39,13 +39,60 @@ services:
       # - "traefik.http.routers.ollama.tls.certresolver=myresolver"
       - "traefik.http.services.ollama.loadbalancer.server.port=11434"
 
-  # Сервис для предварительной загрузки моделей Ollama
+  # GPU-оптимизированный сервис Ollama с NVIDIA runtime
+  ollama-gpu:
+    image: ollama/ollama:latest
+    container_name: ollama-gpu
+    restart: unless-stopped
+    profiles: [gpu-nvidia]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./config/ollama-models.txt:/config/ollama-models.txt:ro
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_MODELS=/root/.ollama/models
+      - CUDA_VISIBLE_DEVICES=all
+    runtime: nvidia
+    deploy:
+      resources:
+        limits:
+          memory: 16G
+        reservations:
+          memory: 8G
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "/bin/ollama", "ps"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 60s
+    networks:
+      - frontend
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ollama.rule=Host(`${OLLAMA_DOMAIN}`)"
+      - "traefik.http.routers.ollama.entrypoints=web"
+      # Disable TLS for localhost development
+      # Uncomment for production:
+      # - "traefik.http.routers.ollama.entrypoints=websecure"
+      # - "traefik.http.routers.ollama.tls.certresolver=myresolver"
+      - "traefik.http.services.ollama.loadbalancer.server.port=11434"
+
+  # Сервис для предварительной загрузки моделей Ollama (CPU версия)
   ollama-pull:
     image: alpine/curl:latest
-    profiles: [default, cpu, gpu-nvidia]
+    profiles: [default, cpu]
     restart: "no"
     networks:
       - backend
+    volumes:
+      - ../config:/config:ro
     environment:
       - OLLAMA_HOST=ollama
     depends_on:
@@ -55,9 +102,69 @@ services:
       sh -c '
         echo "Ожидание готовности Ollama..."
         sleep 10
-        echo "Попытка загрузки базовых моделей..."
-        curl -X POST http://ollama:11434/api/pull -d "{\"name\":\"llama3.2\"}" || echo "Модель llama3.2 не загружена"
-        echo "Инициализация моделей завершена"
+        echo "Чтение списка моделей из конфигурации..."
+        
+        # Читаем модели из файла, исключая комментарии и пустые строки
+        MODELS=$(grep -v "^#" /config/ollama-models.txt | grep -v "^[[:space:]]*$" | tr "\n" " ")
+        
+        if [ -z "$MODELS" ]; then
+          echo "⚠️ Нет активных моделей в конфигурации. Загружаем модель по умолчанию..."
+          curl -X POST http://ollama:11434/api/pull -d "{\"name\":\"llama3.2\"}" || echo "Модель llama3.2 не загружена"
+        else
+          echo "📋 Найдены модели для загрузки: $MODELS"
+          for MODEL in $MODELS; do
+            echo "📥 Загрузка модели: $MODEL"
+            curl -X POST http://ollama:11434/api/pull -d "{\"name\":\"$MODEL\"}" || echo "Модель $MODEL не загружена"
+          done
+        fi
+        
+        echo "✅ Инициализация моделей завершена"
+      '
+    labels:
+      - "traefik.enable=false"
+
+  # Сервис для предварительной загрузки моделей Ollama (GPU версия)
+  ollama-pull-gpu:
+    image: alpine/curl:latest
+    profiles: [gpu-nvidia]
+    restart: "no"
+    networks:
+      - backend
+    volumes:
+      - ../config:/config:ro
+    environment:
+      - OLLAMA_HOST=ollama-gpu
+    depends_on:
+      ollama-gpu:
+        condition: service_healthy
+    command: |
+      sh -c '
+        echo "Ожидание готовности Ollama GPU..."
+        sleep 10
+        echo "Чтение списка моделей из конфигурации..."
+        
+        # Читаем модели из файла, исключая комментарии и пустые строки
+        MODELS=$$(grep -v "^#" /config/ollama-models.txt | grep -v "^[[:space:]]*$$" | tr "\n" " ")
+        
+        if [ -z "$$MODELS" ]; then
+          echo "⚠️ Нет активных моделей в конфигурации. Загружаем GPU-оптимизированные модели по умолчанию..."
+          curl -X POST http://ollama-gpu:11434/api/pull -d "{\"name\":\"llama3.2\"}" || echo "Модель llama3.2 не загружена"
+          curl -X POST http://ollama-gpu:11434/api/pull -d "{\"name\":\"codellama\"}" || echo "Модель codellama не загружена"
+        else
+          echo "📋 Найдены модели для загрузки: $$MODELS"
+          for MODEL in $$MODELS; do
+            echo "📥 Загрузка GPU-оптимизированной модели: $$MODEL"
+            curl -X POST http://ollama-gpu:11434/api/pull -d "{\"name\":\"$$MODEL\"}" || echo "Модель $$MODEL не загружена"
+          done
+          
+          # Дополнительно загружаем специфичные для GPU модели, если их нет в списке
+          if ! echo "$$MODELS" | grep -q "codellama"; then
+            echo "📥 Загрузка дополнительной GPU модели: codellama"
+            curl -X POST http://ollama-gpu:11434/api/pull -d "{\"name\":\"codellama\"}" || echo "Модель codellama не загружена"
+          fi
+        fi
+        
+        echo "✅ Инициализация GPU моделей завершена"
       '
     labels:
       - "traefik.enable=false"

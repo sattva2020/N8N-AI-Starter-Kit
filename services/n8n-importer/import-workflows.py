@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 N8N Workflows Auto-Importer v1.2.0
-Автоматический импорт workflows при развертывании проекта
+Автоматический импорт workflows из репозитория Zie619/n8n-workflows
 """
 
 import os
@@ -26,7 +26,12 @@ logger = logging.getLogger(__name__)
 class N8NWorkflowImporter:
     def __init__(self, n8n_url: str = "http://n8n:5678"):
         self.n8n_url = n8n_url
-        self.workflows_dir = Path("/workflows")
+        self.workflows_dirs = [
+            Path("/workflows"),          # Workflows из репозитория Zie619/n8n-workflows
+        ]
+        self.credentials_dirs = [
+            Path("/credentials"),        # Основные credentials
+        ]
         self.session = requests.Session()
         self.session.headers.update({
             'Content-Type': 'application/json',
@@ -170,76 +175,95 @@ class N8NWorkflowImporter:
             return False
     
     def import_all_workflows(self) -> Dict[str, int]:
-        """Импорт всех workflows из директории (включая подпапки)"""
-        if not self.workflows_dir.exists():
-            logger.error(f"❌ Директория workflows не найдена: {self.workflows_dir}")
-            return {'imported': 0, 'failed': 0, 'updated': 0}
+        """Импорт всех workflows из всех директорий (включая подпапки)"""
+        total_stats = {'imported': 0, 'failed': 0, 'updated': 0}
         
-        # Сканируем рекурсивно все JSON файлы включая подпапки
-        workflow_files = list(self.workflows_dir.rglob("*.json"))
-        if not workflow_files:
-            logger.info("📁 Нет JSON файлов для импорта")
-            return {'imported': 0, 'failed': 0, 'updated': 0}
-        
-        logger.info(f"📦 Найдено {len(workflow_files)} файлов для импорта (включая подпапки)")
-        
-        imported = 0
-        failed = 0
-        updated = 0
-        
-        # Сортируем файлы по приоритету структуры папок и имен файлов
-        def get_priority(file_path):
-            """Определяем приоритет импорта"""
-            parent_dir = file_path.parent.name
-            file_name = file_path.stem
+        for workflows_dir in self.workflows_dirs:
+            if not workflows_dir.exists():
+                logger.warning(f"📁 Директория workflows не найдена: {workflows_dir}")
+                continue
             
-            # Приоритет по папкам: production > testing > examples > корень
-            folder_priority = {
-                'production': 1,
-                'testing': 2, 
-                'examples': 3
-            }.get(parent_dir, 4)  # Файлы в корне - последние
+            logger.info(f"📂 Сканирование директории: {workflows_dir}")
             
-            # Приоритет по типу workflow
-            name_priority = 0
-            if 'quick-rag-test' in file_name:
-                name_priority = 1
-            elif 'advanced-rag-pipeline-test' in file_name:
-                name_priority = 2
-            elif 'advanced-rag-automation' in file_name:
-                name_priority = 3
-            else:
-                name_priority = 9
+            # Сканируем рекурсивно все JSON файлы включая подпапки
+            workflow_files = list(workflows_dir.rglob("*.json"))
+            if not workflow_files:
+                logger.info(f"📁 Нет JSON файлов для импорта в {workflows_dir}")
+                continue
+            
+            logger.info(f"📦 Найдено {len(workflow_files)} файлов для импорта в {workflows_dir}")
+            
+            imported = 0
+            failed = 0
+            updated = 0
+            
+            # Сортируем файлы по приоритету структуры папок и имен файлов
+            def get_priority(file_path):
+                """Определяем приоритет импорта"""
+                parent_dir = file_path.parent.name
+                file_name = file_path.stem
                 
-            return (folder_priority, name_priority)
-        
-        sorted_files = sorted(workflow_files, key=get_priority)
-          # Логируем порядок импорта
-        logger.info("📋 Порядок импорта workflows:")
-        for i, file in enumerate(sorted_files, 1):
-            relative_path = file.relative_to(self.workflows_dir)
-            logger.info(f"  {i}. {relative_path}")
-        
-        for file in sorted_files:
-            relative_path = file.relative_to(self.workflows_dir)
-            logger.info(f"🔄 Обрабатываем: {relative_path}")
-            
-            workflow_data = self.load_workflow_file(file)
-            if workflow_data:
-                existing_workflows = self.get_existing_workflows()
-                workflow_name = workflow_data.get('name', file.stem)
+                # Приоритет по папкам: production > testing > examples > корень
+                folder_priority = {
+                    'production': 1,
+                    'testing': 2, 
+                    'examples': 3
+                }.get(parent_dir, 4)  # Файлы в корне - последние
                 
-                if self.import_workflow(workflow_data, file.stem):
-                    if workflow_name in existing_workflows:
-                        updated += 1
+                # Приоритет по типу workflow
+                name_priority = 0
+                if 'quick-rag-test' in file_name:
+                    name_priority = 1
+                elif 'advanced-rag-pipeline-test' in file_name:
+                    name_priority = 2
+                elif 'advanced-rag-automation' in file_name:
+                    name_priority = 3
+                else:
+                    name_priority = 9
+                    
+                return (folder_priority, name_priority)
+            
+            sorted_files = sorted(workflow_files, key=get_priority)
+            
+            # Логируем порядок импорта
+            logger.info(f"📋 Порядок импорта workflows из {workflows_dir}:")
+            for i, file in enumerate(sorted_files, 1):
+                try:
+                    relative_path = file.relative_to(workflows_dir)
+                    logger.info(f"  {i}. {relative_path}")
+                except ValueError:
+                    logger.info(f"  {i}. {file}")
+            
+            for file in sorted_files:
+                try:
+                    relative_path = file.relative_to(workflows_dir)
+                    logger.info(f"🔄 Обрабатываем: {relative_path}")
+                except ValueError:
+                    logger.info(f"🔄 Обрабатываем: {file}")
+                
+                workflow_data = self.load_workflow_file(file)
+                if workflow_data:
+                    existing_workflows = self.get_existing_workflows()
+                    workflow_name = workflow_data.get('name', file.stem)
+                    
+                    if self.import_workflow(workflow_data, file.stem):
+                        if workflow_name in existing_workflows:
+                            updated += 1
+                        else:
+                            imported += 1
                     else:
-                        imported += 1
+                        failed += 1
                 else:
                     failed += 1
-            else:
-                failed += 1
+            
+            # Добавляем статистику текущей директории к общей
+            total_stats['imported'] += imported
+            total_stats['failed'] += failed
+            total_stats['updated'] += updated
+            
+            logger.info(f"✅ Директория {workflows_dir}: импортировано {imported}, обновлено {updated}, ошибок {failed}")
         
-        return {'imported': imported, 'failed': failed, 'updated': updated}
+        return total_stats
     
     def run(self):
         """Основная функция запуска импорта"""
