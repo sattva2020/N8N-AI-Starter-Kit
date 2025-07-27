@@ -81,6 +81,7 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=n8n-ai-starter-kit_frontend"
       - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`)"
       - "traefik.http.routers.n8n.entrypoints=web"
       - "traefik.http.services.n8n.loadbalancer.server.port=5678"
