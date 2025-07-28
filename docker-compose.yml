@@ -19,7 +19,7 @@ x-traefik-base: &traefik-base
     start_period: 5s
 
 x-service-n8n: &service-n8n
-  image: n8nio/n8n:latest
+  image: docker.n8n.io/n8nio/n8n
   restart: unless-stopped
   environment:
     - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
