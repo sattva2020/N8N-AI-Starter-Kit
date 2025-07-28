@@ -1,5 +1,5 @@
 # Dockerfile для N8N Workflows Auto-Importer v1.2.0
-FROM python:3.22-alpine
+FROM python:3-alpine3.22
 
 # Используем зеркало, так как основной репозиторий недоступен
 # Замените dl-2.alpinelinux.org на другое зеркало (например, dl-3.alpinelinux.org), если это зеркало тоже недоступно
