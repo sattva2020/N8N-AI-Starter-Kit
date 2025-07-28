@@ -589,9 +589,11 @@ choose_setup_mode() {
   echo "   - Подходит для разработки и тестирования"  
   echo "   - Автоматическая настройка с доменами sattva-ai.top"
   echo ""
+  echo "3. 📝 Показать инструкции по настройке hosts файла"
+  echo ""
   
   while true; do
-    read -p "Введите номер режима (1-2): " setup_mode
+    read -p "Введите номер режима (1-3): " setup_mode
     case $setup_mode in
       1)
         print_success "Выбран интерактивный режим"
@@ -603,15 +605,52 @@ choose_setup_mode() {
         SETUP_MODE="template"
         break
         ;;
+      3)
+        show_hosts_instructions
+        continue
+        ;;
       *)
-        print_error "Пожалуйста, выберите 1 или 2"
+        print_error "Пожалуйста, выберите 1, 2 или 3"
         continue
         ;;
     esac
   done
 }
 
-# Функция для создания .env из template.env
+# Функция для отображения инструкций по hosts файлу
+show_hosts_instructions() {
+  echo ""
+  print_info "=== Настройка локального hosts файла ==="
+  echo ""
+  echo -e "${YELLOW}Для работы с доменами .sattva-ai.top в быстром режиме необходимо${NC}"
+  echo -e "${YELLOW}добавить записи в hosts файл системы:${NC}"
+  echo ""
+  echo -e "${BOLD}Windows:${NC} C:\\Windows\\System32\\drivers\\etc\\hosts"
+  echo -e "${BOLD}Linux/macOS:${NC} /etc/hosts"
+  echo ""
+  echo -e "${BLUE}Добавьте следующие строки:${NC}"
+  echo ""
+  echo "127.0.0.1 n8n.sattva-ai.top"
+  echo "127.0.0.1 qdrant.sattva-ai.top"
+  echo "127.0.0.1 traefik.sattva-ai.top"
+  echo "127.0.0.1 doc-processor.sattva-ai.top"
+  echo "127.0.0.1 web.sattva-ai.top"
+  echo "127.0.0.1 pgadmin.sattva-ai.top"
+  echo "127.0.0.1 jupyter.sattva-ai.top"
+  echo ""
+  echo -e "${GREEN}После настройки hosts файла сервисы будут доступны по адресам:${NC}"
+  echo "• N8N: http://n8n.sattva-ai.top"
+  echo "• Traefik: http://traefik.sattva-ai.top"
+  echo "• Qdrant: http://qdrant.sattva-ai.top"
+  echo ""
+  print_info "Для автоматической настройки используйте:"
+  echo "  Windows: scripts/setup-hosts-windows.bat (от имени администратора)"
+  echo "  Linux/macOS: scripts/setup-hosts-unix.sh"
+  echo ""
+  read -p "Нажмите Enter для возврата к выбору режима..."
+}
+
+# Функция создания .env из template.env
 create_env_from_template() {
   if [ ! -f template.env ]; then
     print_error "Файл template.env не найден!"
@@ -1426,13 +1465,16 @@ print_info "${BOLD}./start.sh gpu-nvidia${NC} - Запуск с NVIDIA GPU AI-с
 
 # Показываем адреса в зависимости от режима
 if [ "$SETUP_MODE" = "template" ]; then
-  print_info "\nПосле запуска доступ к сервисам по адресам:"
+  print_info "\nПосле запуска и настройки hosts файла, доступ к сервисам по адресам:"
   print_info "N8N: http://n8n.sattva-ai.top"
   print_info "Traefik Dashboard: http://traefik.sattva-ai.top"
   print_info "Qdrant: http://qdrant.sattva-ai.top"
   print_info "Document Processor: http://doc-processor.sattva-ai.top"
   print_info "Web Interface: http://web.sattva-ai.top"
   print_info ""
+  print_warning "Не забудьте настроить hosts файл с помощью:"
+  print_info "Windows: scripts/setup-hosts-windows.bat (от имени администратора)"
+  print_info "Linux/macOS: scripts/setup-hosts-unix.sh"
 elif [ "$SETUP_MODE" = "interactive" ]; then
   print_info "\nПосле запуска, доступ к сервисам будет по адресам:"
   print_info "N8N: https://n8n.${domain_name}"

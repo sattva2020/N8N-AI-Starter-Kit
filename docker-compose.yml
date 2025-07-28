@@ -8,6 +8,7 @@ x-traefik-base: &traefik-base
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock:ro
     - traefik_letsencrypt:/letsencrypt
+    - ./config/traefik:/etc/traefik/dynamic
   networks:
     - frontend
   healthcheck:
@@ -18,7 +19,7 @@ x-traefik-base: &traefik-base
     start_period: 5s
 
 x-service-n8n: &service-n8n
-  image: n8nio/n8n:1.65.0
+  image: n8nio/n8n:latest
   restart: unless-stopped
   environment:
     - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
@@ -35,8 +36,8 @@ x-service-n8n: &service-n8n
     # Fix permissions warning
     - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
     # Ensure fresh start with clean config - CRITICAL for encryption key conflicts
-    - N8N_RESET=true
-    - N8N_RESET_OWNER_ONLY=true
+   # - N8N_RESET=true
+   # - N8N_RESET_OWNER_ONLY=true
   networks:
     - frontend
     - backend
@@ -48,17 +49,23 @@ services:
   traefik:
     <<: *traefik-base
     profiles: [default, cpu, gpu-nvidia, developer]
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     command:
       - "--api.dashboard=true"
-      - "--api.insecure=true"
+      - "--entryPoints.traefik.address=:8080"
       - "--providers.docker=true"
       - "--providers.docker.exposedByDefault=false"
+      - "--providers.file.directory=/etc/traefik/dynamic"
       - "--entryPoints.web.address=:80"
       - "--entryPoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.myresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+      - "--log.filePath=/var/log/traefik.log"
+      - "--log.format=json"
       - "--ping=true"
       - "--log.level=INFO"
       - "--accesslog=true"
@@ -66,9 +73,10 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`${TRAEFIK_DASHBOARD_DOMAIN}`)"
       - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.entrypoints=traefik"
       - "traefik.http.routers.traefik.middlewares=auth"
       - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_USERNAME}:${TRAEFIK_PASSWORD_HASHED}"
+      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
 
   # Общие настройки для N8N
   n8n:
@@ -81,7 +89,6 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=n8n-ai-starter-kit_frontend"
       - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`)"
       - "traefik.http.routers.n8n.entrypoints=web"
       - "traefik.http.services.n8n.loadbalancer.server.port=5678"
@@ -90,12 +97,6 @@ services:
       - "traefik.http.routers.n8n-secure.entrypoints=websecure"
       - "traefik.http.routers.n8n-secure.tls.certresolver=myresolver"
       - "traefik.http.routers.n8n-secure.service=n8n"
-      # Security middlewares
-      - "traefik.http.middlewares.n8n-headers.headers.contentTypeNosniff=true"
-      - "traefik.http.middlewares.n8n-headers.headers.browserXssFilter=true"
-      - "traefik.http.middlewares.n8n-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
-      - "traefik.http.middlewares.n8n-compress.compress=true"
-      - "traefik.http.routers.n8n-secure.middlewares=n8n-headers,n8n-compress"
     deploy:
       resources:
         limits:
@@ -105,13 +106,11 @@ services:
           cpus: '1'
           memory: 1G
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:5678/healthz || exit 1"]
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:5678/', (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))\""]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 90s
-    #   retries: 5
-    #   start_period: 90s  # Увеличиваем время запуска
+      start_period: 90s  # Увеличиваем время запуска
 
   # N8N Workflows Auto-Importer v1.2.0
   n8n-workflows-importer:
@@ -121,7 +120,7 @@ services:
     profiles: [default, cpu, gpu-nvidia, developer]
     depends_on:
       n8n:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./n8n/workflows:/workflows:ro  # Workflows из репозитория Zie619/n8n-workflows
       - ./n8n/credentials:/credentials:ro  # Credentials для N8N
@@ -190,8 +189,8 @@ services:
       - "traefik.http.routers.pgadmin.entrypoints=web"
       # Disable TLS for localhost development
       # Uncomment for production:
-      # - "traefik.http.routers.pgadmin.entrypoints=websecure"
-      # - "traefik.http.routers.pgadmin.tls.certresolver=myresolver"
+      - "traefik.http.routers.pgadmin.entrypoints=websecure"
+      - "traefik.http.routers.pgadmin.tls.certresolver=myresolver"
       - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/pgadmin4/health"]
@@ -217,8 +216,8 @@ services:
       - "traefik.http.routers.qdrant.entrypoints=web"
       # Disable TLS for localhost development
       # Uncomment for production:
-      # - "traefik.http.routers.qdrant.entrypoints=websecure"
-      # - "traefik.http.routers.qdrant.tls.certresolver=myresolver"
+      - "traefik.http.routers.qdrant.entrypoints=websecure"
+      - "traefik.http.routers.qdrant.tls.certresolver=myresolver"
       - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
     deploy:
       resources:
@@ -347,8 +346,8 @@ services:
       - "traefik.http.routers.jupyter.entrypoints=web"
       # Disable TLS for localhost development
       # Uncomment for production:
-      # - "traefik.http.routers.jupyter.entrypoints=websecure"
-      # - "traefik.http.routers.jupyter.tls.certresolver=myresolver"
+      - "traefik.http.routers.jupyter.entrypoints=websecure"
+      - "traefik.http.routers.jupyter.tls.certresolver=myresolver"
       - "traefik.http.services.jupyter.loadbalancer.server.port=8888"
     deploy:
       resources:
@@ -375,6 +374,7 @@ volumes:
   postgres_storage:
   ollama_data:
   traefik_letsencrypt:
+    external: true
   pgadmin_data:
   qdrant_storage:
   jupyter_data:
