@@ -299,7 +299,15 @@ class N8NWorkflowImporter:
         logger.info("=" * 50)
         return results['failed'] == 0
 
+
 if __name__ == "__main__":
+    print("==== DEBUG: ENVIRONMENT VARIABLES ====")
+    for k, v in os.environ.items():
+        print(f"{k}={v}")
+    print("==== END ENV ====")
+    import time
+    print("Sleeping 30 seconds for debug... (remove after test)")
+    time.sleep(30)
     importer = N8NWorkflowImporter()
     success = importer.run()
     exit(0 if success else 1)
