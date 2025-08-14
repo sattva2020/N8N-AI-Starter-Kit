@@ -41,23 +41,40 @@ services:
 
   # Сервис для предварительной загрузки моделей Ollama
   ollama-pull:
-    image: alpine/curl:latest
+    image: curlimages/curl:latest # Используем более подходящий образ
     profiles: [default, cpu, gpu-nvidia]
     restart: "no"
     networks:
       - backend
-    environment:
-      - OLLAMA_HOST=ollama
+    volumes:
+      - ./config/ollama-models.txt:/app/models.txt:ro # Монтируем файл с моделями
     depends_on:
       ollama:
         condition: service_healthy
-    command: |
+    command: >
       sh -c '
-        echo "Ожидание готовности Ollama..."
-        sleep 10
-        echo "Попытка загрузки базовых моделей..."
-        curl -X POST http://ollama:11434/api/pull -d "{\"name\":\"llama3.2\"}" || echo "Модель llama3.2 не загружена"
-        echo "Инициализация моделей завершена"
+        echo "Ожидание готовности Ollama (15s)..."
+        sleep 15
+        
+        echo "Чтение моделей из /app/models.txt..."
+        if [ ! -f /app/models.txt ]; then
+          echo "Файл /app/models.txt не найден. Пропускаем загрузку моделей."
+          exit 0
+        fi
+
+        # Читаем файл и загружаем каждую модель
+        while IFS= read -r model_name || [ -n "$model_name" ]; do
+          # Пропускаем пустые строки и комментарии
+          if [ -z "$model_name" ] || [ "$(echo "$model_name" | cut -c1)" = "#" ]; then
+            continue
+          fi
+          
+          echo "Загрузка модели: $model_name"
+          curl -X POST http://ollama:11434/api/pull -d "{\"name\":\"$model_name\"}" --max-time 3600 || echo "Ошибка при загрузке модели $model_name"
+          echo ""
+        done < /app/models.txt
+        
+        echo "Инициализация моделей завершена."
       '
     labels:
       - "traefik.enable=false"
