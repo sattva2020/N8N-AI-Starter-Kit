@@ -147,75 +147,24 @@ services:
       retries: 3
       start_period: 40s
 
-  # Workflows Manager Service
-  workflows-manager:
-    build:
-      context: .
-      dockerfile: services/workflows-manager/Dockerfile
-    image: workflows-manager:latest
-    profiles: [default, cpu, gpu-nvidia, developer]
-    ports:
-      - "8004:8004"
-    volumes:
-      - ./n8n/workflows:/workflows:ro
-    networks:
-      - frontend
-    environment:
-      - PYTHONUNBUFFERED=1
-      - WORKFLOWS_DOC_URL=http://workflows-doc:8000
-      - N8N_URL=http://n8n:5678
-      - N8N_API_KEY=${N8N_API_KEY}
-      - WORKFLOWS_MANAGER_API_KEY=${WORKFLOWS_MANAGER_API_KEY}
-    depends_on:
-      workflows-doc:
-        condition: service_healthy
-      n8n:
-        condition: service_healthy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.workflows-manager.rule=Host(`${WORKFLOWS_MANAGER_DOMAIN:-workflows-manager.localhost}`)"
-      - "traefik.http.routers.workflows-manager.entrypoints=web"
-      - "traefik.http.services.workflows-manager.loadbalancer.server.port=8004"
-      # Security headers
-      - "traefik.http.middleware.workflows-manager-security.headers.customRequestHeaders.X-Forwarded-Proto=https"
-      - "traefik.http.middleware.workflows-manager-security.headers.customResponseHeaders.X-Content-Type-Options=nosniff"
-      - "traefik.http.middleware.workflows-manager-security.headers.customResponseHeaders.X-Frame-Options=DENY"
-      - "traefik.http.middleware.workflows-manager-security.headers.customResponseHeaders.X-XSS-Protection=1; mode=block"
-      - "traefik.http.routers.workflows-manager.middlewares=workflows-manager-security"
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
-        reservations:
-          memory: 256M
-          cpus: '0.25'
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # Workflows Importer Service v1.3.0
+  # Workflows Importer Service (Official Script)
   n8n-importer:
     build:
-      context: ./services/n8n-importer
-    image: n8n-importer:latest
-    profiles: [default, cpu, gpu-nvidia, developer]
+      context: ./n8n-workflows
+    image: n8n-workflow-importer:latest
+    restart: "no"
+    networks:
+      - backend
+    volumes:
+      - ./n8n-workflows/workflows:/app/workflows:ro
+      - n8n_import_logs:/app/logs
+    environment:
+      - N8N_URL=http://n8n:5678
+      - N8N_API_KEY=${N8N_API_KEY}
+    command: ["python", "import_workflows.py", "--all"]
     depends_on:
       n8n:
         condition: service_healthy
-    volumes:
-      - ./n8n/workflows:/workflows:ro
-    networks:
-      - backend
-    restart: "no"
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.5'
 
   postgres:
     image: pgvector/pgvector:pg17 # Образ с поддержкой pgvector для Graphiti (последняя версия)

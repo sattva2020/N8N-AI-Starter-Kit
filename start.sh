@@ -398,3 +398,32 @@ else
     printf "${YELLOW}Или запустите полную настройку: ./scripts/setup.sh${NC}\n"
     exit 1
 fi
+
+# Запуск импорта workflows после старта системы
+echo ""
+echo -e "${BLUE}Ожидание готовности n8n для импорта workflows...${NC}"
+max_wait=300
+waited=0
+while [ "$waited" -lt "$max_wait" ]; do
+    n8n_status=$($DOCKER_COMPOSE_CMD ps --format '{{.State}}' n8n)
+    if [ "$n8n_status" == "running" ]; then
+        n8n_health=$($DOCKER_COMPOSE_CMD ps --format '{{.Health}}' n8n)
+        if [[ "$n8n_health" == *"healthy"* ]]; then
+            echo -e "${GREEN}${EMOJI_OK} n8n готов. Запуск импорта...${NC}"
+            $DOCKER_COMPOSE_CMD run --rm n8n-importer
+            if [ $? -eq 0 ]; then
+                echo -e "${GREEN}${EMOJI_OK} Импорт workflows успешно завершен.${NC}"
+            else
+                echo -e "${RED}${EMOJI_ERROR} Ошибка во время импорта workflows.${NC}"
+            fi
+            break
+        fi
+    fi
+    printf "."
+    sleep 5
+    waited=$((waited + 5))
+done
+
+if [ "$waited" -ge "$max_wait" ]; then
+    echo -e "\n${RED}${EMOJI_ERROR} Сервис n8n не перешел в состояние healthy за $max_wait секунд. Импорт пропущен.${NC}"
+fi

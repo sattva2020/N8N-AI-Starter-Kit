@@ -1,4 +1,0 @@
-# This file is intentionally left blank for now.
-# Add any Python dependencies here if needed in the future.
-# For example:
-# requests
