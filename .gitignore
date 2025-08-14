@@ -9,6 +9,7 @@ puttygen.exe
 docker-compose copy.yml.backup
 backup/
 .internal/
+n8n-workflows-es-main/
 
 # Директории с данными
 backups/
