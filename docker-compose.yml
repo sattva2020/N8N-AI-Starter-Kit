@@ -165,6 +165,7 @@ services:
       - WORKFLOWS_DOC_URL=http://workflows-doc:8000
       - N8N_URL=http://n8n:5678
       - N8N_API_KEY=${N8N_API_KEY}
+      - WORKFLOWS_MANAGER_API_KEY=${WORKFLOWS_MANAGER_API_KEY}
     depends_on:
       workflows-doc:
         condition: service_healthy
@@ -175,6 +176,12 @@ services:
       - "traefik.http.routers.workflows-manager.rule=Host(`${WORKFLOWS_MANAGER_DOMAIN:-workflows-manager.localhost}`)"
       - "traefik.http.routers.workflows-manager.entrypoints=web"
       - "traefik.http.services.workflows-manager.loadbalancer.server.port=8004"
+      # Security headers
+      - "traefik.http.middleware.workflows-manager-security.headers.customRequestHeaders.X-Forwarded-Proto=https"
+      - "traefik.http.middleware.workflows-manager-security.headers.customResponseHeaders.X-Content-Type-Options=nosniff"
+      - "traefik.http.middleware.workflows-manager-security.headers.customResponseHeaders.X-Frame-Options=DENY"
+      - "traefik.http.middleware.workflows-manager-security.headers.customResponseHeaders.X-XSS-Protection=1; mode=block"
+      - "traefik.http.routers.workflows-manager.middlewares=workflows-manager-security"
     deploy:
       resources:
         limits:

@@ -8,25 +8,55 @@ import os
 import json
 import requests
 import logging
+import re
 from typing import Dict, List, Optional
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel, validator
 import uvicorn
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Инициализация rate limiter
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(title="Workflows Manager", version="1.0.0")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # В продакшене заменить на конкретные домены
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Security
+security = HTTPBearer(auto_error=False)
 
 # Модели данных
 class WorkflowImport(BaseModel):
     workflow_id: str
     name: str
     category: Optional[str] = None
+    
+    @validator('workflow_id')
+    def validate_workflow_id(cls, v):
+        # Проверяем, что filename содержит только безопасные символы
+        if not re.match(r'^[a-zA-Z0-9_\-\.,]+\.json$', v):
+            raise ValueError('Invalid workflow filename')
+        return v
 
 class ImportResult(BaseModel):
     success: bool
@@ -38,6 +68,20 @@ class ImportResult(BaseModel):
 WORKFLOWS_DOC_URL = os.getenv("WORKFLOWS_DOC_URL", "http://workflows-doc:8000")
 N8N_URL = os.getenv("N8N_URL", "http://n8n:5678")
 N8N_API_KEY = os.getenv("N8N_API_KEY")
+WORKFLOWS_MANAGER_API_KEY = os.getenv("WORKFLOWS_MANAGER_API_KEY", "")
+
+def verify_api_key(credentials: HTTPAuthorizationCredentials = Depends(security)) -> bool:
+    """Проверка API ключа для аутентификации"""
+    if not WORKFLOWS_MANAGER_API_KEY:
+        return True  # Если ключ не настроен, пропускаем аутентификацию
+    
+    if not credentials:
+        raise HTTPException(status_code=401, detail="API key required")
+    
+    if credentials.credentials != WORKFLOWS_MANAGER_API_KEY:
+        raise HTTPException(status_code=403, detail="Invalid API key")
+    
+    return True
 
 class WorkflowsManager:
     def __init__(self):
@@ -51,9 +95,16 @@ class WorkflowsManager:
             url = f"{WORKFLOWS_DOC_URL}/api/workflows"
             params = {}
             if search:
+                # Валидация поискового запроса
+                if len(search) > 100:
+                    search = search[:100]
                 params["q"] = search
             if category:
-                params["category"] = category
+                # Валидация категории
+                if not re.match(r'^[a-zA-Z0-9_\-\s]+$', category):
+                    category = None
+                else:
+                    params["category"] = category
             
             response = self.session.get(url, params=params, timeout=10)
             if response.status_code == 200:
@@ -84,14 +135,33 @@ class WorkflowsManager:
             if not filename:
                 return False
             
+            # Валидация имени файла для предотвращения path traversal
+            if not re.match(r'^[a-zA-Z0-9_\-\.,]+\.json$', filename):
+                logger.error(f"Invalid filename: {filename}")
+                return False
+            
             # Загружаем workflow из файла
             workflow_file_path = f"/workflows/{filename}"
-            if not os.path.exists(workflow_file_path):
+            
+            # Дополнительная проверка пути
+            if not os.path.exists(workflow_file_path) or not os.path.isfile(workflow_file_path):
                 logger.error(f"Файл workflow не найден: {workflow_file_path}")
+                return False
+            
+            # Проверяем, что файл находится в разрешенной директории
+            real_path = os.path.realpath(workflow_file_path)
+            allowed_path = os.path.realpath("/workflows")
+            if not real_path.startswith(allowed_path):
+                logger.error(f"Path traversal attempt: {workflow_file_path}")
                 return False
             
             with open(workflow_file_path, 'r', encoding='utf-8') as f:
                 workflow_json = json.load(f)
+            
+            # Валидация JSON структуры
+            if not isinstance(workflow_json, dict):
+                logger.error(f"Invalid workflow JSON structure: {filename}")
+                return False
             
             # Импортируем в n8n
             response = self.session.post(
@@ -115,7 +185,8 @@ class WorkflowsManager:
 manager = WorkflowsManager()
 
 @app.get("/", response_class=HTMLResponse)
-async def index():
+@limiter.limit("10/minute")
+async def index(request: Request):
     """Главная страница"""
     return """
     <!DOCTYPE html>
@@ -123,6 +194,7 @@ async def index():
     <head>
         <title>Workflows Manager</title>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
             body { font-family: Arial, sans-serif; margin: 40px; }
             .container { max-width: 1200px; margin: 0 auto; }
@@ -136,6 +208,7 @@ async def index():
             .workflow-card .category { color: #666; font-size: 0.9em; }
             .workflow-card .import-btn { background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-top: 10px; }
             .stats { background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+            .error { color: #dc3545; background: #f8d7da; padding: 10px; border-radius: 4px; margin: 10px 0; }
         </style>
     </head>
     <body>
@@ -146,7 +219,7 @@ async def index():
             </div>
             
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Поиск workflow'ов...">
+                <input type="text" id="searchInput" placeholder="Поиск workflow'ов..." maxlength="100">
                 <button onclick="searchWorkflows()">🔍 Поиск</button>
                 <button onclick="loadWorkflows()">📋 Все workflow'ы</button>
             </div>
@@ -165,25 +238,35 @@ async def index():
             async function loadWorkflows() {
                 try {
                     const response = await fetch('/api/workflows');
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
                     const data = await response.json();
                     displayWorkflows(data.workflows);
                     updateStats(data.stats);
                 } catch (error) {
                     console.error('Ошибка загрузки:', error);
+                    document.getElementById('workflowsGrid').innerHTML = 
+                        '<div class="error">Ошибка загрузки workflow\'ов</div>';
                 }
             }
             
             async function searchWorkflows() {
-                const query = document.getElementById('searchInput').value;
+                const query = document.getElementById('searchInput').value.trim();
                 if (!query) return loadWorkflows();
                 
                 try {
                     const response = await fetch(`/api/workflows?q=${encodeURIComponent(query)}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
                     const data = await response.json();
                     displayWorkflows(data.workflows);
                     updateStats(data.stats);
                 } catch (error) {
                     console.error('Ошибка поиска:', error);
+                    document.getElementById('workflowsGrid').innerHTML = 
+                        '<div class="error">Ошибка поиска workflow\'ов</div>';
                 }
             }
             
@@ -191,14 +274,20 @@ async def index():
                 const grid = document.getElementById('workflowsGrid');
                 grid.innerHTML = '';
                 
+                if (!workflows || workflows.length === 0) {
+                    grid.innerHTML = '<div>Workflow\'ы не найдены</div>';
+                    return;
+                }
+                
                 workflows.forEach(workflow => {
                     const card = document.createElement('div');
                     card.className = 'workflow-card';
+                    const safeFilename = workflow.filename ? workflow.filename.replace(/[^a-zA-Z0-9_\-\.,]/g, '') : '';
                     card.innerHTML = `
-                        <h3>${workflow.name || workflow.filename}</h3>
+                        <h3>${workflow.name || workflow.filename || 'Без названия'}</h3>
                         <div class="category">${workflow.category || 'Без категории'}</div>
                         <div>${workflow.description || 'Описание отсутствует'}</div>
-                        <button class="import-btn" onclick="importWorkflow('${workflow.filename}')">
+                        <button class="import-btn" onclick="importWorkflow('${safeFilename}')">
                             📥 Импортировать
                         </button>
                     `;
@@ -216,12 +305,25 @@ async def index():
             }
             
             async function importWorkflow(filename) {
+                if (!filename || !filename.match(/^[a-zA-Z0-9_\-\.,]+\.json$/)) {
+                    alert('Некорректное имя файла');
+                    return;
+                }
+                
                 try {
                     const response = await fetch('/api/import', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({filename: filename})
+                        body: JSON.stringify({
+                            workflow_id: filename,
+                            name: filename.replace('.json', '')
+                        })
                     });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
                     const result = await response.json();
                     alert(result.message);
                 } catch (error) {
@@ -238,7 +340,8 @@ async def index():
     """
 
 @app.get("/api/workflows")
-async def get_workflows(q: str = None, category: str = None):
+@limiter.limit("30/minute")
+async def get_workflows(request: Request, q: str = None, category: str = None):
     """API для получения workflow'ов"""
     workflows = manager.get_workflows_from_doc(q, category)
     categories = manager.get_categories()
@@ -257,12 +360,14 @@ async def get_workflows(q: str = None, category: str = None):
     }
 
 @app.get("/api/categories")
-async def get_categories():
+@limiter.limit("10/minute")
+async def get_categories(request: Request):
     """API для получения категорий"""
     return {"categories": manager.get_categories()}
 
 @app.post("/api/import")
-async def import_workflow(workflow: WorkflowImport, background_tasks: BackgroundTasks):
+@limiter.limit("5/minute")
+async def import_workflow(request: Request, workflow: WorkflowImport, background_tasks: BackgroundTasks):
     """API для импорта workflow"""
     try:
         # Получаем данные workflow
