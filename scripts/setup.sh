@@ -682,7 +682,7 @@ create_env_from_template() {
   sed -i "s/your_jwt_secret_key_here_min_32_chars/${n8n_jwt_secret}/g" .env
   sed -i "s/pgadmin_secure_password_123/${pgadmin_pwd}/g" .env
   sed -i "s/admin@example.com/admin@sattva-ai.top/g" .env
-  sed -i "s/\\\$\\\\$apr1\\\$\\\\$1LF8GnRQ\\\$\\\\$qBinSa\/CmAS\/lLy4vz6DL1/${traefik_pwd_hash}/g" .env
+  sed -i "s/traefik_password_hash_placeholder/${traefik_pwd_hash}/g" .env
   
   print_success "Файл .env создан успешно!"
   
@@ -1369,7 +1369,7 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
   sed -i "s/your_supabase_jwt_secret_32_chars_min/${supabase_jwt_secret}/g" .env
   sed -i "s/admin@sattva-ai.top/${email}/g" .env
   sed -i "s/pgadmin_secure_password_123/${pgadmin_pwd}/" .env
-  sed -i "s/\\\$\\\$\\\$\\\$apr1\\\$\\\$\\\$\\\$1LF8GnRQ\\\$\\\$\\\$\\\$qBinSa\/CmAS\/lLy4vz6DL1/${traefik_pwd_hash}/" .env
+  sed -i "s/traefik_password_hash_placeholder/${traefik_pwd_hash}/" .env
   sed -i "s/your_openai_api_key_here/${openai_key:-}/" .env
 
   # Генерируем недостающие значения и добавляем их
