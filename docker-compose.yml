@@ -112,19 +112,96 @@ services:
       retries: 5
       start_period: 90s  # Увеличиваем время запуска
 
-  # N8N Workflows Auto-Importer v1.2.0
-  n8n-workflows-importer:
+  # Workflows Documentation Service (Zie619/n8n-workflows)
+  workflows-doc:
+    build:
+      context: ./n8n-workflows
+      dockerfile: Dockerfile
+    image: workflows-doc:latest
+    profiles: [default, cpu, gpu-nvidia, developer]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./n8n-workflows:/app
+    networks:
+      - frontend
+    environment:
+      - PYTHONUNBUFFERED=1
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.workflows-doc.rule=Host(`${WORKFLOWS_DOC_DOMAIN:-workflows.localhost}`)"
+      - "traefik.http.routers.workflows-doc.entrypoints=web"
+      - "traefik.http.services.workflows-doc.loadbalancer.server.port=8000"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Workflows Manager Service
+  workflows-manager:
     build:
       context: .
-      dockerfile: services/n8n-importer/Dockerfile
-      args:
-        ALPINE_VERSION: 3.22
+      dockerfile: services/workflows-manager/Dockerfile
+    image: workflows-manager:latest
+    profiles: [default, cpu, gpu-nvidia, developer]
+    ports:
+      - "8004:8004"
+    volumes:
+      - ./n8n/workflows:/workflows:ro
+    networks:
+      - frontend
+    environment:
+      - PYTHONUNBUFFERED=1
+      - WORKFLOWS_DOC_URL=http://workflows-doc:8000
+      - N8N_URL=http://n8n:5678
+      - N8N_API_KEY=${N8N_API_KEY}
+    depends_on:
+      workflows-doc:
+        condition: service_healthy
+      n8n:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.workflows-manager.rule=Host(`${WORKFLOWS_MANAGER_DOMAIN:-workflows-manager.localhost}`)"
+      - "traefik.http.routers.workflows-manager.entrypoints=web"
+      - "traefik.http.services.workflows-manager.loadbalancer.server.port=8004"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Workflows Importer Service v1.3.0
+  workflows-importer:
+    build:
+      context: .
+      dockerfile: services/workflows-importer/Dockerfile
+    image: workflows-importer:latest
     profiles: [default, cpu, gpu-nvidia, developer]
     depends_on:
       n8n:
         condition: service_healthy
     volumes:
-      - ./n8n/workflows:/workflows:ro  # Workflows из репозитория Zie619/n8n-workflows
+      - ./n8n/workflows:/workflows:ro  # Workflows из официального репозитория Zie619/n8n-workflows
       - ./n8n/credentials:/credentials:ro  # Credentials для N8N
       - n8n_import_logs:/app/logs  # Логи импорта
     networks:
@@ -134,6 +211,7 @@ services:
       - PYTHONUNBUFFERED=1
       - N8N_API_KEY=${N8N_API_KEY}
       - N8N_API_AUTH_ACTIVE=${N8N_API_AUTH_ACTIVE}
+      - DEBUG_IMPORTER=${DEBUG_IMPORTER:-false}
     restart: "no"  # Запускается один раз при развертывании
     deploy:
       resources:

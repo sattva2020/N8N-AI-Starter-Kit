@@ -110,10 +110,10 @@ scrape_configs:
     scrape_interval: 30s
     metrics_path: /metrics
 
-  # N8N Workflow Importer service
-  - job_name: 'n8n-importer'
+  # Workflows Importer service
+  - job_name: 'workflows-importer'
     static_configs:
-      - targets: ['n8n-importer:8003']
+      - targets: ['workflows-importer:8003']
     scrape_interval: 60s
     metrics_path: /metrics
 

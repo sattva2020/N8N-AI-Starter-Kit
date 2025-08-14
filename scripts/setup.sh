@@ -376,36 +376,58 @@ check_cpu_resources() {
 }
 
 # Функция для клонирования дополнительных репозиториев с workflow'ами
-clone_additional_workflows() {
-  print_info "Клонирование дополнительных репозиториев с workflow'ами..."
+clone_official_workflows() {
+  print_info "📥 Клонирование официального репозитория n8n workflows..."
   
-  # Репозиторий с испанскими workflow'ами от DragonJAR
-  local repo_url="https://github.com/DragonJAR/n8n-workflows-es.git"
-  local target_dir="n8n-workflows-es-main"
+  # Официальный репозиторий с workflow'ами от Zie619
+  local repo_url="https://github.com/Zie619/n8n-workflows.git"
+  local target_dir="n8n-workflows"
   
   if [ -d "$target_dir" ]; then
-    print_info "Директория $target_dir уже существует, обновляем..."
+    print_info "📁 Репозиторий уже существует, обновляем..."
     cd "$target_dir"
     if git pull origin main >/dev/null 2>&1; then
-      print_success "Репозиторий обновлен: $target_dir"
+      print_success "✅ Репозиторий обновлен: $target_dir"
     else
-      print_warning "Не удалось обновить репозиторий $target_dir"
+      print_warning "⚠️ Не удалось обновить репозиторий $target_dir"
     fi
     cd ..
   else
-    print_info "Клонирование репозитория n8n-workflows-es..."
+    print_info "📥 Клонирование репозитория n8n-workflows..."
     if git clone "$repo_url" "$target_dir" >/dev/null 2>&1; then
-      print_success "Успешно склонирован репозиторий: $target_dir"
+      print_success "✅ Успешно склонирован репозиторий: $target_dir"
       
       # Проверяем наличие папки workflows
       if [ -d "$target_dir/workflows" ]; then
         local workflow_count=$(find "$target_dir/workflows" -name "*.json" | wc -l)
-        print_info "Найдено $workflow_count дополнительных workflow'ов"
+        print_info "📊 Найдено $workflow_count workflow'ов"
       fi
     else
-      print_warning "Не удалось клонировать репозиторий $repo_url"
-      print_info "Проверьте подключение к интернету или доступность репозитория"
+      print_warning "⚠️ Не удалось клонировать репозиторий $repo_url"
+      print_info "🔍 Проверьте подключение к интернету или доступность репозитория"
     fi
+  fi
+  
+  # Копирование workflows в n8n директорию
+  print_info "📋 Копирование workflows в n8n директорию..."
+  mkdir -p n8n/workflows
+  if [ -d "$target_dir/workflows" ]; then
+    cp -r "$target_dir/workflows/"* n8n/workflows/ 2>/dev/null || print_warning "⚠️ Нет workflows для копирования"
+    print_success "✅ Workflows скопированы в n8n/workflows/"
+  fi
+  
+  # Создание credentials директории
+  mkdir -p n8n/credentials
+  print_success "✅ Workflows готовы к импорту"
+  
+  # Запуск веб-сервиса документации
+  print_info "🌐 Запуск веб-сервиса документации workflows..."
+  if docker compose build workflows-doc >/dev/null 2>&1; then
+    print_success "✅ Образ workflows-doc собран"
+    print_info "📖 Веб-интерфейс будет доступен по адресу: http://localhost:8000"
+    print_info "🔍 Используйте веб-интерфейс для просмотра и поиска workflow'ов"
+  else
+    print_warning "⚠️ Не удалось собрать образ workflows-doc"
   fi
 }
 
@@ -938,7 +960,7 @@ if [[ "$OS_TYPE" == "macOS" && ! -x "/Applications/Docker.app/Contents/Resources
 fi
 
 # Клонирование дополнительных репозиториев с workflow'ами
-clone_additional_workflows
+  clone_official_workflows
 
 # Вызов функции установки утилит
 install_required_utils
@@ -1446,3 +1468,59 @@ fi
 
 print_success "Установка успешно завершена!"
 print_info "Полная документация: https://github.com/n8n-io/n8n-ai-starter-kit"
+
+# Функция для клонирования официального репозитория n8n workflows
+clone_official_workflows() {
+  print_info "📥 Клонирование официального репозитория n8n workflows..."
+  
+  # Официальный репозиторий с workflow'ами от Zie619
+  local repo_url="https://github.com/Zie619/n8n-workflows.git"
+  local target_dir="n8n-workflows"
+  
+  if [ -d "$target_dir" ]; then
+    print_info "📁 Репозиторий уже существует, обновляем..."
+    cd "$target_dir"
+    if git pull origin main >/dev/null 2>&1; then
+      print_success "✅ Репозиторий обновлен: $target_dir"
+    else
+      print_warning "⚠️ Не удалось обновить репозиторий $target_dir"
+    fi
+    cd ..
+  else
+    print_info "📥 Клонирование репозитория n8n-workflows..."
+    if git clone "$repo_url" "$target_dir" >/dev/null 2>&1; then
+      print_success "✅ Успешно склонирован репозиторий: $target_dir"
+      
+      # Проверяем наличие папки workflows
+      if [ -d "$target_dir/workflows" ]; then
+        local workflow_count=$(find "$target_dir/workflows" -name "*.json" | wc -l)
+        print_info "📊 Найдено $workflow_count workflow'ов"
+      fi
+    else
+      print_warning "⚠️ Не удалось клонировать репозиторий $repo_url"
+      print_info "🔍 Проверьте подключение к интернету или доступность репозитория"
+    fi
+  fi
+  
+  # Копирование workflows в n8n директорию
+  print_info "📋 Копирование workflows в n8n директорию..."
+  mkdir -p n8n/workflows
+  if [ -d "$target_dir/workflows" ]; then
+    cp -r "$target_dir/workflows/"* n8n/workflows/ 2>/dev/null || print_warning "⚠️ Нет workflows для копирования"
+    print_success "✅ Workflows скопированы в n8n/workflows/"
+  fi
+  
+  # Создание credentials директории
+  mkdir -p n8n/credentials
+  print_success "✅ Workflows готовы к импорту"
+  
+  # Запуск веб-сервиса документации
+  print_info "🌐 Запуск веб-сервиса документации workflows..."
+  if docker compose build workflows-doc >/dev/null 2>&1; then
+    print_success "✅ Образ workflows-doc собран"
+    print_info "📖 Веб-интерфейс будет доступен по адресу: http://localhost:8000"
+    print_info "🔍 Используйте веб-интерфейс для просмотра и поиска workflow'ов"
+  else
+    print_warning "⚠️ Не удалось собрать образ workflows-doc"
+  fi
+}

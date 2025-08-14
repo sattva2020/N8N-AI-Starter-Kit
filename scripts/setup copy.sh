@@ -377,11 +377,11 @@ check_cpu_resources() {
 
 # Функция для клонирования дополнительных репозиториев с workflow'ами
 clone_additional_workflows() {
-  print_info "Клонирование дополнительных репозиториев с workflow'ами..."
+  print_info "Клонирование официального репозитория n8n workflows..."
   
-  # Репозиторий с испанскими workflow'ами от DragonJAR
-  local repo_url="https://github.com/DragonJAR/n8n-workflows-es.git"
-  local target_dir="n8n-workflows-es-main"
+  # Официальный репозиторий с workflow'ами от Zie619
+  local repo_url="https://github.com/Zie619/n8n-workflows.git"
+  local target_dir="n8n-workflows"
   
   if [ -d "$target_dir" ]; then
     print_info "Директория $target_dir уже существует, обновляем..."
@@ -393,14 +393,14 @@ clone_additional_workflows() {
     fi
     cd ..
   else
-    print_info "Клонирование репозитория n8n-workflows-es..."
+    print_info "Клонирование репозитория n8n-workflows..."
     if git clone "$repo_url" "$target_dir" >/dev/null 2>&1; then
       print_success "Успешно склонирован репозиторий: $target_dir"
       
       # Проверяем наличие папки workflows
       if [ -d "$target_dir/workflows" ]; then
         local workflow_count=$(find "$target_dir/workflows" -name "*.json" | wc -l)
-        print_info "Найдено $workflow_count дополнительных workflow'ов"
+        print_info "Найдено $workflow_count workflow'ов"
       fi
     else
       print_warning "Не удалось клонировать репозиторий $repo_url"
