@@ -32,12 +32,14 @@ x-service-n8n: &service-n8n
     - DB_POSTGRESDB_PORT=${DB_POSTGRESDB_PORT}
     - DB_POSTGRESDB_DATABASE=${DB_POSTGRESDB_DATABASE}
     - DB_POSTGRESDB_USER=${DB_POSTGRESDB_USER}
-    - DB_POSTGRESDB_PASSWORD=${DB_POSTGRESDB_PASSWORD}
+    - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD} # Используем единую переменную для пароля
     # Fix permissions warning
     - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
     # Ensure fresh start with clean config - CRITICAL for encryption key conflicts
     - N8N_RESET=${N8N_RESET:-false}
     - N8N_RESET_OWNER_ONLY=true
+    # Enable task runners to avoid deprecation warnings
+    - N8N_RUNNERS_ENABLED=true
   networks:
     - frontend
     - backend
