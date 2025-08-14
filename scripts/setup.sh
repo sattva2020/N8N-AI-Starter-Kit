@@ -644,6 +644,7 @@ create_env_from_template() {
   # Генерируем пароли и ключи
   postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
   n8n_encryption_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+  n8n_api_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
   n8n_jwt_secret=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
   pgadmin_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
   traefik_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
@@ -655,10 +656,11 @@ create_env_from_template() {
   # Заменяем placeholder значения (глобально с флагом /g)
   sed -i "s/change_this_secure_password_123/${postgres_pwd}/g" .env
   sed -i "s/your_32_char_encryption_key_here_/${n8n_encryption_key}/g" .env
+  sed -i "s/your_n8n_api_key_here/${n8n_api_key}/g" .env
   sed -i "s/your_jwt_secret_key_here_min_32_chars/${n8n_jwt_secret}/g" .env
   sed -i "s/pgadmin_secure_password_123/${pgadmin_pwd}/g" .env
   sed -i "s/admin@example.com/admin@sattva-ai.top/g" .env
-  sed -i "s/\\\$\\\$\\\$\\\$apr1\\\$\\\$\\\$\\\$1LF8GnRQ\\\$\\\$\\\$\\\$qBinSa\/CmAS\/lLy4vz6DL1/${traefik_pwd_hash}/g" .env
+  sed -i "s/\\\$\\\\$apr1\\\$\\\\$1LF8GnRQ\\\$\\\\$qBinSa\/CmAS\/lLy4vz6DL1/${traefik_pwd_hash}/g" .env
   
   print_success "Файл .env создан успешно!"
   
@@ -695,6 +697,7 @@ create_env_from_template() {
   print_info "Сгенерированные пароли:"
   echo "  PostgreSQL: ${BOLD}${postgres_pwd}${NC}"
   echo "  N8N Encryption Key: ${BOLD}${n8n_encryption_key}${NC}"
+  echo "  N8N API Key: ${BOLD}${n8n_api_key}${NC}"
   echo "  N8N JWT Secret: ${BOLD}${n8n_jwt_secret}${NC}"
   echo "  PgAdmin: ${BOLD}${pgadmin_pwd}${NC}" 
   echo "  Traefik Dashboard: ${BOLD}${traefik_pwd}${NC}"

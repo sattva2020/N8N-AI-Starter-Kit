@@ -3,6 +3,12 @@
 .env.*
 !template.env
 !.env.example
+*.ppk
+plink.exe
+puttygen.exe
+docker-compose copy.yml.backup
+backup/
+.internal/
 
 # Директории с данными
 backups/
@@ -76,6 +82,7 @@ wheels/
 *.ps1.bak
 
 # Внутренние документы (только для локального использования)
+copilot-instructions.md
 AI_AGENT_GUIDE.md
 ai-instructions/
 PROJECT_READY_STATUS.md

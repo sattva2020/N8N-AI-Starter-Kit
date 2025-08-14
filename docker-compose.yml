@@ -19,7 +19,7 @@ x-traefik-base: &traefik-base
     start_period: 5s
 
 x-service-n8n: &service-n8n
-  image: docker.n8n.io/n8nio/n8n
+  image: n8nio/n8n:latest
   restart: unless-stopped
   environment:
     - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
@@ -36,13 +36,13 @@ x-service-n8n: &service-n8n
     # Fix permissions warning
     - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
     # Ensure fresh start with clean config - CRITICAL for encryption key conflicts
-   # - N8N_RESET=true
-   # - N8N_RESET_OWNER_ONLY=true
+    - N8N_RESET=${N8N_RESET:-false}
+    - N8N_RESET_OWNER_ONLY=true
   networks:
     - frontend
     - backend
   volumes:
-    - n8n_storage:/home/node/.n8n
+  #  - n8n_storage:/home/node/.n8n
     - ./n8n/credentials:/home/node/.n8n/credentials:ro  # Локальные credentials
 
 services:
@@ -132,6 +132,8 @@ services:
     environment:
       - N8N_URL=http://n8n:5678
       - PYTHONUNBUFFERED=1
+      - N8N_API_KEY=${N8N_API_KEY}
+      - N8N_API_AUTH_ACTIVE=${N8N_API_AUTH_ACTIVE}
     restart: "no"  # Запускается один раз при развертывании
     deploy:
       resources:
@@ -248,6 +250,8 @@ services:
       - PYTHONUNBUFFERED=1
       - MAX_FILE_SIZE=100MB
       - SUPPORTED_FORMATS=pdf,docx,txt,md,rtf
+      - LAZY_EMBEDDINGS=true
+      - DATABASE_URL=postgresql://n8n:${POSTGRES_PASSWORD}@postgres:5432/n8n
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_USER=n8n
@@ -272,9 +276,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8001/health || exit 1"]
       interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
 
   web-interface:
     build: ./services/web-interface

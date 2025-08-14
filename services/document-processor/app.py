@@ -30,6 +30,10 @@ import asyncpg
 
 import json
 
+# Local processors for rich document formats
+from processors.pdf_processor import extract_text_from_pdf
+from processors.docx_processor import extract_text_from_docx
+
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -108,6 +112,9 @@ embedding_model = None
 qdrant_client = None
 db_pool = None
 
+# Управление инициализацией эмбеддингов
+LAZY_EMBEDDINGS = os.getenv("LAZY_EMBEDDINGS", "true").lower() == "true"
+
 # Конфигурация из переменных окружения
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://n8n:change_this_secure_password_123@postgres:5432/n8n")
 QDRANT_HOST = os.getenv("QDRANT_HOST", "qdrant")
@@ -121,9 +128,12 @@ async def startup_event():
     
     try:
         logger.info("Инициализация Document Processor Service...")
-        # Инициализация модели эмбеддингов - АКТИВИРОВАНА
-        logger.info(f"Загрузка модели эмбеддингов: {EMBEDDING_MODEL}")
-        embedding_model = SentenceTransformer(EMBEDDING_MODEL)
+        # Инициализация модели эмбеддингов (ленивая при LAZY_EMBEDDINGS=true)
+        if LAZY_EMBEDDINGS:
+            logger.info("LAZY_EMBEDDINGS=true: пропускаем загрузку модели на старте")
+        else:
+            logger.info(f"Загрузка модели эмбеддингов: {EMBEDDING_MODEL}")
+            embedding_model = SentenceTransformer(EMBEDDING_MODEL)
         
         # Инициализация Qdrant клиента - АКТИВИРОВАНА
         logger.info("Инициализация Qdrant клиента...")
@@ -205,7 +215,12 @@ async def upload_document(
     """Загрузка и обработка документа"""
     try:
         # Проверка типа файла
-        allowed_types = ["text/plain", "application/pdf", "application/msword"]
+        allowed_types = [
+            "text/plain",
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ]
         if file.content_type not in allowed_types:
             raise HTTPException(
                 status_code=400, 
@@ -219,7 +234,7 @@ async def upload_document(
             tmp_file_path = tmp_file.name
         
         # Добавление задачи в фон
-        background_tasks.add_task(process_document_async, tmp_file_path, file.filename, metadata, categories, tags)
+        background_tasks.add_task(process_document_async, tmp_file_path, file.filename, file.content_type, metadata, categories, tags)
         
         return {
             "message": "Документ принят к обработке",
@@ -473,13 +488,22 @@ async def list_documents(
         raise HTTPException(status_code=500, detail=f"Ошибка получения списка документов: {str(e)}")
 
 # Служебные функции
-async def process_document_async(file_path: str, filename: str, metadata: Optional[str], categories: Optional[str], tags: Optional[str]):
+async def process_document_async(file_path: str, filename: str, content_type: str, metadata: Optional[str], categories: Optional[str], tags: Optional[str]):
     """Асинхронная обработка документа"""
     try:
         logger.info(f"Начало обработки документа: {filename}")
           # Чтение файла
-        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-            content = f.read()
+        content: str = ""
+        if content_type == "application/pdf":
+            content = extract_text_from_pdf(file_path)
+        elif content_type in (
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ):
+            content = extract_text_from_docx(file_path)
+        else:
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read()
             
         # Создание эмбеддинга
         if embedding_model and qdrant_client:

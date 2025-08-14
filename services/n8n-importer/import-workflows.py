@@ -301,13 +301,15 @@ class N8NWorkflowImporter:
 
 
 if __name__ == "__main__":
-    print("==== DEBUG: ENVIRONMENT VARIABLES ====")
-    for k, v in os.environ.items():
-        print(f"{k}={v}")
-    print("==== END ENV ====")
-    import time
-    print("Sleeping 30 seconds for debug... (remove after test)")
-    time.sleep(30)
+    debug_mode = os.getenv("DEBUG_IMPORTER", "false").lower() == "true"
+    if debug_mode:
+        print("==== DEBUG: ENVIRONMENT VARIABLES ====")
+        for k, v in os.environ.items():
+            print(f"{k}={v}")
+        print("==== END ENV ====")
+        import time
+        print("DEBUG_IMPORTER is true: sleeping 10 seconds for debug...")
+        time.sleep(10)
     importer = N8NWorkflowImporter()
     success = importer.run()
     exit(0 if success else 1)

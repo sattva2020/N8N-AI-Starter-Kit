@@ -4,12 +4,48 @@
 # Версия: 1.0.7
 
 # Цвета для вывода
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+# Проверка на Windows-подобную систему (например, Git Bash) для отключения цветов
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
+    GREEN=''
+    RED=''
+    YELLOW=''
+    BLUE=''
+    CYAN=''
+    NC=''
+    EMOJI_CHART="[MEM]"
+    EMOJI_CPU="[CPU]"
+    EMOJI_GPU="[GPU]"
+    EMOJI_ROCKET="->"
+    EMOJI_OK="[OK]"
+    EMOJI_ERROR="[ERROR]"
+    EMOJI_WARN="[WARN]"
+    EMOJI_SETUP="[SETUP]"
+    EMOJI_FILE="[FILE]"
+    EMOJI_SECURE="[SECURE]"
+    EMOJI_NOTE="[NOTE]"
+    EMOJI_CRITICAL="[CRITICAL]"
+    EMOJI_PARTY="[SUCCESS]"
+else
+    GREEN='\033[0;32m'
+    RED='\033[0;31m'
+    YELLOW='\033[1;33m'
+    BLUE='\033[0;34m'
+    CYAN='\033[0;36m'
+    NC='\033[0m' # No Color
+    EMOJI_CHART="📊"
+    EMOJI_CPU="🖥️"
+    EMOJI_GPU="🎮"
+    EMOJI_ROCKET="🚀"
+    EMOJI_OK="✅"
+    EMOJI_ERROR="❌"
+    EMOJI_WARN="⚠️"
+    EMOJI_SETUP="🔧"
+    EMOJI_FILE="📋"
+    EMOJI_SECURE="🔐"
+    EMOJI_NOTE="📝"
+    EMOJI_CRITICAL="🚨"
+    EMOJI_PARTY="🎉"
+fi
 
 echo -e "${BLUE}=== Интеллектуальный запуск N8N AI Starter Kit ===${NC}"
 
@@ -19,20 +55,20 @@ detect_optimal_profile() {
     local cpu_cores=$(nproc 2>/dev/null || echo "1")
     
     echo -e "${BLUE}Анализ системы:${NC}" >&2
-    echo -e "  📊 Память: ${memory}GB" >&2
-    echo -e "  🖥️  CPU ядер: ${cpu_cores}" >&2
+    echo -e "  ${EMOJI_CHART} Память: ${memory}GB" >&2
+    echo -e "  ${EMOJI_CPU}  CPU ядер: ${cpu_cores}" >&2
     
     # Проверка GPU
     if command -v nvidia-smi &> /dev/null && nvidia-smi &> /dev/null; then
         gpu_info=$(nvidia-smi --query-gpu=name --format=csv,noheader,nounits | head -1 2>/dev/null || echo "Unknown")
-        echo -e "  🎮 GPU: ${gpu_info}" >&2
-        echo -e "${GREEN}🚀 Рекомендуемый профиль: gpu-nvidia${NC}" >&2
+        echo -e "  ${EMOJI_GPU} GPU: ${gpu_info}" >&2
+        echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: gpu-nvidia${NC}" >&2
         echo "gpu-nvidia"
     elif [ "$memory" -gt 16 ] && [ "$cpu_cores" -gt 8 ]; then
-        echo -e "${GREEN}🚀 Рекомендуемый профиль: developer${NC}" >&2
+        echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: developer${NC}" >&2
         echo "developer"
     else
-        echo -e "${GREEN}🚀 Рекомендуемый профиль: cpu${NC}" >&2
+        echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: cpu${NC}" >&2
         echo "cpu"
     fi
 }
@@ -45,54 +81,54 @@ pre_flight_check() {
     
     # Проверка Docker
     if ! command -v docker &> /dev/null; then
-        echo -e "  ${RED}❌ Docker не найден${NC}"
+        echo -e "  ${RED}${EMOJI_ERROR} Docker не найден${NC}"
         ((issues++))
     else
-        echo -e "  ${GREEN}✅ Docker найден${NC}"
+        echo -e "  ${GREEN}${EMOJI_OK} Docker найден${NC}"
     fi
     
     # Проверка Docker Compose
     if ! docker compose version &> /dev/null && ! command -v docker-compose &> /dev/null; then
-        echo -e "  ${RED}❌ Docker Compose не найден${NC}"
+        echo -e "  ${RED}${EMOJI_ERROR} Docker Compose не найден${NC}"
         ((issues++))
     else
-        echo -e "  ${GREEN}✅ Docker Compose найден${NC}"
+        echo -e "  ${GREEN}${EMOJI_OK} Docker Compose найден${NC}"
     fi
     
     # Проверка .env файла
     if [ ! -f .env ]; then
-        echo -e "  ${YELLOW}⚠️ Файл .env не найден${NC}"
+        echo -e "  ${YELLOW}${EMOJI_WARN} Файл .env не найден${NC}"
         ((issues++))
     else
-        echo -e "  ${GREEN}✅ Файл .env найден${NC}"
+        echo -e "  ${GREEN}${EMOJI_OK} Файл .env найден${NC}"
         
         # Проверка ключевых переменных в .env
         if ! grep -q "OPENAI_API_KEY" .env || grep -q "^# OPENAI_API_KEY=" .env; then
-            echo -e "  ${YELLOW}⚠️ OpenAI API key не настроен${NC}"
+            echo -e "  ${YELLOW}${EMOJI_WARN} OpenAI API key не настроен${NC}"
         else
-            echo -e "  ${GREEN}✅ OpenAI API key настроен${NC}"
+            echo -e "  ${GREEN}${EMOJI_OK} OpenAI API key настроен${NC}"
         fi
         
         if ! grep -q "N8N_ENCRYPTION_KEY" .env; then
-            echo -e "  ${YELLOW}⚠️ N8N encryption key не найден${NC}"
+            echo -e "  ${YELLOW}${EMOJI_WARN} N8N encryption key не найден${NC}"
             ((issues++))
         else
-            echo -e "  ${GREEN}✅ N8N encryption key найден${NC}"
+            echo -e "  ${GREEN}${EMOJI_OK} N8N encryption key найден${NC}"
         fi
         
         # Проверка на проблемные символы в .env
         if grep -q '\$[^{]' .env; then
-            echo -e "  ${YELLOW}⚠️ Найдены неэкранированные символы $ в .env${NC}"
+            echo -e "  ${YELLOW}${EMOJI_WARN} Найдены неэкранированные символы $ в .env${NC}"
             ((issues++))
         fi
     fi
     
     # Проверка конфигурации Docker Compose
     if ! docker compose config &>/dev/null; then
-        echo -e "  ${RED}❌ Ошибки в конфигурации Docker Compose${NC}"
+        echo -e "  ${RED}${EMOJI_ERROR} Ошибки в конфигурации Docker Compose${NC}"
         ((issues++))
     else
-        echo -e "  ${GREEN}✅ Конфигурация Docker Compose корректна${NC}"
+        echo -e "  ${GREEN}${EMOJI_OK} Конфигурация Docker Compose корректна${NC}"
     fi
     
     return $issues
@@ -100,7 +136,7 @@ pre_flight_check() {
 
 # Функция для запуска setup.sh
 run_setup() {
-    echo -e "${BLUE}🔧 Запуск мастера настройки...${NC}"
+    echo -e "${BLUE}${EMOJI_SETUP} Запуск мастера настройки...${NC}"
     echo ""
     
     if [ -f "./scripts/setup.sh" ]; then
@@ -109,14 +145,14 @@ run_setup() {
         ./scripts/setup.sh
         
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}✅ Настройка завершена успешно!${NC}"
+            echo -e "${GREEN}${EMOJI_OK} Настройка завершена успешно!${NC}"
             return 0
         else
-            echo -e "${RED}❌ Ошибка при настройке${NC}"
+            echo -e "${RED}${EMOJI_ERROR} Ошибка при настройке${NC}"
             return 1
         fi
     else
-        echo -e "${RED}❌ Файл ./scripts/setup.sh не найден${NC}"
+        echo -e "${RED}${EMOJI_ERROR} Файл ./scripts/setup.sh не найден${NC}"
         echo -e "${YELLOW}Создайте файл .env вручную или убедитесь, что setup.sh находится в директории scripts/${NC}"
         return 1
     fi
@@ -136,13 +172,13 @@ auto_fix_issues() {
     
     # Создание .env файла если отсутствует
     if [ ! -f .env ]; then
-        echo -e "  📋 Попытка создания файла .env из шаблона..."
+        echo -e "  ${EMOJI_FILE} Попытка создания файла .env из шаблона..."
         if [ -f "template.env" ]; then
             cp "template.env" ".env"
-            echo -e "  ${GREEN}✅ Файл .env создан из template.env${NC}"
+            echo -e "  ${GREEN}${EMOJI_OK} Файл .env создан из template.env${NC}"
             
             # Замена placeholder'ов на безопасные значения
-            echo -e "  🔐 Генерация безопасных паролей..."
+            echo -e "  ${EMOJI_SECURE} Генерация безопасных паролей..."
             sed -i "s/change_this_secure_password_123/$(generate_password 16)/g" .env 2>/dev/null
             sed -i "s/your_32_char_encryption_key_here_/$(generate_password 32)/g" .env 2>/dev/null
             sed -i "s/your_jwt_secret_key_here_min_32_chars/$(generate_password 32)/g" .env 2>/dev/null
@@ -153,12 +189,12 @@ auto_fix_issues() {
             sed -i "s/zep_secure_password_123/$(generate_password 16)/g" .env 2>/dev/null
             sed -i "s/your_openai_api_key_here//g" .env 2>/dev/null
             
-            echo -e "  ${GREEN}✅ Безопасные пароли сгенерированы${NC}"
+            echo -e "  ${GREEN}${EMOJI_OK} Безопасные пароли сгенерированы${NC}"
         elif [ -f "scripts/template.env" ]; then
             cp "scripts/template.env" ".env"
-            echo -e "  ${GREEN}✅ Файл .env создан из scripts/template.env${NC}"
+            echo -e "  ${GREEN}${EMOJI_OK} Файл .env создан из scripts/template.env${NC}"
         else
-            echo -e "  ${RED}❌ Шаблон .env не найден${NC}"
+            echo -e "  ${RED}${EMOJI_ERROR} Шаблон .env не найден${NC}"
             echo -e "  ${YELLOW}   Необходимо запустить полную настройку${NC}"
             return 1
         fi
@@ -166,14 +202,14 @@ auto_fix_issues() {
     
     # Исправление переменных окружения
     if [ -f ./scripts/fix-env-vars.sh ]; then
-        echo -e "  🔧 Исправление переменных окружения..."
+        echo -e "  ${EMOJI_SETUP} Исправление переменных окружения..."
         chmod +x ./scripts/fix-env-vars.sh
         ./scripts/fix-env-vars.sh > /dev/null 2>&1
     fi
     
     # Исправление проблем с хэшем пароля
     if [ -f .env ] && grep -q '\$[^{]' .env; then
-        echo -e "  🔧 Исправление хэша пароля Traefik..."
+        echo -e "  ${EMOJI_SETUP} Исправление хэша пароля Traefik..."
         # Убираем лишние символы $ из хэша пароля
         sed -i 's/\$\$\$/$/g' .env 2>/dev/null || true
         sed -i 's/\$\$/$/g' .env 2>/dev/null || true
@@ -181,7 +217,7 @@ auto_fix_issues() {
     
     # Добавление отсутствующих переменных
     if [ -f .env ] && ! grep -q "WEBHOOK_URL" .env; then
-        echo -e "  📝 Добавление отсутствующих переменных..."
+        echo -e "  ${EMOJI_NOTE} Добавление отсутствующих переменных..."
         echo "WEBHOOK_URL=" >> .env
     fi
     
@@ -194,16 +230,16 @@ check_critical_components() {
     
     # Проверка Docker
     if ! command -v docker &> /dev/null; then
-        echo -e "${RED}❌ Docker не установлен${NC}"
+        echo -e "${RED}${EMOJI_ERROR} Docker не установлен${NC}"
         ((critical_issues++))
     elif ! docker info &> /dev/null; then
-        echo -e "${RED}❌ Docker демон не запущен${NC}"
+        echo -e "${RED}${EMOJI_ERROR} Docker демон не запущен${NC}"
         ((critical_issues++))
     fi
     
     # Проверка Docker Compose
     if ! docker compose version &> /dev/null && ! command -v docker-compose &> /dev/null; then
-        echo -e "${RED}❌ Docker Compose не установлен${NC}"
+        echo -e "${RED}${EMOJI_ERROR} Docker Compose не установлен${NC}"
         ((critical_issues++))
     fi
     
@@ -225,7 +261,7 @@ fi
 echo ""
 if ! check_critical_components; then
     echo ""
-    echo -e "${RED}🚨 Обнаружены критические проблемы с Docker/Docker Compose${NC}"
+    echo -e "${RED}${EMOJI_CRITICAL} Обнаружены критические проблемы с Docker/Docker Compose${NC}"
     echo -e "${YELLOW}Необходимо запустить полную настройку для установки зависимостей${NC}"
     echo ""
     echo -e "${CYAN}Запустить мастер настройки? (y/n): ${NC}"
@@ -233,7 +269,7 @@ if ! check_critical_components; then
     
     if [[ "$setup_choice" =~ ^[Yy]$ ]]; then
         if ! run_setup; then
-            echo -e "${RED}❌ Настройка не завершена. Завершение работы.${NC}"
+            echo -e "${RED}${EMOJI_ERROR} Настройка не завершена. Завершение работы.${NC}"
             exit 1
         fi
     else
@@ -268,7 +304,7 @@ if ! pre_flight_check; then
                     read -r full_setup_choice
                     if [[ "$full_setup_choice" =~ ^[Yy]$ ]]; then
                         if ! run_setup; then
-                            echo -e "${RED}❌ Настройка не завершена. Завершение работы.${NC}"
+                            echo -e "${RED}${EMOJI_ERROR} Настройка не завершена. Завершение работы.${NC}"
                             exit 1
                         fi
                     else
@@ -278,24 +314,24 @@ if ! pre_flight_check; then
             else
                 echo -e "${YELLOW}Быстрое исправление не удалось. Запуск полной настройки...${NC}"
                 if ! run_setup; then
-                    echo -e "${RED}❌ Настройка не завершена. Завершение работы.${NC}"
+                    echo -e "${RED}${EMOJI_ERROR} Настройка не завершена. Завершение работы.${NC}"
                     exit 1
                 fi
             fi
             ;;
         2)
             if ! run_setup; then
-                echo -e "${RED}❌ Настройка не завершена. Завершение работы.${NC}"
+                echo -e "${RED}${EMOJI_ERROR} Настройка не завершена. Завершение работы.${NC}"
                 exit 1
             fi
             ;;
         3)
-            echo -e "${YELLOW}⚠️ Продолжение без исправлений. Возможны ошибки при запуске.${NC}"
+            echo -e "${YELLOW}${EMOJI_WARN} Продолжение без исправлений. Возможны ошибки при запуске.${NC}"
             ;;
         *)
             echo -e "${YELLOW}Неверный выбор. Запуск полной настройки...${NC}"
             if ! run_setup; then
-                echo -e "${RED}❌ Настройка не завершена. Завершение работы.${NC}"
+                echo -e "${RED}${EMOJI_ERROR} Настройка не завершена. Завершение работы.${NC}"
                 exit 1
             fi
             ;;
@@ -305,14 +341,14 @@ if ! pre_flight_check; then
     echo ""
     echo -e "${BLUE}Финальная проверка конфигурации...${NC}"
     if ! pre_flight_check; then
-        echo -e "${RED}❌ Критические проблемы не исправлены.${NC}"
+        echo -e "${RED}${EMOJI_ERROR} Критические проблемы не исправлены.${NC}"
         echo -e "${YELLOW}Запустите ./scripts/diagnose.sh для детальной диагностики${NC}"
         exit 1
     fi
 fi
 
 echo ""
-echo -e "${GREEN}✅ Все проверки пройдены! Запуск системы...${NC}"
+echo -e "${GREEN}${EMOJI_OK} Все проверки пройдены! Запуск системы...${NC}"
 
 # Определение команды Docker Compose
 if docker compose version &> /dev/null; then
@@ -334,13 +370,13 @@ COMPOSE_PARALLEL_LIMIT=1 $DOCKER_COMPOSE_CMD --profile $PROFILE up -d
 # Проверка результата запуска
 if [ $? -eq 0 ]; then
     echo ""
-    printf "${GREEN}🎉 Система успешно запущена!${NC}\n"
+    printf "${GREEN}${EMOJI_PARTY} Система успешно запущена!${NC}\n"
     echo ""
     printf "${BLUE}Полезные команды:${NC}\n"
-    printf "  📊 Мониторинг: ${YELLOW}./scripts/monitor.sh${NC}\n"
-    printf "  📋 Статус: ${YELLOW}docker ps${NC}\n"
-    printf "  📝 Логи: ${YELLOW}docker logs n8n-ai-starter-kit-n8n-1${NC}\n"
-    printf "  🛑 Остановка: ${YELLOW}$DOCKER_COMPOSE_CMD down${NC}\n"
+    printf "  ${EMOJI_CHART} Мониторинг: ${YELLOW}./scripts/monitor.sh${NC}\n"
+    printf "  ${EMOJI_FILE} Статус: ${YELLOW}docker ps${NC}\n"
+    printf "  ${EMOJI_NOTE} Логи: ${YELLOW}docker logs n8n-ai-starter-kit-n8n-1${NC}\n"
+    printf "  ${EMOJI_ERROR} Остановка: ${YELLOW}$DOCKER_COMPOSE_CMD down${NC}\n"
     echo ""
     printf "${BLUE}Доступ к сервисам:${NC}\n"
     printf "  🌐 N8N: ${YELLOW}http://localhost:5678${NC}\n"
@@ -351,13 +387,13 @@ if [ $? -eq 0 ]; then
     # Проверка OpenAI API Key
     if [ -f .env ] && (grep -q "^# OPENAI_API_KEY=" .env || ! grep -q "OPENAI_API_KEY=" .env); then
         echo ""
-        printf "${YELLOW}📝 Примечание: OpenAI API key не настроен${NC}\n"
+        printf "${YELLOW}${EMOJI_NOTE} Примечание: OpenAI API key не настроен${NC}\n"
         printf "   ${CYAN}Для использования OpenAI моделей добавьте ключ в файл .env${NC}\n"
         printf "   ${CYAN}или запустите: ./scripts/setup.sh для полной настройки${NC}\n"
     fi
 else
     echo ""
-    printf "${RED}❌ Ошибка при запуске системы${NC}\n"
+    printf "${RED}${EMOJI_ERROR} Ошибка при запуске системы${NC}\n"
     printf "${YELLOW}Запустите для диагностики: ./scripts/diagnose.sh${NC}\n"
     printf "${YELLOW}Или запустите полную настройку: ./scripts/setup.sh${NC}\n"
     exit 1

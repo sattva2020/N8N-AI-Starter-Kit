@@ -3,32 +3,31 @@ set -e
 
 echo "Creating n8n user and database..."
 
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-    -- Create n8n user if not exists
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+    -- Создать пользователя n8n, если не существует, иначе обновить пароль
     DO \$\$
     BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '$N8N_USER') THEN
-            CREATE USER $N8N_USER WITH PASSWORD '$N8N_PASSWORD';
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = '${N8N_USER}') THEN
+            CREATE USER ${N8N_USER} WITH PASSWORD '${N8N_PASSWORD}';
             RAISE NOTICE 'User $N8N_USER created with password';
         ELSE
-            -- Якщо користувач існує, оновити йому пароль
-            ALTER USER $N8N_USER WITH PASSWORD '$N8N_PASSWORD';
+            ALTER USER ${N8N_USER} WITH PASSWORD '${N8N_PASSWORD}';
             RAISE NOTICE 'User $N8N_USER already exists, password updated';
         END IF;
     END
     \$\$;
 
-    -- Grant privileges on database
-    GRANT ALL PRIVILEGES ON DATABASE $POSTGRES_DB TO $N8N_USER;
+    -- Создать базу только если не существует
+    DO \$\$
+    BEGIN
+        IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '${N8N_USER}') THEN
+            CREATE DATABASE ${N8N_USER} OWNER ${N8N_USER};
+        END IF;
+    END
+    \$\$;
 
-    -- Grant schema privileges
-    GRANT ALL ON SCHEMA public TO $N8N_USER;
-    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $N8N_USER;
-    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $N8N_USER;
-
-    -- Set default privileges for future objects
-    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $N8N_USER;
-    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $N8N_USER;
+    -- Назначить владельца базы (на всякий случай)
+    ALTER DATABASE ${N8N_USER} OWNER TO ${N8N_USER};
 EOSQL
 
 echo "N8N user setup completed successfully."
