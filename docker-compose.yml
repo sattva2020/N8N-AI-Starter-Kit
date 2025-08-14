@@ -198,28 +198,19 @@ services:
       start_period: 40s
 
   # Workflows Importer Service v1.3.0
-  workflows-importer:
+  n8n-importer:
     build:
-      context: .
-      dockerfile: services/workflows-importer/Dockerfile
-    image: workflows-importer:latest
+      context: ./services/n8n-importer
+    image: n8n-importer:latest
     profiles: [default, cpu, gpu-nvidia, developer]
     depends_on:
       n8n:
         condition: service_healthy
     volumes:
-      - ./n8n/workflows:/workflows:ro  # Workflows из официального репозитория Zie619/n8n-workflows
-      - ./n8n/credentials:/credentials:ro  # Credentials для N8N
-      - n8n_import_logs:/app/logs  # Логи импорта
+      - ./n8n/workflows:/workflows:ro
     networks:
-      - frontend
-    environment:
-      - N8N_URL=http://n8n:5678
-      - PYTHONUNBUFFERED=1
-      - N8N_API_KEY=${N8N_API_KEY}
-      - N8N_API_AUTH_ACTIVE=${N8N_API_AUTH_ACTIVE}
-      - DEBUG_IMPORTER=${DEBUG_IMPORTER:-false}
-    restart: "no"  # Запускается один раз при развертывании
+      - backend
+    restart: "no"
     deploy:
       resources:
         limits:
