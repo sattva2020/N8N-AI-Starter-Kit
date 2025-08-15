@@ -648,16 +648,54 @@ create_env_from_template() {
     backup_existing_config
   fi
   
-  # ВАЖНО: Очищаем volumes при создании нового .env
-  # Это предотвращает конфликт паролей и ключей шифрования
-  print_info "Очистка данных для предотвращения конфликта паролей..."
-  if docker volume ls | grep -q "n8n_storage"; then
-    docker volume rm n8n-ai-starter-kit_n8n_storage 2>/dev/null || true
-    print_success "Данные N8N очищены"
-  fi
+  # ВАЖНО: Обработка существующих volumes при создании нового .env
+  # Если тома уже существуют, пользователь должен выбрать поведение — синхронизировать
+  # существующий пароль из работающего контейнера (без потери данных) или удалить томы
+  # и инициализировать БД заново (приведёт к потере данных).
+  print_info "Проверка существующих Docker volumes..."
   if docker volume ls | grep -q "postgres_storage"; then
-    docker volume rm n8n-ai-starter-kit_postgres_storage 2>/dev/null || true
-    print_success "Данные PostgreSQL очищены"
+    print_warning "Найден том postgres_storage. Postgres уже инициализирован."
+    echo "1) Синхронизировать .env с текущим паролем в работающем контейнере Postgres (без удаления данных)"
+    echo "2) Удалить томы и инициализировать БД заново (ВНИМАНИЕ: потеря данных)"
+    read -p "Выберите действие (1/2, по-умолчанию 1): " vol_choice
+    vol_choice=${vol_choice:-1}
+
+    if [ "$vol_choice" = "2" ]; then
+      print_warning "Будут удалены тома n8n_storage и postgres_storage (потеря данных)."
+      read -p "Подтвердите удаление томов (type 'DELETE' to confirm): " confirm_del
+      if [ "$confirm_del" = "DELETE" ]; then
+        if docker volume ls | grep -q "n8n_storage"; then
+          docker volume rm n8n-ai-starter-kit_n8n_storage 2>/dev/null || true
+          print_success "Данные N8N очищены"
+        fi
+        docker volume rm n8n-ai-starter-kit_postgres_storage 2>/dev/null || true
+        print_success "Данные PostgreSQL очищены"
+      else
+        print_info "Удаление томов отменено пользователем. Будем пытаться синхронизировать пароль с существующей БД."
+        vol_choice=1
+      fi
+    fi
+
+    if [ "$vol_choice" = "1" ]; then
+      # Попытка получить пароль из работающего контейнера Postgres
+      existing_pass=""
+      # Находим контейнер Postgres запущенный в текущем проекте
+      pg_container=$(docker ps --filter "ancestor=pgvector/pgvector:pg17" --format "{{.ID}}" | head -n 1 2>/dev/null || true)
+      if [ -z "$pg_container" ]; then
+        # Альтернативный поиск по имени контейнера содержащему "postgres"
+        pg_container=$(docker ps --filter "name=postgres" --format "{{.ID}}" | head -n 1 2>/dev/null || true)
+      fi
+      if [ -n "$pg_container" ]; then
+        existing_pass=$(docker exec "$pg_container" printenv POSTGRES_PASSWORD 2>/dev/null || true)
+      fi
+
+      if [ -n "$existing_pass" ]; then
+        print_info "Синхронизируем PostgreSQL пароль из работающего контейнера"
+        postgres_pwd="$existing_pass"
+      else
+        print_warning "Не удалось получить пароль из работающего контейнера Postgres. Будет использован новый сгенерированный пароль."
+      fi
+    fi
   fi
   
   # Генерируем случайные значения для безопасных переменных
@@ -709,10 +747,15 @@ create_env_from_template() {
   fi
   
   # Проверяем что пароли PostgreSQL синхронизированы
-  postgres_pwd_count=$(grep -c "${postgres_pwd}" .env)
-  if [ "$postgres_pwd_count" -lt 2 ]; then
-    print_error "Ошибка: PostgreSQL пароль не синхронизирован между переменными!"
-    print_info "Найдено вхождений: $postgres_pwd_count (ожидается минимум 2)"
+  # Обновляем template.env чтобы сохранить сгенерированный пароль как источник истины
+  if grep -q "change_this_secure_password_123" template.env; then
+    sed -i "s/change_this_secure_password_123/${postgres_pwd}/g" template.env || true
+  fi
+
+  postgres_pwd_count=$(grep -c "${postgres_pwd}" .env || true)
+  if [ "$postgres_pwd_count" -lt 1 ]; then
+    print_error "Ошибка: PostgreSQL пароль не найден в .env!"
+    print_info "Найдено вхождений: $postgres_pwd_count"
     exit 1
   fi
   
@@ -1372,6 +1415,11 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
 
   # Обновляем домены на пользовательские
   sed -i "s/sattva-ai.top/${domain_name}/g" .env
+
+  # Обновляем template.env чтобы сохранить сгенерированный пароль как источник истины
+  if grep -q "change_this_secure_password_123" template.env; then
+    sed -i "s/change_this_secure_password_123/${postgres_pwd}/g" template.env || true
+  fi
 
   print_success "Файл .env успешно создан!"
   print_warning "ВАЖНО: Сохраните копию файла .env в безопасном месте!"
