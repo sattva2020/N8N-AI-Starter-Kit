@@ -6,6 +6,13 @@
 echo "🔍 N8N Workflows Auto-Import Status Checker"
 echo "=============================================="
 
+if [ "${N8N_AUTO_IMPORT:-false}" != "true" ]; then
+    echo "ℹ️ Автоматический импорт отключён (N8N_AUTO_IMPORT != true)."
+    echo "    Для включения установите N8N_AUTO_IMPORT=true в окружении контейнера/compose."
+    echo "✅ Проверка завершена (auto-import отключён)."
+    exit 0
+fi
+
 # Проверяем запущенные контейнеры
 echo "📋 Статус контейнеров:"
 echo "  N8N: $(docker-compose ps n8n --status --quiet 2>/dev/null || echo 'не запущен')"

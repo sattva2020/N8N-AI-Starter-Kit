@@ -1113,8 +1113,14 @@ if [[ "$OS_TYPE" == "macOS" && ! -x "/Applications/Docker.app/Contents/Resources
   exit 1
 fi
 
-# Клонирование дополнительных репозиториев с workflow'ами
+# Клонирование дополнительных репозиториев с workflow'ами (опционально)
+if [ "${N8N_AUTO_IMPORT:-false}" = "true" ]; then
+  # Включено автоматическое клонирование/импортирование — выполняем функцию
   clone_official_workflows
+else
+  print_info "Автоматический импорт workflows отключён (N8N_AUTO_IMPORT != true)."
+  print_info "Чтобы включить, установите N8N_AUTO_IMPORT=true и запустите установку заново."
+fi
 
 # Вызов функции установки утилит
 install_required_utils

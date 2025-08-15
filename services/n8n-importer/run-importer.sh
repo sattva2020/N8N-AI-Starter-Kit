@@ -1,10 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Clone the official n8n-workflows repository at runtime to ensure fresh copy
+## Optional automatic importer guarded by N8N_AUTO_IMPORT (default: false)
 REPO_URL="https://github.com/Zie619/n8n-workflows.git"
 CLONE_DIR="/tmp/n8n-workflows"
 
+if [ "${N8N_AUTO_IMPORT:-false}" != "true" ]; then
+  echo "N8N_AUTO_IMPORT is not enabled; skipping automatic n8n-workflows clone and import."
+  echo "To enable: set environment variable N8N_AUTO_IMPORT=true"
+  exit 0
+fi
+
+# Clone the official n8n-workflows repository at runtime to ensure fresh copy
 if [ -d "$CLONE_DIR" ]; then
   echo "Removing existing clone..."
   rm -rf "$CLONE_DIR"
