@@ -45,6 +45,9 @@ Thumbs.db
 *.md.backup
 *.backup
 
+# Backup files created by toggle scripts
+*.bak
+
 # IDE и редакторы
 .vscode/
 .idea/
