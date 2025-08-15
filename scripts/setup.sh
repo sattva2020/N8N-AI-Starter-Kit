@@ -1062,6 +1062,80 @@ update_template_with_user_settings() {
 
 # Основная логика скрипта
 print_banner
+# Parse CLI args (support --generate-only)
+GENERATE_ONLY=false
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --generate-only)
+      GENERATE_ONLY=true
+      shift
+      ;;
+    --help|-h)
+      echo "Usage: $0 [--generate-only]"
+      exit 0
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+if [ "$GENERATE_ONLY" = true ]; then
+  print_info "Режим: --generate-only — генерируем .env из env.schema.md и выходим"
+  # Lightweight generator: generate passwords and write .env without prompts
+  generate_env_only() {
+    SCHEMA_FILE="env.schema.md"
+    if [ ! -f "$SCHEMA_FILE" ]; then
+      if [ -f template.env ]; then
+        SCHEMA_FILE="template.env"
+      else
+        print_error "Не найден env.schema.md или template.env"
+        exit 1
+      fi
+    fi
+
+    # Generate values
+    postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+    n8n_encryption_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+    n8n_api_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+    n8n_jwt_secret=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+    pgadmin_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+    traefik_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
+    traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1 2>/dev/null || echo "${traefik_pwd}")
+
+    cp "$SCHEMA_FILE" .env
+
+    sed -i "s/change_this_secure_password_123/${postgres_pwd}/g" .env
+    sed -i "s/your_32_char_encryption_key_here_/${n8n_encryption_key}/g" .env
+    sed -i "s/your_n8n_api_key_here/${n8n_api_key}/g" .env
+    sed -i "s/your_jwt_secret_key_here_min_32_chars/${n8n_jwt_secret}/g" .env
+    sed -i "s/pgadmin_secure_password_123/${pgadmin_pwd}/g" .env || true
+    sed -i "s/traefik_password_hash_placeholder/${traefik_pwd_hash}/g" .env || true
+
+    # Ensure POSTGRES_PASSWORD and N8N_PASSWORD are set/persisted
+    if grep -q "^POSTGRES_PASSWORD=" .env; then
+      sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${postgres_pwd}/" .env || true
+    else
+      echo "POSTGRES_PASSWORD=${postgres_pwd}" >> .env
+    fi
+
+    if grep -q "^N8N_PASSWORD=" .env; then
+      sed -i "s/^N8N_PASSWORD=.*/N8N_PASSWORD=${postgres_pwd}/" .env || true
+    else
+      echo "N8N_PASSWORD=${postgres_pwd}" >> .env
+    fi
+
+    print_success ".env сгенерирован в режиме --generate-only"
+    echo "  PostgreSQL: ${postgres_pwd}"
+    echo "  N8N Encryption Key: ${n8n_encryption_key}"
+    echo "  N8N API Key: ${n8n_api_key}"
+    return 0
+  }
+
+  generate_env_only
+  exit 0
+fi
+
 choose_setup_mode
 
 # Проверяем что режим установлен корректно
