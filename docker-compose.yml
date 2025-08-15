@@ -152,19 +152,20 @@ services:
   # Workflows Importer Service (Official Script)
   n8n-importer:
     build:
-      context: ./n8n-workflows
-    image: n8n-workflow-importer:latest
+      context: ./services/n8n-importer
     profiles: [default, cpu, gpu-nvidia, developer]
     restart: "no"
     networks:
       - backend
     volumes:
-      - ./n8n-workflows/workflows:/app/workflows:ro
       - n8n_import_logs:/app/logs
     environment:
       - N8N_URL=http://n8n:5678
       - N8N_API_KEY=${N8N_API_KEY}
-    command: ["python", "import_workflows.py", "--all"]
+    # This importer image clones the official Zie619/n8n-workflows repo at
+    # runtime and runs the importer script. It avoids modifying any local
+    # `n8n-workflows` directory which is cloned during deployment.
+    entrypoint: ["./run-importer.sh"]
     depends_on:
       n8n:
         condition: service_healthy
