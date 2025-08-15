@@ -48,6 +48,38 @@ x-service-n8n: &service-n8n
     - ./n8n/credentials:/home/node/.n8n/credentials:ro  # Локальные credentials
 
 
+x-service-ollama: &service-ollama
+  image: ollama/ollama:latest
+  container_name: ollama
+  restart: unless-stopped
+  profiles: [default, cpu, gpu-nvidia]
+  ports:
+    - "11434:11434"
+  volumes:
+    - ollama_data:/root/.ollama
+    - ./config/ollama-models.txt:/config/ollama-models.txt:ro
+  environment:
+    - OLLAMA_HOST=0.0.0.0:11434
+    - OLLAMA_MODELS=/root/.ollama/models
+  healthcheck:
+    test: ["CMD", "/bin/ollama", "ps"]
+    interval: 30s
+    timeout: 15s
+    retries: 5
+    start_period: 60s
+  deploy:
+    resources:
+      limits:
+        memory: 8G
+      reservations:
+        memory: 4G
+  networks:
+    - frontend
+    - backend
+  labels:
+    - "traefik.enable=true"
+    - "traefik.http.services.ollama.loadbalancer.server.port=11434"
+
 services:
   traefik:
     <<: *traefik-base
@@ -263,46 +295,46 @@ services:
   #     retries: 5
   #     start_period: 90s
 
-#   web-interface:
-#     build: ./services/web-interface
-#     restart: unless-stopped
-#     profiles: [default, cpu, gpu-nvidia, developer]
-#     ports:
-#       - "8002:8002"
-#     environment:
-#       - PYTHONPATH=/app
-#       - PYTHONUNBUFFERED=1
+  web-interface:
+    build: ./services/web-interface
+    restart: unless-stopped
+    profiles: [default, cpu, gpu-nvidia, developer]
+    ports:
+      - "8002:8002"
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
       # DOCUMENT_PROCESSOR_URL is optional. When the document-processor service is disabled
       # the URL should be provided via the environment (for example in your .env) or left empty.
-#       - DOCUMENT_PROCESSOR_URL=${DOCUMENT_PROCESSOR_URL:-}
-#       - QDRANT_URL=http://qdrant:6333
-#     networks:
-#       - backend
-#       - frontend
+      - DOCUMENT_PROCESSOR_URL=${DOCUMENT_PROCESSOR_URL:-}
+      - QDRANT_URL=http://qdrant:6333
+    networks:
+      - backend
+      - frontend
     # NOTE: document-processor service is currently commented out in this compose file.
     # Removing the hard depends_on reference so `docker compose` won't fail project validation
     # when document-processor is disabled. If you re-enable the service, either set
     # DOCUMENT_PROCESSOR_URL in your .env to http://document-processor:8001 or re-add the
     # depends_on block.
-#     labels:
-#       - "traefik.enable=true"
-#       - "traefik.http.routers.webinterface.rule=Host(`${WEB_INTERFACE_DOMAIN}`)"
-#       - "traefik.http.routers.webinterface.entrypoints=web"
-#       - "traefik.http.services.webinterface.loadbalancer.server.port=8002"
-#     deploy:
-#       resources:
-#         limits:
-#           memory: 1G
-#           cpus: '1'
-#         reservations:
-#           memory: 512M
-#           cpus: '0.5'
-#     healthcheck:
-#       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
-#       interval: 30s
-#       timeout: 10s
-#       retries: 3
-#       start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webinterface.rule=Host(`${WEB_INTERFACE_DOMAIN}`)"
+      - "traefik.http.routers.webinterface.entrypoints=web"
+      - "traefik.http.services.webinterface.loadbalancer.server.port=8002"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
   #
   # To re-enable: uncomment this block or remove leading '#' characters and (optionally)
   # set DOCUMENT_PROCESSOR_URL in your .env if the document-processor service is not running.

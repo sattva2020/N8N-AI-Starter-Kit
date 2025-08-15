@@ -375,60 +375,15 @@ check_cpu_resources() {
   fi
 }
 
-# Функция для клонирования дополнительных репозиториев с workflow'ами
+# NOTE: automatic cloning of the Zie619/n8n-workflows repository has been
+# disabled. This project requires the repository to be installed manually by
+# the operator to avoid accidental modifications to the upstream source.
 clone_official_workflows() {
-  print_info "📥 Клонирование официального репозитория n8n workflows..."
-  
-  # Официальный репозиторий с workflow'ами от Zie619
-  local repo_url="https://github.com/Zie619/n8n-workflows.git"
-  local target_dir="n8n-workflows"
-  
-  if [ -d "$target_dir" ]; then
-    print_info "📁 Репозиторий уже существует, обновляем..."
-    cd "$target_dir"
-    if git pull origin main >/dev/null 2>&1; then
-      print_success "✅ Репозиторий обновлен: $target_dir"
-    else
-      print_warning "⚠️ Не удалось обновить репозиторий $target_dir"
-    fi
-    cd ..
-  else
-    print_info "📥 Клонирование репозитория n8n-workflows..."
-    if git clone "$repo_url" "$target_dir" >/dev/null 2>&1; then
-      print_success "✅ Успешно склонирован репозиторий: $target_dir"
-      
-      # Проверяем наличие папки workflows
-      if [ -d "$target_dir/workflows" ]; then
-        local workflow_count=$(find "$target_dir/workflows" -name "*.json" | wc -l)
-        print_info "📊 Найдено $workflow_count workflow'ов"
-      fi
-    else
-      print_warning "⚠️ Не удалось клонировать репозиторий $repo_url"
-      print_info "🔍 Проверьте подключение к интернету или доступность репозитория"
-    fi
-  fi
-  
-  # Копирование workflows в n8n директорию
-  print_info "📋 Копирование workflows в n8n директорию..."
-  mkdir -p n8n/workflows
-  if [ -d "$target_dir/workflows" ]; then
-    cp -r "$target_dir/workflows/"* n8n/workflows/ 2>/dev/null || print_warning "⚠️ Нет workflows для копирования"
-    print_success "✅ Workflows скопированы в n8n/workflows/"
-  fi
-  
-  # Создание credentials директории
-  mkdir -p n8n/credentials
-  print_success "✅ Workflows готовы к импорту"
-  
-  # Запуск веб-сервиса документации
-  print_info "🌐 Запуск веб-сервиса документации workflows..."
-  if docker compose build workflows-doc >/dev/null 2>&1; then
-    print_success "✅ Образ workflows-doc собран"
-    print_info "📖 Веб-интерфейс будет доступен по адресу: http://localhost:8000"
-    print_info "🔍 Используйте веб-интерфейс для просмотра и поиска workflow'ов"
-  else
-    print_warning "⚠️ Не удалось собрать образ workflows-doc"
-  fi
+  print_warning "Automatic cloning of Zie619/n8n-workflows is disabled."
+  print_info "Please install the repository manually in the project root:"
+  echo "  git clone https://github.com/Zie619/n8n-workflows.git n8n-workflows"
+  echo "  mkdir -p n8n/workflows && cp -r n8n-workflows/workflows/* n8n/workflows/"
+  echo "  # Then build the workflows-doc service when ready: docker compose build workflows-doc"
 }
 
 # Функция для создания файла с советами по устранению неполадок

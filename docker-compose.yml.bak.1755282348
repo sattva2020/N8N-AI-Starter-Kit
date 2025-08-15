@@ -47,7 +47,6 @@ x-service-n8n: &service-n8n
   #  - n8n_storage:/home/node/.n8n
     - ./n8n/credentials:/home/node/.n8n/credentials:ro  # Локальные credentials
 
-
 services:
   traefik:
     <<: *traefik-base
@@ -263,52 +262,67 @@ services:
   #     retries: 5
   #     start_period: 90s
 
-#   web-interface:
-#     build: ./services/web-interface
-#     restart: unless-stopped
-#     profiles: [default, cpu, gpu-nvidia, developer]
-#     ports:
-#       - "8002:8002"
-#     environment:
-#       - PYTHONPATH=/app
-#       - PYTHONUNBUFFERED=1
+  web-interface:
+    build: ./services/web-interface
+    restart: unless-stopped
+    profiles: [default, cpu, gpu-nvidia, developer]
+    ports:
+      - "8002:8002"
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
       # DOCUMENT_PROCESSOR_URL is optional. When the document-processor service is disabled
       # the URL should be provided via the environment (for example in your .env) or left empty.
-#       - DOCUMENT_PROCESSOR_URL=${DOCUMENT_PROCESSOR_URL:-}
-#       - QDRANT_URL=http://qdrant:6333
-#     networks:
-#       - backend
-#       - frontend
+      - DOCUMENT_PROCESSOR_URL=${DOCUMENT_PROCESSOR_URL:-}
+      - QDRANT_URL=http://qdrant:6333
+    networks:
+      - backend
+      - frontend
     # NOTE: document-processor service is currently commented out in this compose file.
     # Removing the hard depends_on reference so `docker compose` won't fail project validation
     # when document-processor is disabled. If you re-enable the service, either set
     # DOCUMENT_PROCESSOR_URL in your .env to http://document-processor:8001 or re-add the
     # depends_on block.
-#     labels:
-#       - "traefik.enable=true"
-#       - "traefik.http.routers.webinterface.rule=Host(`${WEB_INTERFACE_DOMAIN}`)"
-#       - "traefik.http.routers.webinterface.entrypoints=web"
-#       - "traefik.http.services.webinterface.loadbalancer.server.port=8002"
-#     deploy:
-#       resources:
-#         limits:
-#           memory: 1G
-#           cpus: '1'
-#         reservations:
-#           memory: 512M
-#           cpus: '0.5'
-#     healthcheck:
-#       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
-#       interval: 30s
-#       timeout: 10s
-#       retries: 3
-#       start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webinterface.rule=Host(`${WEB_INTERFACE_DOMAIN}`)"
+      - "traefik.http.routers.webinterface.entrypoints=web"
+      - "traefik.http.services.webinterface.loadbalancer.server.port=8002"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
   #
   # To re-enable: uncomment this block or remove leading '#' characters and (optionally)
   # set DOCUMENT_PROCESSOR_URL in your .env if the document-processor service is not running.
 
-  # 'ollama' service is defined in compose/ollama-compose.yml (included below).
-  # We keep x-service-ollama anchor above for services that may merge it.
+  ollama:
+    <<: *service-ollama
+    profiles: [default, cpu]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ollama.rule=Host(`${OLLAMA_DOMAIN}`)"
+      - "traefik.http.routers.ollama.entrypoints=websecure"
+      - "traefik.http.routers.ollama.tls.certresolver=myresolver"
+      - "traefik.http.services.ollama.loadbalancer.server.port=11434"
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
 
   jupyterlab:
     image: jupyter/minimal-notebook:latest # latest для упрощения поддержки
@@ -343,13 +357,7 @@ services:
       retries: 3
       start_period: 40s
 
-
 include:
-  # Graphiti и Neo4j для AI память и граф знаний
-  - path: ./compose/graphiti-compose.yaml  # Содержит Graphiti и Neo4j (бывший zep-compose.yaml)
-  # - path: ./compose/supabase-compose.yml  # Временно отключен для упрощения диагностики
-  - path: ./compose/ollama-compose.yml
-  - path: ./compose/optional-services.yml
   # Graphiti и Neo4j для AI память и граф знаний
   - path: ./compose/graphiti-compose.yaml  # Содержит Graphiti и Neo4j (бывший zep-compose.yaml)
   # - path: ./compose/supabase-compose.yml  # Временно отключен для упрощения диагностики
