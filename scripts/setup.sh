@@ -1091,7 +1091,11 @@ if [ "$GENERATE_ONLY" = true ]; then
   exit 0
 fi
 
-choose_setup_mode
+if [ -z "$SETUP_MODE" ]; then
+  choose_setup_mode
+else
+  print_info "SETUP_MODE задан извне: $SETUP_MODE — пропускаем выбор режима."
+fi
 
 # Проверяем что режим установлен корректно
 if [ -z "$SETUP_MODE" ]; then
@@ -1399,15 +1403,13 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
     print_info "Рекомендуется создать резервную копию перед перезаписью."
     read -p "Создать резервную копию и перезаписать? (y/n): " overwrite
     
-    if [ "$overwrite" = "y" ]; then
-      # Создаем резервную копию
-      backup_existing_config
-    else
-      print_info "Использование существующего .env файла с новыми настройками"
-      # Применяем новые настройки к существующему файлу
-      update_existing_env_with_interactive_settings
-      print_success "Интерактивная настройка завершена!"
-      return 0
+      if [ -z "$SCHEMA_FILE" ] || [ ! -f "$SCHEMA_FILE" ]; then
+        if [ -f template.env ]; then
+          SCHEMA_FILE="template.env"
+        else
+          print_error "Файл env.schema.md (или template.env) не найден!"
+          return 1
+        fi
     fi
   fi
 
