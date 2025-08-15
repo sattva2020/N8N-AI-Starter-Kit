@@ -317,14 +317,18 @@ services:
     environment:
       - PYTHONPATH=/app
       - PYTHONUNBUFFERED=1
-      - DOCUMENT_PROCESSOR_URL=http://document-processor:8001
+      # DOCUMENT_PROCESSOR_URL is optional. When the document-processor service is disabled
+      # the URL should be provided via the environment (for example in your .env) or left empty.
+      - DOCUMENT_PROCESSOR_URL=${DOCUMENT_PROCESSOR_URL:-}
       - QDRANT_URL=http://qdrant:6333
     networks:
       - backend
       - frontend
-    depends_on:
-      document-processor:
-        condition: service_healthy
+    # NOTE: document-processor service is currently commented out in this compose file.
+    # Removing the hard depends_on reference so `docker compose` won't fail project validation
+    # when document-processor is disabled. If you re-enable the service, either set
+    # DOCUMENT_PROCESSOR_URL in your .env to http://document-processor:8001 or re-add the
+    # depends_on block.
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.webinterface.rule=Host(`${WEB_INTERFACE_DOMAIN}`)"
