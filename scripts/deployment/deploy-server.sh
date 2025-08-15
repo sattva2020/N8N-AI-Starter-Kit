@@ -190,22 +190,31 @@ setup_environment() {
     print_status "Setting up environment configuration..."
     
     if [ ! -f ".env" ]; then
-        cp template.env .env
-        print_status "Created .env from template"
-        
-        # Генерация случайных паролей
-        POSTGRES_PASSWORD=$(openssl rand -base64 32)
-        N8N_ENCRYPTION_KEY=$(openssl rand -base64 32)
-        
-        # Обновление .env файла
-        sed -i "s/POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$POSTGRES_PASSWORD/" .env
-        sed -i "s/N8N_ENCRYPTION_KEY=.*/N8N_ENCRYPTION_KEY=$N8N_ENCRYPTION_KEY/" .env
-        
-        # Получение IP сервера
-        SERVER_IP=$(curl -s ifconfig.me)
-        sed -i "s/DOMAIN_NAME=.*/DOMAIN_NAME=$SERVER_IP/" .env
-        
-        print_status "Environment configured with server IP: $SERVER_IP"
+        print_status ".env file not found — generating with setup.sh --generate-only"
+        if [ -x "./scripts/setup.sh" ]; then
+            ./scripts/setup.sh --generate-only || true
+        else
+            print_warning "./scripts/setup.sh not found — falling back to manual generation"
+            POSTGRES_PASSWORD=$(openssl rand -base64 32)
+            N8N_ENCRYPTION_KEY=$(openssl rand -base64 32)
+            cat > .env <<EOF
+# Auto-generated .env
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+EOF
+        fi
+
+        # Получение IP сервера и запись в .env
+        SERVER_IP=$(curl -s ifconfig.me 2>/dev/null || echo "")
+        if [ -n "$SERVER_IP" ]; then
+            if grep -q "^DOMAIN_NAME=" .env 2>/dev/null; then
+                sed -i "s/^DOMAIN_NAME=.*/DOMAIN_NAME=$SERVER_IP/" .env || true
+            else
+                echo "DOMAIN_NAME=$SERVER_IP" >> .env
+            fi
+        fi
+
+        print_status "Environment configured"
     else
         print_status ".env file already exists"
     fi

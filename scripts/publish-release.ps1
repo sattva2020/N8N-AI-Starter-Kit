@@ -231,8 +231,8 @@ $releaseNotes = @"
 # Клонирование и запуск
 git clone https://github.com/sattva2020/N8N-AI-Starter-Kit.git
 cd N8N-AI-Starter-Kit
-cp template.env .env
-docker-compose --profile cpu up -d
+./scripts/setup.sh --generate-only
+docker compose --profile cpu up -d
 
 # Доступ к сервисам
 echo "N8N: http://localhost:5678"

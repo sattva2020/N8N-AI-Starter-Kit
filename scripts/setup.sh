@@ -561,10 +561,10 @@ choose_setup_mode() {
   echo "   - Ввод доменов, паролей и API ключей"
   echo "   - Автоматическая генерация безопасных паролей"
   echo ""
-  echo "2. ⚡ Быстрый режим (template.env)"
-  echo "   - Использование предустановленных шаблонов"
-  echo "   - Подходит для разработки и тестирования"  
-  echo "   - Автоматическая настройка с доменами sattva-ai.top"
+  echo "2. ⚡ Быстрый режим (fast generate)"
+  echo "   - Быстрая генерация .env скриптом (рекомендуется)"
+  echo "   - Подходит для разработки и тестирования"
+  echo "   - Быстро создаёт рабочую конфигурацию без шаблонов"
   echo ""
   
   while true; do
@@ -588,32 +588,14 @@ choose_setup_mode() {
   done
 }
 
-# Функция для создания .env из template.env
+# Функция для создания .env (встроенный генератор)
 create_env_from_template() {
-  # Prefer env.schema.md (new), fall back to template.env for backwards compatibility
-  SCHEMA_FILE="env.schema.md"
-  if [ ! -f "$SCHEMA_FILE" ]; then
-    # Backwards compatibility: try template.env
-    if [ -f template.env ]; then
-      SCHEMA_FILE="template.env"
-    else
-      print_error "Файл env.schema.md (или template.env) не найден!"
-      print_info "Убедитесь, что вы запускаете скрипт из корневой директории проекта"
-      exit 1
-    fi
-  fi
-
-  print_info "Создание .env файла из $SCHEMA_FILE..."
-  
   # Создаем резервную копию если .env уже существует
   if [ -f .env ]; then
     backup_existing_config
   fi
-  
+
   # ВАЖНО: Обработка существующих volumes при создании нового .env
-  # Если тома уже существуют, пользователь должен выбрать поведение — синхронизировать
-  # существующий пароль из работающего контейнера (без потери данных) или удалить томы
-  # и инициализировать БД заново (приведёт к потере данных).
   print_info "Проверка существующих Docker volumes..."
   if docker volume ls | grep -q "postgres_storage"; then
     print_warning "Найден том postgres_storage. Postgres уже инициализирован."
@@ -641,10 +623,8 @@ create_env_from_template() {
     if [ "$vol_choice" = "1" ]; then
       # Попытка получить пароль из работающего контейнера Postgres
       existing_pass=""
-      # Находим контейнер Postgres запущенный в текущем проекте
       pg_container=$(docker ps --filter "ancestor=pgvector/pgvector:pg17" --format "{{.ID}}" | head -n 1 2>/dev/null || true)
       if [ -z "$pg_container" ]; then
-        # Альтернативный поиск по имени контейнера содержащему "postgres"
         pg_container=$(docker ps --filter "name=postgres" --format "{{.ID}}" | head -n 1 2>/dev/null || true)
       fi
       if [ -n "$pg_container" ]; then
@@ -659,13 +639,9 @@ create_env_from_template() {
       fi
     fi
   fi
-  
+
   # Генерируем случайные значения для безопасных переменных
   print_info "Генерация безопасных паролей и ключей..."
-  
-  # Генерируем пароли и ключи. Если пароль PostgreSQL уже был синхронизирован
-  # из работающего контейнера выше (переменная postgres_pwd установлена), не
-  # перезаписываем его — используем существующее значение.
   if [ -z "${postgres_pwd:-}" ]; then
     postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
   fi
@@ -675,23 +651,9 @@ create_env_from_template() {
   pgadmin_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
   traefik_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
   traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1)
-  
-  # Создаём .env. Если шаблон template.env существует, используем его и
-  # заменяем плейсхолдеры; иначе генерируем полный .env непосредственно.
-  if [ -f template.env ]; then
-    cp template.env .env
-    # Заменяем placeholder значения (глобально с флагом /g)
-    sed -i "s/change_this_secure_password_123/${postgres_pwd}/g" .env
-    sed -i "s/your_32_char_encryption_key_here_/${n8n_encryption_key}/g" .env
-    sed -i "s/your_n8n_api_key_here/${n8n_api_key}/g" .env
-    sed -i "s/your_jwt_secret_key_here_min_32_chars/${n8n_jwt_secret}/g" .env
-    sed -i "s/pgadmin_secure_password_123/${pgadmin_pwd}/g" .env
-    sed -i "s/admin@example.com/admin@sattva-ai.top/g" .env
-    sed -i "s/traefik_password_hash_placeholder/${traefik_pwd_hash}/g" .env
-    print_success "Файл .env создан из template.env"
-  else
-    print_info "template.env не найден — создаём .env напрямую"
-    cat > .env <<EOF
+
+  # Создаём .env напрямую
+  cat > .env <<EOF
 # Generated .env - N8N AI Starter Kit
 DOMAIN_NAME=${DOMAIN_NAME:-sattva-ai.top}
 
@@ -739,15 +701,20 @@ NODE_ENV=production
 COMPOSE_PROJECT_NAME=n8n-ai-starter-kit
 
 EOF
-    print_success ".env создан напрямую"
-    # Также поместим основные значения обратно в template.env для трассировки
-    echo "# Auto-generated template from setup.sh" > template.env || true
-    echo "POSTGRES_PASSWORD=${postgres_pwd}" >> template.env || true
-    echo "N8N_API_KEY=${n8n_api_key}" >> template.env || true
-    echo "N8N_ENCRYPTION_KEY=${n8n_encryption_key}" >> template.env || true
-  fi
+
+  print_success ".env создан напрямую"
   
   # Проверяем что файл создался правильно
+  if [ ! -f .env ]; then
+    print_error "Ошибка: .env файл не был создан!"
+    exit 1
+  fi
+
+  print_info "Сгенерированные пароли (сохраните их):"
+  echo "  PostgreSQL: ${BOLD}${postgres_pwd}${NC}"
+  echo "  N8N Encryption Key: ${BOLD}${n8n_encryption_key}${NC}"
+  echo "  N8N API Key: ${BOLD}${n8n_api_key}${NC}"
+}
   if [ ! -f .env ]; then
     print_error "Ошибка: .env файл не был создан!"
     exit 1
@@ -770,19 +737,19 @@ EOF
   fi
   
   # Проверяем что пароли PostgreSQL синхронизированы
-  # Обновляем template.env чтобы сохранить сгенерированный/синхронизированный
-  # пароль как источник истины. Записываем как POSTGRES_PASSWORD и N8N_PASSWORD
+  # Обновляем .env чтобы сохранить сгенерированный/синхронизированный пароль
+  # как источник истины. Записываем как POSTGRES_PASSWORD и N8N_PASSWORD
   # (некоторые конфиги ожидают оба варианта).
-  if grep -q "^POSTGRES_PASSWORD=" template.env; then
-    sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${postgres_pwd}/" template.env || true
+  if grep -q "^POSTGRES_PASSWORD=" .env; then
+    sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${postgres_pwd}/" .env || true
   else
-    echo "POSTGRES_PASSWORD=${postgres_pwd}" >> template.env || true
+    echo "POSTGRES_PASSWORD=${postgres_pwd}" >> .env || true
   fi
 
-  if grep -q "^N8N_PASSWORD=" template.env; then
-    sed -i "s/^N8N_PASSWORD=.*/N8N_PASSWORD=${postgres_pwd}/" template.env || true
+  if grep -q "^N8N_PASSWORD=" .env; then
+    sed -i "s/^N8N_PASSWORD=.*/N8N_PASSWORD=${postgres_pwd}/" .env || true
   else
-    echo "N8N_PASSWORD=${postgres_pwd}" >> template.env || true
+    echo "N8N_PASSWORD=${postgres_pwd}" >> .env || true
   fi
 
   postgres_pwd_count=$(grep -c "${postgres_pwd}" .env || true)
@@ -972,44 +939,52 @@ update_template_with_user_settings() {
   local domain_name=$1
   local acme_email=$2
   local openai_api_key=$3
-  
-  print_info "Обновление template.env с пользовательскими настройками..."
-  
-  # Создаем временную копию template.env
-  cp template.env template.env.tmp
-  
-  # Обновляем домен
-  sed -i "s/DOMAIN_NAME=sattva-ai.top/DOMAIN_NAME=${domain_name}/g" template.env.tmp
-  
-  # Обновляем email для Let's Encrypt
-  sed -i "s/ACME_EMAIL=admin@example.com/ACME_EMAIL=${acme_email}/g" template.env.tmp
-  sed -i "s/PGADMIN_DEFAULT_EMAIL=admin@example.com/PGADMIN_DEFAULT_EMAIL=${acme_email}/g" template.env.tmp
-  
-  # Обновляем домены
-  sed -i "s/n8n.sattva-ai.top/n8n.${domain_name}/g" template.env.tmp
-  sed -i "s/web.sattva-ai.top/web.${domain_name}/g" template.env.tmp
-  sed -i "s/doc-processor.sattva-ai.top/doc-processor.${domain_name}/g" template.env.tmp
-  sed -i "s/qdrant.sattva-ai.top/qdrant.${domain_name}/g" template.env.tmp
-  sed -i "s/ollama.sattva-ai.top/ollama.${domain_name}/g" template.env.tmp
-  sed -i "s/traefik.sattva-ai.top/traefik.${domain_name}/g" template.env.tmp
-  sed -i "s/supabase.sattva-ai.top/supabase.${domain_name}/g" template.env.tmp
-  sed -i "s/api.sattva-ai.top/api.${domain_name}/g" template.env.tmp
-  sed -i "s/pgadmin.sattva-ai.top/pgadmin.${domain_name}/g" template.env.tmp
-  sed -i "s/jupyter.sattva-ai.top/jupyter.${domain_name}/g" template.env.tmp
-  sed -i "s/zep.sattva-ai.top/zep.${domain_name}/g" template.env.tmp
-  sed -i "s/graphiti.sattva-ai.top/graphiti.${domain_name}/g" template.env.tmp
-  
-  # Обновляем OpenAI API ключ если задан
-  if [ -n "$openai_api_key" ]; then
-    sed -i "s/OPENAI_API_KEY=your_openai_api_key_here/OPENAI_API_KEY=${openai_api_key}/g" template.env.tmp
+
+  print_info "Обновление конфигурации с пользовательскими настройками..."
+
+  # Предпочитаем обновлять .env — это текущий источник истины для установки.
+  if [ -f ".env" ]; then
+    print_info "Обновляем .env"
+
+    sed -i "s/^DOMAIN_NAME=.*/DOMAIN_NAME=${domain_name}/g" .env || true
+    sed -i "s/^N8N_HOST=.*/N8N_HOST=n8n.${domain_name}/g" .env || true
+    sed -i "s/^N8N_DOMAIN=.*/N8N_DOMAIN=n8n.${domain_name}/g" .env || true
+    sed -i "s/^TRAEFIK_DASHBOARD_DOMAIN=.*/TRAEFIK_DASHBOARD_DOMAIN=traefik.${domain_name}/g" .env || true
+    sed -i "s/^QDRANT_DOMAIN=.*/QDRANT_DOMAIN=qdrant.${domain_name}/g" .env || true
+    sed -i "s/^DOCUMENT_PROCESSOR_DOMAIN=.*/DOCUMENT_PROCESSOR_DOMAIN=doc-processor.${domain_name}/g" .env || true
+    sed -i "s/^WEB_INTERFACE_DOMAIN=.*/WEB_INTERFACE_DOMAIN=web.${domain_name}/g" .env || true
+    sed -i "s/^OLLAMA_DOMAIN=.*/OLLAMA_DOMAIN=ollama.${domain_name}/g" .env || true
+
+    if [ -n "${acme_email}" ]; then
+      if grep -q "^ACME_EMAIL=" .env; then
+        sed -i "s/^ACME_EMAIL=.*/ACME_EMAIL=${acme_email}/g" .env || true
+      else
+        echo "ACME_EMAIL=${acme_email}" >> .env
+      fi
+      if grep -q "^PGADMIN_DEFAULT_EMAIL=" .env; then
+        sed -i "s|^PGADMIN_DEFAULT_EMAIL=.*|PGADMIN_DEFAULT_EMAIL=${acme_email}|g" .env || true
+      fi
+    fi
+
+    if [ -n "${openai_api_key}" ]; then
+      if grep -q "^OPENAI_API_KEY=" .env; then
+        sed -i "s/^OPENAI_API_KEY=.*/OPENAI_API_KEY=${openai_api_key}/g" .env || true
+      else
+        echo "OPENAI_API_KEY=${openai_api_key}" >> .env
+      fi
+    fi
+
+    print_success ".env обновлён успешно"
+  else
+    # Если .env отсутствует — генерируем его встроенным генератором
+    if [ ! -f ".env" ]; then
+      print_info ".env отсутствует — генерируем .env встроенным генератором"
+      create_env_from_template
+      print_success ".env сгенерирован"
+    fi
   fi
-  
-  # Перемещаем обновленный файл
-  mv template.env.tmp template.env
-  
-  print_success "Template.env обновлен успешно!"
-  
-  # Также обновляем конфигурацию Traefik, если .env уже существует
+
+  # Также обновляем конфигурацию Traefik если .env существует
   if [ -f ".env" ]; then
     update_traefik_config
   fi
@@ -1481,36 +1456,23 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
   fi
   print_info "Сгенерированный хэш пароля: $traefik_pwd_hash"
 
-  # Создание файла .env из template.env в интерактивном режиме
-  print_info "Создание файла .env из шаблона template.env..."
+  # Создание файла .env интерактивно — генерируем напрямую и не используем template.env
+  print_info "Создание файла .env (интерактивный режим) — генерируем значения напрямую..."
 
-  # Проверяем существование template.env
-  if [ ! -f "template.env" ]; then
-    print_error "Файл template.env не найден!"
-    exit 1
-  fi
+  # Добавляем метку времени и базовые секции
+  cat > .env <<EOF
+# Создано автоматически $(date)
+# Версия: 1.0.6
+DOMAIN_NAME=${domain_name}
+POSTGRES_PASSWORD=${postgres_pwd}
+N8N_ENCRYPTION_KEY=${n8n_encryption_key}
+N8N_USER_MANAGEMENT_JWT_SECRET=${n8n_jwt_secret}
+PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
+TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
+OPENAI_API_KEY=${openai_api_key:-}
+EOF
 
-  # Копируем template.env в .env
-  cp template.env .env
-
-  # Добавляем метку времени создания
-  sed -i "1i# Создано автоматически $(date)" .env
-  sed -i "2i# Версия: 1.0.6\n" .env
-
-  # Заменяем плейсхолдеры на сгенерированные значения в интерактивном режиме
-  sed -i "s/change_this_secure_password_123/${postgres_pwd}/g" .env
-  sed -i "s/your_32_char_encryption_key_here_/${n8n_encryption_key}/" .env
-  sed -i "s/your_jwt_secret_key_here_min_32_chars/${n8n_jwt_secret}/" .env
-  sed -i "s/supabase_secure_password_123/${supabase_postgres_pwd}/" .env
-  sed -i "s/your_supabase_anon_key_here/${supabase_anon_key}/g" .env
-  sed -i "s/your_supabase_service_role_key_here/${supabase_service_role_key}/g" .env
-  sed -i "s/your_supabase_jwt_secret_32_chars_min/${supabase_jwt_secret}/g" .env
-  sed -i "s/admin@sattva-ai.top/${acme_email}/g" .env
-  sed -i "s/pgadmin_secure_password_123/${pgadmin_pwd}/" .env
-  sed -i "s/traefik_password_hash_placeholder/${traefik_pwd_hash}/" .env
-  sed -i "s/your_openai_api_key_here/${openai_api_key:-}/" .env
-
-  # Генерируем недостающие значения и добавляем их
+  # Генерируем и добавляем дополнительные значения
   echo "" >> .env
   echo "# ---- ДОПОЛНИТЕЛЬНЫЕ СГЕНЕРИРОВАННЫЕ ПЕРЕМЕННЫЕ ----" >> .env
   echo "ZEP_API_SECRET=${zep_api_secret}" >> .env
@@ -1523,13 +1485,8 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
   echo "LOGFLARE_API_KEY=${logflare_api_key}" >> .env
   echo "QDRANT_API_KEY=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)" >> .env
 
-  # Обновляем домены на пользовательские
-  sed -i "s/sattva-ai.top/${domain_name}/g" .env
-
-  # Обновляем template.env чтобы сохранить сгенерированный пароль как источник истины
-  if grep -q "change_this_secure_password_123" template.env; then
-    sed -i "s/change_this_secure_password_123/${postgres_pwd}/g" template.env || true
-  fi
+  # Обновляем домены на пользовательские в .env (если уже присутствуют шаблонные значения)
+  sed -i "s/sattva-ai.top/${domain_name}/g" .env || true
 
   print_success "Файл .env успешно создан!"
   print_warning "ВАЖНО: Сохраните копию файла .env в безопасном месте!"

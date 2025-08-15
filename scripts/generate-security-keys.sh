@@ -30,7 +30,7 @@ print_error() {
 
 # Проверяем наличие .env файла
 if [ ! -f .env ]; then
-    print_error ".env файл не найден. Создайте его из template.env"
+    print_error ".env файл не найден. Сгенерируйте его: ./scripts/setup.sh --generate-only"
     exit 1
 fi
 

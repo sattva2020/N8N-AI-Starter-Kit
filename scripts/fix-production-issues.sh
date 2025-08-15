@@ -10,7 +10,7 @@ echo "🔧 Исправление критических проблем окру
 
 # Проверяем наличие .env файла
 if [ ! -f .env ]; then
-    echo "❌ Файл .env не найден. Создайте его из template.env"
+    echo "❌ Файл .env не найден. Запустите ./scripts/setup.sh --generate-only чтобы сгенерировать .env"
     exit 1
 fi
 

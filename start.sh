@@ -172,30 +172,18 @@ auto_fix_issues() {
     
     # Создание .env файла если отсутствует
     if [ ! -f .env ]; then
-        echo -e "  ${EMOJI_FILE} Попытка создания файла .env из шаблона..."
-        if [ -f "template.env" ]; then
-            cp "template.env" ".env"
-            echo -e "  ${GREEN}${EMOJI_OK} Файл .env создан из template.env${NC}"
-            
-            # Замена placeholder'ов на безопасные значения
-            echo -e "  ${EMOJI_SECURE} Генерация безопасных паролей..."
-            sed -i "s/change_this_secure_password_123/$(generate_password 16)/g" .env 2>/dev/null
-            sed -i "s/your_32_char_encryption_key_here_/$(generate_password 32)/g" .env 2>/dev/null
-            sed -i "s/your_jwt_secret_key_here_min_32_chars/$(generate_password 32)/g" .env 2>/dev/null
-            sed -i "s/supabase_secure_password_123/$(generate_password 16)/g" .env 2>/dev/null
-            sed -i "s/your_supabase_jwt_secret_32_chars_min/$(generate_password 32)/g" .env 2>/dev/null
-            sed -i "s/minio_secure_password_123/$(generate_password 16)/g" .env 2>/dev/null
-            sed -i "s/pgadmin_secure_password_123/$(generate_password 16)/g" .env 2>/dev/null
-            sed -i "s/zep_secure_password_123/$(generate_password 16)/g" .env 2>/dev/null
-            sed -i "s/your_openai_api_key_here//g" .env 2>/dev/null
-            
-            echo -e "  ${GREEN}${EMOJI_OK} Безопасные пароли сгенерированы${NC}"
-        elif [ -f "scripts/template.env" ]; then
-            cp "scripts/template.env" ".env"
-            echo -e "  ${GREEN}${EMOJI_OK} Файл .env создан из scripts/template.env${NC}"
+        echo -e "  ${EMOJI_FILE} Файл .env не найден — запускаем генерацию из схемы переменных..."
+        if [ -f "./scripts/setup.sh" ]; then
+            echo -e "  ${CYAN}Вызов: ./scripts/setup.sh --generate-only${NC}"
+            chmod +x ./scripts/setup.sh
+            ./scripts/setup.sh --generate-only || {
+                echo -e "  ${RED}${EMOJI_ERROR} Не удалось автоматически сгенерировать .env${NC}"
+                echo -e "  ${YELLOW}Запустите ./scripts/setup.sh вручную для интерактивной настройки.${NC}"
+                return 1
+            }
+            echo -e "  ${GREEN}${EMOJI_OK} Файл .env сгенерирован из схемы переменных${NC}"
         else
-            echo -e "  ${RED}${EMOJI_ERROR} Шаблон .env не найден${NC}"
-            echo -e "  ${YELLOW}   Необходимо запустить полную настройку${NC}"
+            echo -e "  ${RED}${EMOJI_ERROR} Скрипт ./scripts/setup.sh не найден — создайте .env вручную${NC}"
             return 1
         fi
     fi

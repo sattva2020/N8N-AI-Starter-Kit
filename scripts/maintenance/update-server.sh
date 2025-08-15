@@ -110,21 +110,25 @@ update_configuration() {
     print_status "Updating configuration..."
     
     # Check if new environment variables are needed
-    if [ -f "template.env" ] && [ -f ".env" ]; then
-        # Find new variables in template that don't exist in current .env
-        NEW_VARS=$(comm -23 <(grep "^[^#]" template.env | cut -d= -f1 | sort) <(grep "^[^#]" .env | cut -d= -f1 | sort))
-        
-        if [ -n "$NEW_VARS" ]; then
-            print_warning "New environment variables found:"
-            echo "$NEW_VARS"
-            
-            # Add new variables to .env with default values
-            for var in $NEW_VARS; do
-                default_value=$(grep "^$var=" template.env | cut -d= -f2-)
-                echo "$var=$default_value" >> .env
-                print_status "Added $var to .env"
-            done
+    if [ -f ".env" ]; then
+        # Prefer .env.example as canonical list of variables; otherwise skip automatic addition
+        if [ -f ".env.example" ]; then
+            NEW_VARS=$(comm -23 <(grep "^[^#]" .env.example | cut -d= -f1 | sort) <(grep "^[^#]" .env | cut -d= -f1 | sort))
+            if [ -n "$NEW_VARS" ]; then
+                print_warning "New environment variables found in .env.example:"
+                echo "$NEW_VARS"
+                for var in $NEW_VARS; do
+                    default_value=$(grep "^$var=" .env.example | cut -d= -f2-)
+                    echo "$var=$default_value" >> .env
+                    print_status "Added $var to .env"
+                done
+            fi
+        else
+            print_warning ".env.example not found — skipping automatic merge of new environment variables."
+            print_status "If you have a template file, run: ./scripts/setup.sh --generate-only and merge differences manually."
         fi
+    else
+        print_warning ".env not found — generate it using: ./scripts/setup.sh --generate-only"
     fi
 }
 
