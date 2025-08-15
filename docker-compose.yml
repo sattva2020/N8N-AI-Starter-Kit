@@ -154,6 +154,7 @@ services:
     build:
       context: ./n8n-workflows
     image: n8n-workflow-importer:latest
+    profiles: [default, cpu, gpu-nvidia, developer]
     restart: "no"
     networks:
       - backend
@@ -263,49 +264,49 @@ services:
       retries: 5  # Увеличиваем количество попыток
       start_period: 60s  # Увеличиваем время запуска
 
-  document-processor:
-    build: ./services/document-processor
-    restart: unless-stopped
-    profiles: [default, cpu, gpu-nvidia, developer]
-    ports:
-      - "8001:8001"
-    volumes:
-      - ./data/uploads:/app/uploads
-      - ./data/processed:/app/processed
-    environment:
-      - PYTHONPATH=/app
-      - PYTHONUNBUFFERED=1
-      - MAX_FILE_SIZE=100MB
-      - SUPPORTED_FORMATS=pdf,docx,txt,md,rtf
-      - LAZY_EMBEDDINGS=true
-      - DATABASE_URL=postgresql://n8n:${POSTGRES_PASSWORD}@postgres:5432/n8n
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=n8n
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=n8n
-    networks:
-      - backend
-      - frontend
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.docprocessor.rule=Host(`${DOCUMENT_PROCESSOR_DOMAIN}`)"
-      - "traefik.http.routers.docprocessor.entrypoints=web"
-      - "traefik.http.services.docprocessor.loadbalancer.server.port=8001"
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-          cpus: '2'
-        reservations:
-          memory: 1G
-          cpus: '1'
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8001/health || exit 1"]
-      interval: 30s
-      timeout: 15s
-      retries: 5
-      start_period: 90s
+  # document-processor:  # Temporarily disabled
+  #   build: ./services/document-processor
+  #   restart: unless-stopped
+  #   profiles: [default, cpu, gpu-nvidia, developer]
+  #   ports:
+  #     - "8001:8001"
+  #   volumes:
+  #     - ./data/uploads:/app/uploads
+  #     - ./data/processed:/app/processed
+  #   environment:
+  #     - PYTHONPATH=/app
+  #     - PYTHONUNBUFFERED=1
+  #     - MAX_FILE_SIZE=100MB
+  #     - SUPPORTED_FORMATS=pdf,docx,txt,md,rtf
+  #     - LAZY_EMBEDDINGS=true
+  #     - DATABASE_URL=postgresql://n8n:${POSTGRES_PASSWORD}@postgres:5432/n8n
+  #     - POSTGRES_HOST=postgres
+  #     - POSTGRES_PORT=5432
+  #     - POSTGRES_USER=n8n
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  #     - POSTGRES_DB=n8n
+  #   networks:
+  #     - backend
+  #     - frontend
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.docprocessor.rule=Host(`${DOCUMENT_PROCESSOR_DOMAIN}`)"
+  #     - "traefik.http.routers.docprocessor.entrypoints=web"
+  #     - "traefik.http.services.docprocessor.loadbalancer.server.port=8001"
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 2G
+  #         cpus: '2'
+  #       reservations:
+  #         memory: 1G
+  #         cpus: '1'
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -f http://localhost:8001/health || exit 1"]
+  #     interval: 30s
+  #     timeout: 15s
+  #     retries: 5
+  #     start_period: 90s
 
   web-interface:
     build: ./services/web-interface

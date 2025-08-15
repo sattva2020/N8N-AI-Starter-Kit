@@ -1328,21 +1328,6 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
   fi
   print_info "Сгенерированный хэш пароля: $traefik_pwd_hash"
 
-  # Запрос API ключей
-  echo ""
-  print_info "--- Настройка внешних API (необязательно) ---"
-  read -p "Введите ваш OpenAI API ключ (или оставьте пустым, чтобы настроить позже): " openai_key
-  if [ -n "$openai_key" ]; then
-      print_success "OpenAI API ключ будет добавлен в конфигурацию"
-  else
-      print_info "OpenAI API ключ можно добавить позже в файл .env"
-  fi
-
-  read -p "Введите ваш Anthropic API ключ (или оставьте пустым): " anthropic_key
-  if [ -n "$anthropic_key" ]; then
-      print_success "Anthropic API ключ будет добавлен в конфигурацию"
-  fi
-
   # Создание файла .env из template.env в интерактивном режиме
   print_info "Создание файла .env из шаблона template.env..."
 
@@ -1367,10 +1352,10 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
   sed -i "s/your_supabase_anon_key_here/${supabase_anon_key}/g" .env
   sed -i "s/your_supabase_service_role_key_here/${supabase_service_role_key}/g" .env
   sed -i "s/your_supabase_jwt_secret_32_chars_min/${supabase_jwt_secret}/g" .env
-  sed -i "s/admin@sattva-ai.top/${email}/g" .env
+  sed -i "s/admin@sattva-ai.top/${acme_email}/g" .env
   sed -i "s/pgadmin_secure_password_123/${pgadmin_pwd}/" .env
   sed -i "s/traefik_password_hash_placeholder/${traefik_pwd_hash}/" .env
-  sed -i "s/your_openai_api_key_here/${openai_key:-}/" .env
+  sed -i "s/your_openai_api_key_here/${openai_api_key:-}/" .env
 
   # Генерируем недостающие значения и добавляем их
   echo "" >> .env
