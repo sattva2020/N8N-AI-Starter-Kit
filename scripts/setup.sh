@@ -1384,7 +1384,20 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
   echo -e "${YELLOW}PgAdmin пароль:${NC} ${BOLD}$pgadmin_pwd${NC}"
   echo -e "${YELLOW}Grafana пароль:${NC} ${BOLD}$grafana_pwd${NC}"
   echo -e "${YELLOW}Jupyter Token:${NC} ${BOLD}$jupyter_ds_token${NC}"
-  if [ -n "$openai_key" ]; then
+  # Проверяем, настроен ли OpenAI: либо интерактивно (openai_api_key), либо в .env
+  openai_configured=false
+  if [ -n "${openai_api_key:-}" ]; then
+    openai_configured=true
+  elif [ -f .env ]; then
+    if grep -q '^OPENAI_API_KEY=' .env 2>/dev/null; then
+      # считается настроенным, если значение не содержит плейсхолдера
+      if ! grep -q 'your_openai_api_key_here' .env 2>/dev/null; then
+        openai_configured=true
+      fi
+    fi
+  fi
+
+  if [ "$openai_configured" = true ]; then
     echo -e "${YELLOW}OpenAI API:${NC} ${GREEN}✅ Настроен${NC}"
   else
     echo -e "${YELLOW}OpenAI API:${NC} ${RED}❌ Не настроен${NC} (добавьте позже в .env)"
