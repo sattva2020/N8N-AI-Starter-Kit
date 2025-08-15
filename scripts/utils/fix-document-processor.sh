@@ -29,12 +29,16 @@ log_error() {
 # Проверка существования .env файла
 log_info "Проверка .env файла..."
 if [ ! -f ".env" ]; then
-    log_warn ".env файл не найден. Создание из шаблона..."
-    if [ -f "template.env" ]; then
-        cp template.env .env
-        log_info ".env файл создан из template.env"
+    log_warn ".env файл не найден. Попытка сгенерировать с помощью setup.sh..."
+    if [ -f "./scripts/setup.sh" ]; then
+        chmod +x ./scripts/setup.sh
+        ./scripts/setup.sh --generate-only || {
+            log_error "Не удалось сгенерировать .env автоматически. Создайте .env вручную."
+            exit 1
+        }
+        log_info ".env файл сгенерирован встроенным генератором"
     else
-        log_error "template.env не найден! Создайте .env файл вручную."
+        log_error "scripts/setup.sh не найден! Создайте .env файл вручную."
         exit 1
     fi
 else

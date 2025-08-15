@@ -127,14 +127,16 @@ LOCAL_SCRIPTS_EXCLUSION.md
 .internal/
 
 # Публикуются только основные файлы:
-# README.md, LICENSE, docker-compose.yml, .env.example, template.env
+# README.md, LICENSE, docker-compose.yml, .env.example
 # Все остальные .md-файлы в корне исключаются
 !README.md
 !LICENSE
 !docker-compose.yml
 .env.example
 *.md
-!env.schema.md
+# template.env and env.schema.md are deprecated; generated only by setup.sh
+template.env
+env.schema.md
 
 # Временные отчеты разработки
 *_v*.md
