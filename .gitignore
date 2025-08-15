@@ -1,7 +1,7 @@
 # Чувствительные данные
 .env
 .env.*
-!template.env
+
 !.env.example
 *.ppk
 plink.exe
@@ -129,9 +129,9 @@ LOCAL_SCRIPTS_EXCLUSION.md
 !README.md
 !LICENSE
 !docker-compose.yml
-!.env.example
-!template.env
+.env.example
 *.md
+!env.schema.md
 
 # Временные отчеты разработки
 *_v*.md

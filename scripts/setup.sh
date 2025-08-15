@@ -635,13 +635,20 @@ choose_setup_mode() {
 
 # Функция для создания .env из template.env
 create_env_from_template() {
-  if [ ! -f template.env ]; then
-    print_error "Файл template.env не найден!"
-    print_info "Убедитесь, что вы запускаете скрипт из корневой директории проекта"
-    exit 1
+  # Prefer env.schema.md (new), fall back to template.env for backwards compatibility
+  SCHEMA_FILE="env.schema.md"
+  if [ ! -f "$SCHEMA_FILE" ]; then
+    # Backwards compatibility: try template.env
+    if [ -f template.env ]; then
+      SCHEMA_FILE="template.env"
+    else
+      print_error "Файл env.schema.md (или template.env) не найден!"
+      print_info "Убедитесь, что вы запускаете скрипт из корневой директории проекта"
+      exit 1
+    fi
   fi
-  
-  print_info "Создание .env файла из template.env..."
+
+  print_info "Создание .env файла из $SCHEMA_FILE..."
   
   # Создаем резервную копию если .env уже существует
   if [ -f .env ]; then
@@ -701,8 +708,12 @@ create_env_from_template() {
   # Генерируем случайные значения для безопасных переменных
   print_info "Генерация безопасных паролей и ключей..."
   
-  # Генерируем пароли и ключи
-  postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+  # Генерируем пароли и ключи. Если пароль PostgreSQL уже был синхронизирован
+  # из работающего контейнера выше (переменная postgres_pwd установлена), не
+  # перезаписываем его — используем существующее значение.
+  if [ -z "${postgres_pwd:-}" ]; then
+    postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+  fi
   n8n_encryption_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
   n8n_api_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
   n8n_jwt_secret=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
@@ -710,19 +721,76 @@ create_env_from_template() {
   traefik_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
   traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1)
   
-  # Копируем template.env в .env
-  cp template.env .env
-  
-  # Заменяем placeholder значения (глобально с флагом /g)
-  sed -i "s/change_this_secure_password_123/${postgres_pwd}/g" .env
-  sed -i "s/your_32_char_encryption_key_here_/${n8n_encryption_key}/g" .env
-  sed -i "s/your_n8n_api_key_here/${n8n_api_key}/g" .env
-  sed -i "s/your_jwt_secret_key_here_min_32_chars/${n8n_jwt_secret}/g" .env
-  sed -i "s/pgadmin_secure_password_123/${pgadmin_pwd}/g" .env
-  sed -i "s/admin@example.com/admin@sattva-ai.top/g" .env
-  sed -i "s/traefik_password_hash_placeholder/${traefik_pwd_hash}/g" .env
-  
-  print_success "Файл .env создан успешно!"
+  # Создаём .env. Если шаблон template.env существует, используем его и
+  # заменяем плейсхолдеры; иначе генерируем полный .env непосредственно.
+  if [ -f template.env ]; then
+    cp template.env .env
+    # Заменяем placeholder значения (глобально с флагом /g)
+    sed -i "s/change_this_secure_password_123/${postgres_pwd}/g" .env
+    sed -i "s/your_32_char_encryption_key_here_/${n8n_encryption_key}/g" .env
+    sed -i "s/your_n8n_api_key_here/${n8n_api_key}/g" .env
+    sed -i "s/your_jwt_secret_key_here_min_32_chars/${n8n_jwt_secret}/g" .env
+    sed -i "s/pgadmin_secure_password_123/${pgadmin_pwd}/g" .env
+    sed -i "s/admin@example.com/admin@sattva-ai.top/g" .env
+    sed -i "s/traefik_password_hash_placeholder/${traefik_pwd_hash}/g" .env
+    print_success "Файл .env создан из template.env"
+  else
+    print_info "template.env не найден — создаём .env напрямую"
+    cat > .env <<EOF
+# Generated .env - N8N AI Starter Kit
+DOMAIN_NAME=${DOMAIN_NAME:-sattva-ai.top}
+
+# POSTGRES
+POSTGRES_USER=${POSTGRES_USER:-n8n}
+POSTGRES_PASSWORD=${postgres_pwd}
+POSTGRES_DB=${POSTGRES_DB:-n8n}
+POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+POSTGRES_PORT=${POSTGRES_PORT:-5432}
+
+# N8N
+N8N_ENCRYPTION_KEY=${n8n_encryption_key}
+N8N_USER_MANAGEMENT_JWT_SECRET=${n8n_jwt_secret}
+N8N_DEFAULT_BINARY_DATA_MODE=filesystem
+N8N_HOST=n8n.
+N8N_PORT=5678
+N8N_PROTOCOL=http
+N8N_SECURE_COOKIE=false
+WEBHOOK_URL=http://n8n.
+N8N_API_KEY=${n8n_api_key}
+N8N_API_AUTH_ACTIVE=true
+
+# PGADMIN
+PGADMIN_DEFAULT_EMAIL=admin@sattva-ai.top
+PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
+
+# TRAEFIK
+ACME_EMAIL=admin@sattva-ai.top
+TRAEFIK_USERNAME=admin
+TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
+
+# GRAPHITI / OPENAI
+OPENAI_API_KEY=your_openai_api_key_here
+
+# DB settings for n8n
+DB_TYPE=postgresdb
+DB_POSTGRESDB_HOST=postgres
+DB_POSTGRESDB_PORT=5432
+DB_POSTGRESDB_DATABASE=n8n
+DB_POSTGRESDB_USER=n8n
+DB_POSTGRESDB_PASSWORD=${postgres_pwd}
+
+GENERIC_TIMEZONE=UTC
+NODE_ENV=production
+COMPOSE_PROJECT_NAME=n8n-ai-starter-kit
+
+EOF
+    print_success ".env создан напрямую"
+    # Также поместим основные значения обратно в template.env для трассировки
+    echo "# Auto-generated template from setup.sh" > template.env || true
+    echo "POSTGRES_PASSWORD=${postgres_pwd}" >> template.env || true
+    echo "N8N_API_KEY=${n8n_api_key}" >> template.env || true
+    echo "N8N_ENCRYPTION_KEY=${n8n_encryption_key}" >> template.env || true
+  fi
   
   # Проверяем что файл создался правильно
   if [ ! -f .env ]; then
@@ -747,9 +815,19 @@ create_env_from_template() {
   fi
   
   # Проверяем что пароли PostgreSQL синхронизированы
-  # Обновляем template.env чтобы сохранить сгенерированный пароль как источник истины
-  if grep -q "change_this_secure_password_123" template.env; then
-    sed -i "s/change_this_secure_password_123/${postgres_pwd}/g" template.env || true
+  # Обновляем template.env чтобы сохранить сгенерированный/синхронизированный
+  # пароль как источник истины. Записываем как POSTGRES_PASSWORD и N8N_PASSWORD
+  # (некоторые конфиги ожидают оба варианта).
+  if grep -q "^POSTGRES_PASSWORD=" template.env; then
+    sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${postgres_pwd}/" template.env || true
+  else
+    echo "POSTGRES_PASSWORD=${postgres_pwd}" >> template.env || true
+  fi
+
+  if grep -q "^N8N_PASSWORD=" template.env; then
+    sed -i "s/^N8N_PASSWORD=.*/N8N_PASSWORD=${postgres_pwd}/" template.env || true
+  else
+    echo "N8N_PASSWORD=${postgres_pwd}" >> template.env || true
   fi
 
   postgres_pwd_count=$(grep -c "${postgres_pwd}" .env || true)
@@ -1307,8 +1385,8 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
   # Создаем новый .env файл на основе template.env с интерактивными настройками
   print_info "Создание нового .env файла с вашими настройками..."
   
-  # Копируем template.env в .env
-  cp template.env .env
+  # Копируем схему в .env
+  cp "$SCHEMA_FILE" .env
   
   # Применяем интерактивные настройки
   update_existing_env_with_interactive_settings
