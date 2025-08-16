@@ -851,6 +851,59 @@ ensure_traefik_volume_exists() {
 # Функция для обновления существующего .env файла с интерактивными настройками
 update_existing_env_with_interactive_settings() {
   print_info "Обновление существующего .env файла с новыми настройками..."
+
+# Улучшенная версия: создаёт том (если нужно) и гарантирует, что /acme.json
+# внутри тома существует и имеет права 600. Вызов идемпотентен.
+ensure_traefik_volume_exists() {
+  local vol_name="traefik_letsencrypt"
+
+  if ! command -v docker >/dev/null 2>&1; then
+    print_warning "Docker не найден — пропускаем проверку тома ${vol_name}"
+    return 0
+  fi
+
+  # Если том отсутствует, пытаемся создать (или подсказываем пользователю)
+  if ! docker volume ls --format '{{.Name}}' | grep -q "^${vol_name}$"; then
+    if [ "${AUTO_CREATE_TRAEFIK_VOLUME:-false}" = "true" ]; then
+      print_info "Создаём docker volume ${vol_name} (AUTO_CREATE_TRAEFIK_VOLUME=true)"
+      if ! docker volume create "${vol_name}" >/dev/null 2>&1; then
+        print_error "Не удалось создать docker volume ${vol_name}. Проверьте права и соединение с Docker"
+        return 1
+      fi
+      print_success "Создан docker volume: ${vol_name}"
+    elif [ "${SETUP_MODE:-}" = "interactive" ]; then
+      read -p "Том ${vol_name} не найден. Создать его сейчас? (y/N): " create_choice
+      case "$create_choice" in
+        [Yy]*)
+          if ! docker volume create "${vol_name}" >/dev/null 2>&1; then
+            print_error "Не удалось создать docker volume ${vol_name}."
+            return 1
+          fi
+          print_success "Создан docker volume: ${vol_name}"
+          ;;
+        *)
+          print_warning "Том ${vol_name} не создан. Traefik будет работать без Let's Encrypt до тех пор, пока том не будет создан."
+          return 0
+          ;;
+      esac
+    else
+      print_warning "Том ${vol_name} не найден. Установите AUTO_CREATE_TRAEFIK_VOLUME=true или создайте том вручную: docker volume create ${vol_name}"
+      return 0
+    fi
+  else
+    print_success "Docker volume ${vol_name} найден"
+  fi
+
+  # Создаём /acme.json внутри тома и выставляем строгие права (600). Это идемпотентно.
+  print_info "Гарантируем наличие /acme.json в томе ${vol_name} и права 600"
+  if docker run --rm -v "${vol_name}:/data" alpine sh -c 'touch /data/acme.json && chmod 600 /data/acme.json' >/dev/null 2>&1; then
+    print_success "/acme.json присутствует в ${vol_name} с правами 600"
+  else
+    print_warning "Не удалось создать или установить права для /acme.json в томе ${vol_name}. Проверьте Docker и права доступа."
+  fi
+
+  return 0
+}
   
   # Обновляем домен
   if [ -n "$domain_name" ]; then
