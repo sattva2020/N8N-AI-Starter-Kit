@@ -443,7 +443,30 @@ while [ "$waited" -lt "$max_wait" ]; do
 
                 # Автоматический импорт выполняется только если явно включён
                 if [ "${N8N_AUTO_IMPORT:-false}" != "true" ]; then
-                    echo -e "${YELLOW}${EMOJI_NOTE} Автоматический импорт отключён (N8N_AUTO_IMPORT!=true). Пропускаем.${NC}"
+                    # Если мы в интерактивном терминале, спросим разово выполнить импорт
+                    if [ -t 0 ]; then
+                        echo -e "${YELLOW}${EMOJI_NOTE} Автоматический импорт отключён (N8N_AUTO_IMPORT!=true).${NC}"
+                        read -r -p "Запустить импорт workflows один раз сейчас? (y/N): " run_import_choice
+                        run_import_choice=${run_import_choice:-N}
+                        if [[ "$run_import_choice" =~ ^[Yy]$ ]]; then
+                            # Проверяем наличие сервиса и запускаем
+                            if $DOCKER_COMPOSE_CMD config --services 2>/dev/null | grep -q '^n8n-importer$'; then
+                                echo -e "${BLUE}${EMOJI_SETUP} Запуск n8n-importer...${NC}"
+                                $DOCKER_COMPOSE_CMD run --rm n8n-importer
+                                if [ $? -eq 0 ]; then
+                                    echo -e "${GREEN}${EMOJI_OK} Импорт workflows успешно завершен.${NC}"
+                                else
+                                    echo -e "${RED}${EMOJI_ERROR} Ошибка во время импорта workflows.${NC}"
+                                fi
+                            else
+                                echo -e "${YELLOW}${EMOJI_WARN} Сервис n8n-importer не определён в compose — невозможно запустить импорт.${NC}"
+                            fi
+                        else
+                            echo -e "${YELLOW}Импорт пропущен по выбору пользователя.${NC}"
+                        fi
+                    else
+                        echo -e "${YELLOW}${EMOJI_NOTE} Автоматический импорт отключён (N8N_AUTO_IMPORT!=true). Пропускаем (неинтерактивный режим).${NC}"
+                    fi
                 else
                     # Проверяем, что сервис n8n-importer определён в конфигурации compose
                     if $DOCKER_COMPOSE_CMD config --services 2>/dev/null | grep -q '^n8n-importer$'; then

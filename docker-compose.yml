@@ -124,6 +124,22 @@ services:
   # restore the services/n8n-importer Dockerfile and run-importer.sh and add the
   # service block back here.
 
+  # Optional: n8n-importer service (disabled by default). Uncomment to enable.
+  # n8n-importer:
+  #   build: ./services/n8n-importer
+  #   image: n8n-importer:local
+  #   restart: "no"
+  #   profiles: [developer]
+  #   environment:
+  #     - ALLOW_RUNTIME_CLONE=false
+  #     - N8N_AUTO_IMPORT=false
+  #   volumes:
+  #     - ./services/n8n-importer/n8n-workflows:/opt/n8n-workflows:ro
+  #     - ./logs/n8n-importer:/var/log/n8n-importer:rw
+  #   networks:
+  #     - backend
+  #   # This service is intended to be run manually via: docker compose run --rm n8n-importer
+
   postgres:
     image: pgvector/pgvector:pg17 # Образ с поддержкой pgvector для Graphiti (последняя версия)
     restart: unless-stopped

@@ -1447,7 +1447,8 @@ services:
       - N8N_PORT=5678
     volumes:
       - ./n8n/import-scripts:/app:ro
-    entrypoint: ["/app/run-importer.sh"]
+      - ./services/n8n-importer/n8n-workflows:/opt/n8n-workflows:ro  # persistent clone should be stored here (host path)
+    entrypoint: ["/usr/local/bin/run-importer.sh"]
 ```
 
 Как запустить импорт вручную (из корня проекта):
@@ -1455,6 +1456,13 @@ services:
 ```bash
 # Однократный запуск импортера (контейнер service должен быть определён в compose)
 docker compose run --rm n8n-importer
+```
+
+Если нужно разрешить runtime-клонинг внутри контейнера (только для тестирования/CI, не рекомендуется в production):
+
+```bash
+# Запуск с разрешением runtime clone (контейнер попытается клонировать удалённый репозиторий самостоятельно)
+docker compose run --rm -e ALLOW_RUNTIME_CLONE=true n8n-importer
 ```
 
 Если у вас нет сервиса `n8n-importer`, `./start.sh` безопасно пропустит импорт и выведет подсказку.

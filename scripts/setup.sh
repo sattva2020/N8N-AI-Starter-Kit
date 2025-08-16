@@ -720,6 +720,11 @@ EOF
     print_warning "Проблемы при проверке/создании docker volume traefik_letsencrypt — проверьте вручную"
   fi
 
+  # Опционально клонируем репозиторий Zie619/n8n-workflows для последующего импорта
+  if ! clone_n8n_workflows_once; then
+    print_warning "Не удалось автоматически клонировать n8n-workflows (это не критично)."
+  fi
+
 }
 
 # Функция ожидания готовности PostgreSQL
@@ -845,6 +850,31 @@ ensure_traefik_volume_exists() {
   else
     print_warning "Том ${vol_name} не найден. Чтобы автосоздание включилось, установите AUTO_CREATE_TRAEFIK_VOLUME=true или создайте том вручную: docker volume create ${vol_name}"
     return 0
+  fi
+}
+
+# Клонирует репозиторий Zie619/n8n-workflows в canonical host path:
+# ./services/n8n-importer/n8n-workflows. Идемпотентно: если папка уже существует, пропускает.
+clone_n8n_workflows_once() {
+  local target_dir="${ROOT_DIR}/services/n8n-importer/n8n-workflows"
+  if [ -d "${target_dir}/.git" ]; then
+    echo "n8n-workflows уже клонирован в ${target_dir}, пропускаю."
+    return 0
+  fi
+
+  mkdir -p "${target_dir}"
+  if command -v git >/dev/null 2>&1; then
+    echo "Клонирую Zie619/n8n-workflows в ${target_dir}..."
+    if git clone --depth 1 https://github.com/Zie619/n8n-workflows.git "${target_dir}"; then
+      echo "Клонирование завершено."
+      return 0
+    else
+      echo "Ошибка при клонировании n8n-workflows." >&2
+      return 1
+    fi
+  else
+    echo "git не найден на хосте; установите git и повторите: git clone https://github.com/Zie619/n8n-workflows.git ${target_dir}" >&2
+    return 1
   fi
 }
 
