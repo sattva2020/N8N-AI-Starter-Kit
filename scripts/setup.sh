@@ -703,7 +703,7 @@ COMPOSE_PROJECT_NAME=n8n-ai-starter-kit
 EOF
 
   print_success ".env создан напрямую"
-  
+
   # Проверяем что файл создался правильно
   if [ ! -f .env ]; then
     print_error "Ошибка: .env файл не был создан!"
@@ -714,61 +714,12 @@ EOF
   echo "  PostgreSQL: ${BOLD}${postgres_pwd}${NC}"
   echo "  N8N Encryption Key: ${BOLD}${n8n_encryption_key}${NC}"
   echo "  N8N API Key: ${BOLD}${n8n_api_key}${NC}"
-}
-  if [ ! -f .env ]; then
-    print_error "Ошибка: .env файл не был создан!"
-    exit 1
-  fi
-  
-  # Проверяем что placeholder значения заменены
-  if grep -q "your_32_char_encryption_key_here_" .env; then
-    print_error "Ошибка: N8N encryption key не был заменен!"
-    exit 1
-  fi
-  
-  if grep -q "change_this_secure_password_123" .env; then
-    print_error "Ошибка: PostgreSQL пароль не был заменен!"
-    exit 1
-  fi
-  
-  if grep -q "pgladmin_secure_password_123" .env; then
-    print_error "Ошибка: PgAdmin пароль не был заменен!"
-    exit 1
-  fi
-  
-  # Проверяем что пароли PostgreSQL синхронизированы
-  # Обновляем .env чтобы сохранить сгенерированный/синхронизированный пароль
-  # как источник истины. Записываем как POSTGRES_PASSWORD и N8N_PASSWORD
-  # (некоторые конфиги ожидают оба варианта).
-  if grep -q "^POSTGRES_PASSWORD=" .env; then
-    sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${postgres_pwd}/" .env || true
-  else
-    echo "POSTGRES_PASSWORD=${postgres_pwd}" >> .env || true
+
+  # Попытка автоматического создания внешнего тома Traefik (если включено)
+  if ! ensure_traefik_volume_exists; then
+    print_warning "Проблемы при проверке/создании docker volume traefik_letsencrypt — проверьте вручную"
   fi
 
-  if grep -q "^N8N_PASSWORD=" .env; then
-    sed -i "s/^N8N_PASSWORD=.*/N8N_PASSWORD=${postgres_pwd}/" .env || true
-  else
-    echo "N8N_PASSWORD=${postgres_pwd}" >> .env || true
-  fi
-
-  postgres_pwd_count=$(grep -c "${postgres_pwd}" .env || true)
-  if [ "$postgres_pwd_count" -lt 1 ]; then
-    print_error "Ошибка: PostgreSQL пароль не найден в .env!"
-    print_info "Найдено вхождений: $postgres_pwd_count"
-    exit 1
-  fi
-  
-  print_info "Сгенерированные пароли:"
-  echo "  PostgreSQL: ${BOLD}${postgres_pwd}${NC}"
-  echo "  N8N Encryption Key: ${BOLD}${n8n_encryption_key}${NC}"
-  echo "  N8N API Key: ${BOLD}${n8n_api_key}${NC}"
-  echo "  N8N JWT Secret: ${BOLD}${n8n_jwt_secret}${NC}"
-  echo "  PgAdmin: ${BOLD}${pgadmin_pwd}${NC}" 
-  echo "  Traefik Dashboard: ${BOLD}${traefik_pwd}${NC}"
-  echo ""
-  print_warning "Сохраните эти пароли в безопасном месте!"
-  echo ""
 }
 
 # Функция ожидания готовности PostgreSQL
@@ -842,6 +793,59 @@ update_traefik_config() {
   fi
 
   print_success "Конфигурация Traefik обновлена для домена: $DOMAIN_NAME"
+}
+
+# Проверяет и при необходимости создаёт внешний том traefik_letsencrypt
+ensure_traefik_volume_exists() {
+  local vol_name="traefik_letsencrypt"
+
+  # Если Docker недоступен — ничего не делаем
+  if ! command -v docker >/dev/null 2>&1; then
+    print_warning "Docker не найден — пропускаем проверку тома $vol_name"
+    return 0
+  fi
+
+  # Проверяем наличие тома
+  if docker volume ls --format '{{.Name}}' | grep -q "^${vol_name}$"; then
+    print_success "Docker volume ${vol_name} найден"
+    return 0
+  fi
+
+  # Том отсутствует — решаем действовать автоматически или спрашивать пользователя
+  if [ "${AUTO_CREATE_TRAEFIK_VOLUME:-false}" = "true" ]; then
+    print_info "Том ${vol_name} не найден — AUTO_CREATE_TRAEFIK_VOLUME=true, создаём автоматически"
+    if docker volume create "${vol_name}" >/dev/null 2>&1; then
+      print_success "Создан docker volume: ${vol_name}"
+      return 0
+    else
+      print_error "Не удалось создать docker volume ${vol_name}. Проверьте права и соединение с Docker"
+      return 1
+    fi
+  fi
+
+  # В интерактивном режиме спрашиваем пользователя
+  if [ "${SETUP_MODE:-}" = "interactive" ]; then
+    print_warning "Том ${vol_name} не найден. Этот том нужен для сохранения сертификатов Traefik (Let's Encrypt)."
+    read -p "Создать том ${vol_name} сейчас? (рекомендуется) (y/N): " create_choice
+    case "$create_choice" in
+      [Yy]* )
+        if docker volume create "${vol_name}" >/dev/null 2>&1; then
+          print_success "Создан docker volume: ${vol_name}"
+          return 0
+        else
+          print_error "Не удалось создать docker volume ${vol_name}. Проверьте права и соединение с Docker"
+          return 1
+        fi
+        ;;
+      * )
+        print_warning "Том ${vol_name} не создан. Traefik может завершить работу без Let's Encrypt или сохранить сертификаты в другом месте."
+        return 0
+        ;;
+    esac
+  else
+    print_warning "Том ${vol_name} не найден. Чтобы автосоздание включилось, установите AUTO_CREATE_TRAEFIK_VOLUME=true или создайте том вручную: docker volume create ${vol_name}"
+    return 0
+  fi
 }
 
 # Функция для обновления существующего .env файла с интерактивными настройками
@@ -1026,35 +1030,99 @@ if [ "$GENERATE_ONLY" = true ]; then
     n8n_jwt_secret=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
     pgadmin_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
     traefik_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
-    traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1 2>/dev/null || echo "${traefik_pwd}")
+  traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1 2>/dev/null || echo "${traefik_pwd}")
 
-    # Write minimal .env
-    cat > .env <<EOF
+  # Write full .env based on env.schema.md with generated secrets and sensible placeholders
+  cat > .env <<EOF
 # Auto-generated .env by setup.sh --generate-only
+DOMAIN_NAME=${DOMAIN_NAME:-sattva-ai.top}
+
+# ---- POSTGRESQL ----
+POSTGRES_USER=${POSTGRES_USER:-n8n}
 POSTGRES_PASSWORD=${postgres_pwd}
-N8N_API_KEY=${n8n_api_key}
+POSTGRES_DB=${POSTGRES_DB:-n8n}
+POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+POSTGRES_PORT=${POSTGRES_PORT:-5432}
+
+# ---- N8N SETTINGS ----
 N8N_ENCRYPTION_KEY=${n8n_encryption_key}
-N8N_PASSWORD=${postgres_pwd}
-PGADMIN_PASSWORD=${pgadmin_pwd}
-TRAEFIK_PASSWORD_HASH=${traefik_pwd_hash}
+N8N_USER_MANAGEMENT_JWT_SECRET=${n8n_jwt_secret}
+N8N_DEFAULT_BINARY_DATA_MODE=filesystem
+N8N_HOST=n8n.${DOMAIN_NAME:-sattva-ai.top}
+N8N_PORT=5678
+N8N_PROTOCOL=http
+N8N_SECURE_COOKIE=false
+WEBHOOK_URL=http://n8n.${DOMAIN_NAME:-sattva-ai.top}/
+N8N_API_KEY=${n8n_api_key}
+N8N_API_AUTH_ACTIVE=true
+
+# ---- DOMAINS FOR DEVELOPMENT ----
+N8N_DOMAIN=n8n.${DOMAIN_NAME:-sattva-ai.top}
+WEB_INTERFACE_DOMAIN=web.${DOMAIN_NAME:-sattva-ai.top}
+DOCUMENT_PROCESSOR_DOMAIN=doc-processor.${DOMAIN_NAME:-sattva-ai.top}
+QDRANT_DOMAIN=qdrant.${DOMAIN_NAME:-sattva-ai.top}
+OLLAMA_DOMAIN=ollama.${DOMAIN_NAME:-sattva-ai.top}
+TRAEFIK_DASHBOARD_DOMAIN=traefik.${DOMAIN_NAME:-sattva-ai.top}
+
+# ---- SYSTEM SETTINGS ----
+GENERIC_TIMEZONE=UTC
+NODE_ENV=production
+COMPOSE_PROJECT_NAME=n8n-ai-starter-kit
+
+# ---- PGADMIN ----
+PGADMIN_DEFAULT_EMAIL=${ACME_EMAIL:-admin@${DOMAIN_NAME:-sattva-ai.top}}
+PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
+
+# ---- TRAEFIK ----
+ACME_EMAIL=${ACME_EMAIL:-admin@${DOMAIN_NAME:-sattva-ai.top}}
+TRAEFIK_USERNAME=admin
+TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
+
+# ---- GRAPHITI / OPENAI ----
+OPENAI_API_KEY=${OPENAI_API_KEY:-}
+GRAPHITI_DOMAIN=graphiti.${DOMAIN_NAME:-sattva-ai.top}
+
+# ---- NEO4J ----
+NEO4J_URI=bolt://neo4j-graphiti:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=change_this_secure_password_123
+NEO4J_HOST=neo4j-graphiti
+NEO4J_PORT=7687
+NEO4J_BOLT_PORT=7687
+NEO4J_HTTP_PORT=7474
+
+# ---- ADDITIONAL SETTINGS ----
+N8N_SECURE_COOKIE=false
+N8N_METRICS=true
+
+# Database settings
+DB_TYPE=postgresdb
+DB_POSTGRESDB_HOST=postgres
+DB_POSTGRESDB_PORT=5432
+DB_POSTGRESDB_DATABASE=n8n
+DB_POSTGRESDB_USER=n8n
+DB_POSTGRESDB_PASSWORD=${postgres_pwd}
+
+# N8N reset behavior
+N8N_RESET=false
+
+# Workflows manager
+WORKFLOWS_DOC_DOMAIN=workflows.${DOMAIN_NAME:-sattva-ai.top}
+WORKFLOWS_MANAGER_DOMAIN=workflows-manager.${DOMAIN_NAME:-sattva-ai.top}
+WORKFLOWS_MANAGER_API_KEY=
+
 EOF
 
-    # Optional fields
-    if [ -n "${DOMAIN_NAME}" ]; then
-      echo "DOMAIN_NAME=${DOMAIN_NAME}" >> .env
-    fi
-    if [ -n "${ACME_EMAIL}" ]; then
-      echo "ACME_EMAIL=${ACME_EMAIL}" >> .env
-    fi
-    if [ -n "${OPENAI_API_KEY}" ]; then
-      echo "OPENAI_API_KEY=${OPENAI_API_KEY}" >> .env
-    fi
-
-    print_success ".env сгенерирован встроенным генератором"
-    echo "  PostgreSQL: ${postgres_pwd}"
-    echo "  N8N Encryption Key: ${n8n_encryption_key}"
-    echo "  N8N API Key: ${n8n_api_key}"
-    return 0
+  print_success ".env сгенерирован встроенным генератором (полный набор переменных)"
+  echo "  PostgreSQL: ${postgres_pwd}"
+  echo "  N8N Encryption Key: ${n8n_encryption_key}"
+  echo "  N8N API Key: ${n8n_api_key}"
+  echo "  Traefik dashboard password (plain): ${traefik_pwd} (hash stored in TRAEFIK_PASSWORD_HASHED)"
+  # Попытка автоматического создания внешнего тома Traefik (если включено)
+  if ! ensure_traefik_volume_exists; then
+    print_warning "Проблемы при проверке/создании docker volume traefik_letsencrypt — проверьте вручную"
+  fi
+  return 0
   }
 
   generate_env_only
@@ -1525,6 +1593,11 @@ EOF
   # Создаем файл с советами по устранению неполадок
   create_troubleshooting_file
 
+  # Попытка автоматического создания внешнего тома Traefik (если включено)
+  if ! ensure_traefik_volume_exists; then
+    print_warning "Проблемы при проверке/создании docker volume traefik_letsencrypt — проверьте вручную"
+  fi
+
   # Предложение предзагрузки моделей
   echo -e "\n${BLUE}===============================================${NC}"
   echo -e "${BOLD}Предварительная загрузка моделей для Ollama${NC}"
@@ -1547,9 +1620,75 @@ fi # Закрываем блок интерактивного режима
 # Создаем файл с советами по устранению неполадок (общий для всех режимов)
 create_troubleshooting_file
 
+# Проверка обязательных переменных в .env перед запуском контейнеров
+validate_required_envs() {
+  local required=("NEO4J_URI" "POSTGRES_PASSWORD" "N8N_ENCRYPTION_KEY" "DOMAIN_NAME")
+  if [ ! -f .env ]; then
+    print_error ".env не найден. Сгенерируйте .env с помощью scripts/setup.sh --generate-only или заполните вручную."
+    exit 1
+  fi
+
+  local missing=()
+  for var in "${required[@]}"; do
+    # извлечь значение переменной из .env (учтём возможные символы '=' в значении)
+    val=$(grep -E "^${var}=" .env | tail -n1 | cut -d'=' -f2-)
+    if [ -z "$val" ]; then
+      missing+=("$var")
+    fi
+  done
+
+  if [ ${#missing[@]} -gt 0 ]; then
+    print_error "Отсутствуют обязательные переменные в .env: ${missing[*]}"
+    print_info "Запустите './scripts/setup.sh --generate-only' или заполните .env вручную, затем повторите запуск."
+    exit 1
+  fi
+
+  print_success "Проверка обязательных переменных пройдена."
+}
+
+
+# Ensure qdrant snapshots external volume exists and is owned by the qdrant runtime user (UID 1000)
+ensure_qdrant_snapshots_volume() {
+  local vol_name="n8n-ai-starter-kit_qdrant_snapshots"
+
+  # If docker is not available, skip with a warning
+  if ! command -v docker >/dev/null 2>&1; then
+    print_warning "Docker не найден — пропускаем проверку тома qdrant snapshots: ${vol_name}"
+    return 0
+  fi
+
+  # Create the volume if missing
+  if ! docker volume ls --format '{{.Name}}' | grep -q "^${vol_name}$"; then
+    print_info "Docker volume ${vol_name} не найден — создаём"
+    if ! docker volume create "${vol_name}" >/dev/null 2>&1; then
+      print_warning "Не удалось создать том ${vol_name}. Проверьте права и повторите вручную: docker volume create ${vol_name}"
+      return 1
+    fi
+    print_success "Создан docker volume: ${vol_name}"
+  else
+    print_info "Docker volume ${vol_name} найден"
+  fi
+
+  # Ensure ownership is set to UID 1000 so qdrant (runs as uid 1000) can write snapshots
+  print_info "Установка владельца тома ${vol_name} в UID 1000 (qdrant)..."
+  if docker run --rm -v "${vol_name}:/data" alpine sh -c "chown -R 1000:1000 /data" >/dev/null 2>&1; then
+    print_success "Владелец тома ${vol_name} установлен в UID 1000"
+  else
+    print_warning "Не удалось установить владельца тома ${vol_name}. Попробуйте выполнить вручную: docker run --rm -v ${vol_name}:/data alpine sh -c 'chown -R 1000:1000 /data'"
+  fi
+
+  return 0
+}
+
+
 # Запуск сервисов
 print_info "Теперь вы можете запустить N8N AI Starter Kit с помощью команды:"
 print_info "${BOLD}$DC_CMD up -d${NC} или используйте ./start.sh"
+
+# Предупредительная проверка: проверим обязательные env и подготовим том qdrant_snapshots
+print_info "Выполняем предварительные проверки: validate_required_envs() и ensure_qdrant_snapshots_volume()"
+validate_required_envs
+ensure_qdrant_snapshots_volume || print_warning "Проблемы с подготовкой qdrant snapshots volume — проверьте вручную"
 
 print_info "\nДополнительные команды для разных профилей:"
 print_info "${BOLD}$DC_CMD --profile cpu up -d${NC} - Запуск с процессорными AI-сервисами"

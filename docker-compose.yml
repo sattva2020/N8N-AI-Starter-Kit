@@ -187,13 +187,17 @@ services:
       start_period: 40s
 
   qdrant:
-    image: qdrant/qdrant:latest # latest для упрощения поддержкиcat 
+    build:
+      context: ./infra/qdrant
+      dockerfile: Dockerfile
+    image: local-qdrant:latest
     restart: unless-stopped
     profiles: [default, cpu, gpu-nvidia, developer]
     ports:
       - "6333:6333"
     volumes:
       - qdrant_storage:/qdrant/storage
+      - qdrant_snapshots:/qdrant/snapshots
     networks:
       - backend
       - frontend
@@ -213,7 +217,7 @@ services:
         reservations:
           memory: 1G
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:6333/ || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:6333/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5  # Увеличиваем количество попыток
@@ -364,6 +368,7 @@ volumes:
     external: true
   pgadmin_data:
   qdrant_storage:
+  qdrant_snapshots:
   jupyter_data:
   n8n_import_logs:  # Логи автоматического импорта workflows
 

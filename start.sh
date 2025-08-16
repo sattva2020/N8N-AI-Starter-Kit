@@ -266,6 +266,48 @@ if ! check_critical_components; then
     fi
 fi
 
+# Если .env уже существует, спросим пользователя, что делать: бекап+генерация, перезаписать или продолжить
+if [ -f .env ]; then
+    echo ""
+    echo -e "${YELLOW}${EMOJI_WARN} Обнаружен файл .env в корне проекта.${NC}"
+    echo "Выберите действие для существующего .env:"
+    echo "  1) Создать бэкап (.env.bak.<timestamp>) и сгенерировать новый .env"
+    echo "  2) Перезаписать существующий .env новым (без сохранения бэкапа)"
+    echo "  3) Продолжить с существующим .env (рекомендуется, если вы уверены)"
+    echo -ne "Ваш выбор (1/2/3, по-умолчанию 3): "
+    read -r env_choice
+    env_choice=${env_choice:-3}
+
+    case "$env_choice" in
+        1)
+            echo -e "${CYAN}Создаём бэкап .env и запускаем генерацию нового .env...${NC}"
+            timestamp=$(date +%Y%m%d%H%M%S 2>/dev/null || echo "bk_$(date +%s)")
+            cp .env ".env.bak.$timestamp" || { echo -e "${RED}Не удалось создать бэкап .env${NC}"; }
+            if [ -f "./scripts/setup.sh" ]; then
+                chmod +x ./scripts/setup.sh
+                ./scripts/setup.sh --generate-only || echo -e "${YELLOW}Генерация .env завершилась с ошибкой, проверьте./scripts/setup.sh${NC}"
+            else
+                echo -e "${RED}./scripts/setup.sh не найден — создайте .env вручную или поместите скрипт в директорию scripts/${NC}"
+            fi
+            ;;
+        2)
+            echo -e "${CYAN}Перезаписываем .env новым, без создания бэкапа...${NC}"
+            if [ -f "./scripts/setup.sh" ]; then
+                chmod +x ./scripts/setup.sh
+                ./scripts/setup.sh --generate-only || echo -e "${YELLOW}Генерация .env завершилась с ошибкой${NC}"
+            else
+                echo -e "${RED}./scripts/setup.sh не найден — невозможно сгенерировать .env${NC}"
+            fi
+            ;;
+        3)
+            echo -e "${GREEN}Продолжаем с существующим .env${NC}"
+            ;;
+        *)
+            echo -e "${YELLOW}Неверный выбор — продолжаем с существующим .env${NC}"
+            ;;
+    esac
+fi
+
 # Предварительная проверка
 echo ""
 if ! pre_flight_check; then

@@ -41,12 +41,9 @@ fi
 
 # Проверяем Neo4j переменные
 if ! grep -q "^NEO4J_URI=" .env; then
-    echo "➕ Добавление Neo4j переменных..."
-    echo "" >> .env
-    echo "# ---- NEO4J НАСТРОЙКИ ----" >> .env
-    echo "NEO4J_URI=bolt://neo4j-zep:7687" >> .env
-    echo "NEO4J_USER=neo4j" >> .env
-    echo "NEO4J_PASSWORD=zepzepzep" >> .env
+    echo "➕ Neo4j переменные не найдены в .env"
+    echo "  Пожалуйста, установите NEO4J_URI, NEO4J_USER и NEO4J_PASSWORD в файле .env вручную или запустите ./scripts/setup.sh --generate-only"
+    echo "  (скрипт больше не записывает пароль автоматически, чтобы избежать хардкода секретов)"
 fi
 
 # 4. Останавливаем все сервисы
