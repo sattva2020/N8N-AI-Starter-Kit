@@ -1447,21 +1447,31 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
     print_info "Рекомендуется создать резервную копию перед перезаписью."
     read -p "Создать резервную копию и перезаписать? (y/n): " overwrite
     
+      # Если схема не задана или файл отсутствует — пробуем template.env,
+      # а если его нет — переходим к прямой генерации .env (fallback).
+      GENERATE_FROM_TEMPLATE=true
       if [ -z "$SCHEMA_FILE" ] || [ ! -f "$SCHEMA_FILE" ]; then
         if [ -f template.env ]; then
           SCHEMA_FILE="template.env"
+          GENERATE_FROM_TEMPLATE=true
         else
-          print_error "Файл env.schema.md (или template.env) не найден!"
-          return 1
+          print_warning "Файл env.schema.md (или template.env) не найден — будет выполнена прямая генерация .env"
+          GENERATE_FROM_TEMPLATE=false
         fi
-    fi
+      fi
   fi
 
   # Создаем новый .env файл на основе template.env с интерактивными настройками
   print_info "Создание нового .env файла с вашими настройками..."
   
-  # Копируем схему в .env
-  cp "$SCHEMA_FILE" .env
+  # Копируем схему в .env если это возможно, иначе пропускаем и сгенерируем значения напрямую
+  if [ "${GENERATE_FROM_TEMPLATE}" = true ] && [ -n "${SCHEMA_FILE}" ] && [ -f "${SCHEMA_FILE}" ]; then
+    cp "$SCHEMA_FILE" .env
+  else
+    print_info "Пропускаем копирование схемы: будет выполнена прямая генерация .env"
+    # создаём пустой .env как база (будет перезаписан далее)
+    : > .env
+  fi
   
   # Применяем интерактивные настройки
   update_existing_env_with_interactive_settings
