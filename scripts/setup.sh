@@ -703,6 +703,20 @@ COMPOSE_PROJECT_NAME=n8n-ai-starter-kit
 
 EOF
 
+  # Add optional NEO4J defaults for setups that expect graphiti/neo4j to be present.
+  # These are safe defaults for local development and satisfy validate_required_envs().
+  cat >> .env <<NEOEOF
+
+# ---- NEO4J (Graphiti) ----
+NEO4J_URI=${NEO4J_URI:-bolt://neo4j-graphiti:7687}
+NEO4J_USER=${NEO4J_USER:-neo4j}
+NEO4J_PASSWORD=${NEO4J_PASSWORD:-change_this_secure_password_123}
+NEO4J_HOST=${NEO4J_HOST:-neo4j-graphiti}
+NEO4J_PORT=${NEO4J_PORT:-7687}
+NEO4J_BOLT_PORT=${NEO4J_BOLT_PORT:-7687}
+NEO4J_HTTP_PORT=${NEO4J_HTTP_PORT:-7474}
+NEOEOF
+
   print_success ".env создан напрямую"
 
   # Проверяем что файл создался правильно
@@ -1657,6 +1671,17 @@ EOF
   echo "POOLER_TENANT_ID=${pooler_tenant_id}" >> .env
   echo "LOGFLARE_API_KEY=${logflare_api_key}" >> .env
   echo "QDRANT_API_KEY=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)" >> .env
+
+  # Ensure NEO4J defaults exist for interactive generated .env so validation succeeds
+  echo "" >> .env
+  echo "# ---- NEO4J (Graphiti) ----" >> .env
+  echo "NEO4J_URI=${NEO4J_URI:-bolt://neo4j-graphiti:7687}" >> .env
+  echo "NEO4J_USER=${NEO4J_USER:-neo4j}" >> .env
+  echo "NEO4J_PASSWORD=${NEO4J_PASSWORD:-change_this_secure_password_123}" >> .env
+  echo "NEO4J_HOST=${NEO4J_HOST:-neo4j-graphiti}" >> .env
+  echo "NEO4J_PORT=${NEO4J_PORT:-7687}" >> .env
+  echo "NEO4J_BOLT_PORT=${NEO4J_BOLT_PORT:-7687}" >> .env
+  echo "NEO4J_HTTP_PORT=${NEO4J_HTTP_PORT:-7474}" >> .env
 
   # Обновляем домены на пользовательские в .env (если уже присутствуют шаблонные значения)
   sed -i "s/sattva-ai.top/${domain_name}/g" .env || true

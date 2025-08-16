@@ -146,6 +146,32 @@ run_setup() {
         
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}${EMOJI_OK} Настройка завершена успешно!${NC}"
+            # Если мы в интерактивном терминале — спросим пользователя
+            # хочет ли он автоматически запустить импорт workflows после старта n8n.
+            if [ -t 0 ]; then
+                echo -e ""
+                read -r -p "Хотите автоматически запустить импорт workflows после старта n8n? (y/N): " import_choice
+                import_choice=${import_choice:-N}
+                if [[ "$import_choice" =~ ^[Yy]$ ]]; then
+                    # Установим флаг в .env чтобы импорт выполнился автоматически позже
+                    if [ -f .env ]; then
+                        if grep -q '^N8N_AUTO_IMPORT=' .env 2>/dev/null; then
+                            sed -i 's/^N8N_AUTO_IMPORT=.*/N8N_AUTO_IMPORT=true/' .env 2>/dev/null || true
+                        else
+                            echo "N8N_AUTO_IMPORT=true" >> .env
+                        fi
+                    fi
+                    echo -e "${GREEN}Импорт workflows будет запущен автоматически после старта n8n.${NC}"
+                else
+                    if [ -f .env ]; then
+                        if grep -q '^N8N_AUTO_IMPORT=' .env 2>/dev/null; then
+                            sed -i 's/^N8N_AUTO_IMPORT=.*/N8N_AUTO_IMPORT=false/' .env 2>/dev/null || true
+                        else
+                            echo "N8N_AUTO_IMPORT=false" >> .env
+                        fi
+                    fi
+                fi
+            fi
             return 0
         else
             echo -e "${RED}${EMOJI_ERROR} Ошибка при настройке${NC}"
@@ -306,6 +332,31 @@ if [ -f .env ]; then
             echo -e "${YELLOW}Неверный выбор — продолжаем с существующим .env${NC}"
             ;;
     esac
+
+    # If user chose to continue with existing .env, ask whether to enable automatic import
+    if [ "$env_choice" = "3" ] && [ -t 0 ]; then
+        echo ""
+        read -r -p "Хотите автоматически запускать импорт workflows после старта n8n? (y/N): " import_choice_existing
+        import_choice_existing=${import_choice_existing:-N}
+        if [[ "$import_choice_existing" =~ ^[Yy]$ ]]; then
+            if [ -f .env ]; then
+                if grep -q '^N8N_AUTO_IMPORT=' .env 2>/dev/null; then
+                    sed -i 's/^N8N_AUTO_IMPORT=.*/N8N_AUTO_IMPORT=true/' .env 2>/dev/null || true
+                else
+                    echo "N8N_AUTO_IMPORT=true" >> .env
+                fi
+            fi
+            echo -e "${GREEN}Импорт workflows будет запущен автоматически после старта n8n.${NC}"
+        else
+            if [ -f .env ]; then
+                if grep -q '^N8N_AUTO_IMPORT=' .env 2>/dev/null; then
+                    sed -i 's/^N8N_AUTO_IMPORT=.*/N8N_AUTO_IMPORT=false/' .env 2>/dev/null || true
+                else
+                    echo "N8N_AUTO_IMPORT=false" >> .env
+                fi
+            fi
+        fi
+    fi
 fi
 
 # Предварительная проверка
