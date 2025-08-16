@@ -679,6 +679,7 @@ N8N_API_AUTH_ACTIVE=true
 # PGADMIN
 PGADMIN_DEFAULT_EMAIL=admin@sattva-ai.top
 PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
+PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-sattva-ai.top}}
 
 # TRAEFIK
 ACME_EMAIL=admin@sattva-ai.top
@@ -1155,6 +1156,7 @@ COMPOSE_PROJECT_NAME=n8n-ai-starter-kit
 # ---- PGADMIN ----
 PGADMIN_DEFAULT_EMAIL=${ACME_EMAIL:-admin@${DOMAIN_NAME:-sattva-ai.top}}
 PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
+PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-sattva-ai.top}}
 
 # ---- TRAEFIK ----
 ACME_EMAIL=${ACME_EMAIL:-admin@${DOMAIN_NAME:-sattva-ai.top}}
@@ -1164,6 +1166,16 @@ TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
 # ---- GRAPHITI / OPENAI ----
 OPENAI_API_KEY=${OPENAI_API_KEY:-}
 GRAPHITI_DOMAIN=graphiti.${DOMAIN_NAME:-sattva-ai.top}
+
+# Optional defaults to avoid docker-compose warnings
+PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-sattva-ai.top}}
+JUPYTER_DOMAIN=${JUPYTER_DOMAIN:-jupyter.${DOMAIN_NAME:-sattva-ai.top}}
+MODEL_NAME=${MODEL_NAME:-}
+
+# Optional defaults to avoid docker-compose warnings
+PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-sattva-ai.top}}
+JUPYTER_DOMAIN=${JUPYTER_DOMAIN:-jupyter.${DOMAIN_NAME:-sattva-ai.top}}
+MODEL_NAME=${MODEL_NAME:-}
 
 # ---- NEO4J ----
 NEO4J_URI=bolt://neo4j-graphiti:7687

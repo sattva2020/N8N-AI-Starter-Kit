@@ -1,0 +1,9 @@
+{
+  "annotations": {"list": []},
+  "panels": [
+    {"type": "text","title": "N8N AI Starter Kit - Minimal Overview","gridPos":{"x":0,"y":0,"w":24,"h":3},"options":{"content":"Prometheus + Grafana monitoring"}}
+  ],
+  "title": "n8n-ai-minimal-overview",
+  "schemaVersion": 27,
+  "version": 1
+}

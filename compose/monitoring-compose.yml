@@ -47,9 +47,9 @@ services:
       - "3000:3000"
     volumes:
       - grafana_data:/var/lib/grafana
-      - E:/AI/n8n-ai-starter-kit/config/grafana/provisioning:/etc/grafana/provisioning
-      - E:/AI/n8n-ai-starter-kit/config/grafana/grafana.ini:/etc/grafana/grafana.ini
-      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
+      - ../config/grafana/provisioning:/etc/grafana/provisioning
+      - ../config/grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ../config/grafana/dashboards:/var/lib/grafana/dashboards
     networks:
       - monitoring
     depends_on:
@@ -115,7 +115,7 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
-      - "8080:8080"
+      - "8081:8080"
     networks:
       - monitoring
     command:
@@ -156,11 +156,17 @@ services:
       - monitoring
       - n8n_network
     
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9187/metrics"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    # removed healthcheck: Prometheus will scrape the exporter
+
+  blackbox:
+    image: prom/blackbox-exporter:latest
+    container_name: n8n-ai-blackbox
+    restart: unless-stopped
+    ports:
+      - "9115:9115"
+    networks:
+      - monitoring
+      - n8n_network
 
 volumes:
   prometheus_data:

@@ -207,18 +207,19 @@
 
 # Optional n8n-importer service (developer profile). Enable when you want the
 # importer to run in docker-compose. Paths are relative to the compose/ folder.
-n8n-importer:
-  build: ../services/n8n-importer
-  image: n8n-importer:local
-  restart: "no"
-  profiles: [developer]
-  environment:
-    - ALLOW_RUNTIME_CLONE=false
-    - N8N_AUTO_IMPORT=false
-  volumes:
-    - ../services/n8n-importer/n8n-workflows:/opt/n8n-workflows:ro
-    - ../logs/n8n-importer:/var/log/n8n-importer:rw
-  networks:
-    - backend
-  # Run manually:
-  # docker compose -f docker-compose.yml -f compose/optional-services.yml run --rm n8n-importer
+services:
+  n8n-importer:
+    build: ../services/n8n-importer
+    image: n8n-importer:local
+    restart: "no"
+    profiles: [developer]
+    environment:
+      - ALLOW_RUNTIME_CLONE=false
+      - N8N_AUTO_IMPORT=false
+    volumes:
+      - ../services/n8n-importer/n8n-workflows:/opt/n8n-workflows:ro
+      - ../logs/n8n-importer:/var/log/n8n-importer:rw
+    networks:
+      - backend
+    # Run manually:
+    # docker compose -f docker-compose.yml -f compose/optional-services.yml run --rm n8n-importer

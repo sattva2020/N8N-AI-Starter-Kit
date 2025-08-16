@@ -1,3 +1,8 @@
+version: '3.8'
+
+# Simple, validated docker-compose for local development.
+# Uses Prometheus + Blackbox exporter for service probing (service-health removed).
+
 x-traefik-base: &traefik-base
   image: traefik:latest
   restart: unless-stopped
@@ -11,12 +16,6 @@ x-traefik-base: &traefik-base
     - ./config/traefik:/etc/traefik/dynamic
   networks:
     - frontend
-  healthcheck:
-    test: ["CMD", "traefik", "healthcheck", "--ping"]
-    interval: 10s
-    timeout: 5s
-    retries: 3
-    start_period: 5s
 
 x-service-n8n: &service-n8n
   image: n8nio/n8n:latest
@@ -26,35 +25,23 @@ x-service-n8n: &service-n8n
     - N8N_HOST=${N8N_HOST}
     - N8N_PORT=${N8N_PORT}
     - N8N_PROTOCOL=${N8N_PROTOCOL}
-    # Database configuration
     - DB_TYPE=${DB_TYPE}
     - DB_POSTGRESDB_HOST=${DB_POSTGRESDB_HOST}
     - DB_POSTGRESDB_PORT=${DB_POSTGRESDB_PORT}
     - DB_POSTGRESDB_DATABASE=${DB_POSTGRESDB_DATABASE}
     - DB_POSTGRESDB_USER=${DB_POSTGRESDB_USER}
-    - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD} # Используем единую переменную для пароля
-    # Fix permissions warning
+    - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
     - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
-    # Ensure fresh start with clean config - CRITICAL for encryption key conflicts
-    - N8N_RESET=${N8N_RESET:-false}
-    - N8N_RESET_OWNER_ONLY=true
-    # Enable task runners to avoid deprecation warnings
-    - N8N_RUNNERS_ENABLED=true
   networks:
     - frontend
     - backend
   volumes:
-  #  - n8n_storage:/home/node/.n8n
-    - ./n8n/credentials:/home/node/.n8n/credentials:ro  # Локальные credentials
-
+    - ./n8n/credentials:/home/node/.n8n/credentials:ro
 
 services:
   traefik:
     <<: *traefik-base
     profiles: [default, cpu, gpu-nvidia, developer]
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
     command:
       - "--api.dashboard=true"
       - "--entryPoints.traefik.address=:8080"
@@ -66,82 +53,26 @@ services:
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-      - "--certificatesresolvers.myresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
       - "--log.filePath=/var/log/traefik.log"
       - "--log.format=json"
       - "--ping=true"
       - "--log.level=INFO"
       - "--accesslog=true"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`${TRAEFIK_DASHBOARD_DOMAIN}`)"
-      - "traefik.http.routers.traefik.service=api@internal"
-      - "traefik.http.routers.traefik.entrypoints=traefik"
-      - "traefik.http.routers.traefik.middlewares=auth"
-      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_USERNAME}:${TRAEFIK_PASSWORD_HASHED}"
-      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
 
-  # Общие настройки для N8N
   n8n:
     <<: *service-n8n
     profiles: [default, cpu, gpu-nvidia, developer]
     ports:
       - "5678:5678"
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`)"
-      - "traefik.http.routers.n8n.entrypoints=web"
-      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
-      # HTTPS роутинг для продакшн доменов
-      - "traefik.http.routers.n8n-secure.rule=Host(`${N8N_DOMAIN}`)"
-      - "traefik.http.routers.n8n-secure.entrypoints=websecure"
-      - "traefik.http.routers.n8n-secure.tls.certresolver=myresolver"
-      - "traefik.http.routers.n8n-secure.service=n8n"
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2G
-        reservations:
-          cpus: '1'
-          memory: 1G
-    healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:5678/', (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))\""]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 90s  # Увеличиваем время запуска
-
-  # Workflows Documentation Service (Zie619/n8n-workflows)
-  # Removed: this project no longer manages the Zie619/n8n-workflows service automatically.
-  # Manage the repository manually under ./n8n-workflows when needed.
-
-  # Note: importer removed. The Zie619/n8n-workflows repository is managed
-  # manually as per project policy. If you want to re-enable automated import,
-  # restore the services/n8n-importer Dockerfile and run-importer.sh and add the
-  # service block back here.
-
-  # Optional: n8n-importer service (disabled by default). Uncomment to enable.
-  # n8n-importer:
-  #   build: ./services/n8n-importer
-  #   image: n8n-importer:local
-  #   restart: "no"
-  #   profiles: [developer]
-  #   environment:
-  #     - ALLOW_RUNTIME_CLONE=false
-  #     - N8N_AUTO_IMPORT=false
-  #   volumes:
-  #     - ./services/n8n-importer/n8n-workflows:/opt/n8n-workflows:ro
-  #     - ./logs/n8n-importer:/var/log/n8n-importer:rw
-  #   networks:
-  #     - backend
-  #   # This service is intended to be run manually via: docker compose run --rm n8n-importer
+  # healthcheck removed: switching to Prometheus + Blackbox exporter for probing
 
   postgres:
-    image: pgvector/pgvector:pg17 # Образ с поддержкой pgvector для Graphiti (последняя версия)
+    image: pgvector/pgvector:pg17
     restart: unless-stopped
     profiles: [default, cpu, gpu-nvidia, developer]
     environment:
@@ -149,32 +80,18 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_INITDB_ARGS=--encoding=UTF8
-      # Передаем переменные для скрипта инициализации (правильные значения)
       - N8N_USER=n8n
       - N8N_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres_storage:/var/lib/postgresql/data
-      # - ./scripts/init-pgvector.sql:/docker-entrypoint-initdb.d/01-init-pgvector.sql:ro  # Временно отключен
       - ./scripts/init-n8n-user.sh:/docker-entrypoint-initdb.d/02-init-n8n-user.sh:ro
-      # Zep скрипт больше не нужен после перехода на Graphiti
     networks:
       - database
       - backend
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d ${POSTGRES_DB} || pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 256M
+  # healthcheck removed: switching to Prometheus + Blackbox exporter for probing
 
   pgadmin:
-    image: dpage/pgadmin4:latest # latest для упрощения поддержки
+    image: dpage/pgadmin4:latest
     restart: unless-stopped
     profiles: [developer]
     environment:
@@ -190,145 +107,13 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.pgadmin.rule=Host(`${PGADMIN_DOMAIN}`)"
       - "traefik.http.routers.pgadmin.entrypoints=web"
-      # Disable TLS for localhost development
-      # Uncomment for production:
       - "traefik.http.routers.pgadmin.entrypoints=websecure"
       - "traefik.http.routers.pgadmin.tls.certresolver=myresolver"
       - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/pgadmin4/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  qdrant:
-    image: qdrant/qdrant:latest
-    restart: unless-stopped
-    profiles: [default, cpu, gpu-nvidia, developer]
-    ports:
-      - "6333:6333"
-    volumes:
-      - qdrant_storage:/qdrant/storage
-      - qdrant_snapshots:/qdrant/snapshots
-    networks:
-      - backend
-      - frontend
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.qdrant.rule=Host(`${QDRANT_DOMAIN}`)"
-      - "traefik.http.routers.qdrant.entrypoints=web"
-      # Disable TLS for localhost development
-      # Uncomment for production:
-      - "traefik.http.routers.qdrant.entrypoints=websecure"
-      - "traefik.http.routers.qdrant.tls.certresolver=myresolver"
-      - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-        reservations:
-          memory: 1G
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:6333/ || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5  # Увеличиваем количество попыток
-      start_period: 60s  # Увеличиваем время запуска
-
-  # document-processor:  # Temporarily disabled
-  #   build: ./services/document-processor
-  #   restart: unless-stopped
-  #   profiles: [default, cpu, gpu-nvidia, developer]
-  #   ports:
-  #     - "8001:8001"
-  #   volumes:
-  #     - ./data/uploads:/app/uploads
-  #     - ./data/processed:/app/processed
-  #   environment:
-  #     - PYTHONPATH=/app
-  #     - PYTHONUNBUFFERED=1
-  #     - MAX_FILE_SIZE=100MB
-  #     - SUPPORTED_FORMATS=pdf,docx,txt,md,rtf
-  #     - LAZY_EMBEDDINGS=true
-  #     - DATABASE_URL=postgresql://n8n:${POSTGRES_PASSWORD}@postgres:5432/n8n
-  #     - POSTGRES_HOST=postgres
-  #     - POSTGRES_PORT=5432
-  #     - POSTGRES_USER=n8n
-  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-  #     - POSTGRES_DB=n8n
-  #   networks:
-  #     - backend
-  #     - frontend
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.docprocessor.rule=Host(`${DOCUMENT_PROCESSOR_DOMAIN}`)"
-  #     - "traefik.http.routers.docprocessor.entrypoints=web"
-  #     - "traefik.http.services.docprocessor.loadbalancer.server.port=8001"
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: 2G
-  #         cpus: '2'
-  #       reservations:
-  #         memory: 1G
-  #         cpus: '1'
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "curl -f http://localhost:8001/health || exit 1"]
-  #     interval: 30s
-  #     timeout: 15s
-  #     retries: 5
-  #     start_period: 90s
-
-#   web-interface:
-#     build: ./services/web-interface
-#     restart: unless-stopped
-#     profiles: [default, cpu, gpu-nvidia, developer]
-#     ports:
-#       - "8002:8002"
-#     environment:
-#       - PYTHONPATH=/app
-#       - PYTHONUNBUFFERED=1
-      # DOCUMENT_PROCESSOR_URL is optional. When the document-processor service is disabled
-      # the URL should be provided via the environment (for example in your .env) or left empty.
-#       - DOCUMENT_PROCESSOR_URL=${DOCUMENT_PROCESSOR_URL:-}
-#       - QDRANT_URL=http://qdrant:6333
-#     networks:
-#       - backend
-#       - frontend
-    # NOTE: document-processor service is currently commented out in this compose file.
-    # Removing the hard depends_on reference so `docker compose` won't fail project validation
-    # when document-processor is disabled. If you re-enable the service, either set
-    # DOCUMENT_PROCESSOR_URL in your .env to http://document-processor:8001 or re-add the
-    # depends_on block.
-#     labels:
-#       - "traefik.enable=true"
-#       - "traefik.http.routers.webinterface.rule=Host(`${WEB_INTERFACE_DOMAIN}`)"
-#       - "traefik.http.routers.webinterface.entrypoints=web"
-#       - "traefik.http.services.webinterface.loadbalancer.server.port=8002"
-#     deploy:
-#       resources:
-#         limits:
-#           memory: 1G
-#           cpus: '1'
-#         reservations:
-#           memory: 512M
-#           cpus: '0.5'
-#     healthcheck:
-#       test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
-#       interval: 30s
-#       timeout: 10s
-#       retries: 3
-#       start_period: 40s
-  #
-  # To re-enable: uncomment this block or remove leading '#' characters and (optionally)
-  # set DOCUMENT_PROCESSOR_URL in your .env if the document-processor service is not running.
-
-  # 'ollama' service is defined in compose/ollama-compose.yml (included below).
-  # We keep x-service-ollama anchor above for services that may merge it.
+  # removed; Prometheus/Blackbox will perform HTTP probe checks
 
   jupyterlab:
-    image: jupyter/minimal-notebook:latest # latest для упрощения поддержки
+    image: jupyter/minimal-notebook:latest
     restart: unless-stopped
     profiles: [developer]
     volumes:
@@ -342,34 +127,35 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.jupyter.rule=Host(`${JUPYTER_DOMAIN}`)"
       - "traefik.http.routers.jupyter.entrypoints=web"
-      # Disable TLS for localhost development
-      # Uncomment for production:
-      - "traefik.http.routers.jupyter.entrypoints=websecure"
-      - "traefik.http.routers.jupyter.tls.certresolver=myresolver"
       - "traefik.http.services.jupyter.loadbalancer.server.port=8888"
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-        reservations:
-          memory: 1G
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+  # removed; Prometheus/Blackbox will perform HTTP probe checks
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: always
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    configs:
+      - source: qdrant_config
+        target: /qdrant/config/production.yaml
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    networks:
+      - backend
+      - frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.qdrant.rule=Host(`${QDRANT_DOMAIN}`)"
+      - "traefik.http.routers.qdrant.entrypoints=web"
+      - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
+
+  # monitoring services removed from root compose to avoid duplication.
+  # Use the existing monitoring compose files under `compose/` (prometheus, grafana, alertmanager, exporters).
 
 include:
-  # Graphiti и Neo4j для AI память и граф знаний
-  - path: ./compose/graphiti-compose.yaml  # Содержит Graphiti и Neo4j (бывший zep-compose.yaml)
-  # - path: ./compose/supabase-compose.yml  # Временно отключен для упрощения диагностики
-  - path: ./compose/ollama-compose.yml
-  - path: ./compose/optional-services.yml
-  # Graphiti и Neo4j для AI память и граф знаний
-  - path: ./compose/graphiti-compose.yaml  # Содержит Graphiti и Neo4j (бывший zep-compose.yaml)
-  # - path: ./compose/supabase-compose.yml  # Временно отключен для упрощения диагностики
+  - path: ./compose/graphiti-compose.yaml
   - path: ./compose/ollama-compose.yml
   - path: ./compose/optional-services.yml
 
@@ -378,15 +164,16 @@ volumes:
   postgres_storage:
   ollama_data:
   traefik_letsencrypt:
-  # Allow Compose to create this volume automatically. Previously this was
-  # declared as external which requires the volume to exist on the host.
-  # Removing `external: true` makes the volume managed by Compose and
-  # avoids "external volume not found" errors on fresh installs.
   pgadmin_data:
   qdrant_storage:
   qdrant_snapshots:
   jupyter_data:
-  n8n_import_logs:  # Логи автоматического импорта workflows
+  n8n_import_logs:
+
+configs:
+  qdrant_config:
+    content: |
+      log_level: INFO
 
 networks:
   frontend:

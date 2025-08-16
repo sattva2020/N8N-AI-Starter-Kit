@@ -1,8 +1,0 @@
-[33m6eb7923[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mtest[m[33m, [m[1;31morigin/test[m[33m)[m fix(n8n): Resolve database authentication and add runner config
-[33mfc037f6[m fix(ollama): Correct healthcheck and improve model pulling
-[33m14dd370[m feat: Integrate official n8n-workflows importer script
-[33mde2f3c4[m Refactor: Переработан сервис импорта workflows
-[33mb7410c9[m Fix: Исправлена проблема с экранированием символов в .env
-[33m3e58653[m security: implement comprehensive security measures for workflows integration - add input validation and path traversal protection - implement rate limiting with slowapi - add CORS middleware and security headers - create API key authentication system - add security audit documentation - create automated security key generation script - implement comprehensive error handling and logging - add security headers in Traefik configuration
-[33mbbedc90[m feat: implement hybrid integration with Zie619/n8n-workflows - add workflows-doc service for documentation and search - add workflows-manager service for web-based import management - update setup.sh to build and run documentation service - create comprehensive web interface for workflow browsing and import - integrate with official repository API for metadata and categorization - provide both automatic and selective import options
-[33m04724a1[m chore: ignore embedded repo n8n-workflows-es-main in .gitignore

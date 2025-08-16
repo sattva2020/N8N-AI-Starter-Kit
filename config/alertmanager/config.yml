@@ -22,6 +22,10 @@ route:
   receiver: 'default-receiver'
   
   routes:
+    - match:
+        alertname: TestAlert
+      receiver: 'test-webhook'
+      group_wait: 1s
     # Critical alerts - immediate notification
     - match:
         severity: critical
@@ -184,6 +188,11 @@ receivers:
     #       {{ end }}
     #       
     #       AI functionality may be impacted.
+
+
+  - name: 'test-webhook'
+    webhook_configs:
+      - url: 'http://host.docker.internal:8085/webhook'
 
 # Inhibition rules - prevent spam alerts
 inhibit_rules:

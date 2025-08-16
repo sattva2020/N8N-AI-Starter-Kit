@@ -134,5 +134,25 @@ scrape_configs:
         regex: (.+)
         replacement: ${__meta_docker_container_network_ip}:${1}
 
+  # Blackbox exporter probes for HTTP endpoints (external HTTP checks)
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://traefik:80/
+          - http://pgadmin:80/
+          - http://jupyterlab:8888/
+          - http://n8n:5678/
+          - http://qdrant:6333/
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+
 # Recording rules for frequently used queries
   # Can be added later for performance optimization
