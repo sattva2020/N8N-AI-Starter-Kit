@@ -394,8 +394,8 @@ echo -e "${BLUE}Остановка существующих контейнеро
 $DOCKER_COMPOSE_CMD down > /dev/null 2>&1
 
 # Запуск с оптимальными настройками
-echo -e "${BLUE}Команда запуска:${NC} COMPOSE_PARALLEL_LIMIT=1 $DOCKER_COMPOSE_CMD --profile $PROFILE up -d"
-COMPOSE_PARALLEL_LIMIT=1 $DOCKER_COMPOSE_CMD --profile $PROFILE up -d
+echo -e "${BLUE}Команда запуска:${NC} $DOCKER_COMPOSE_CMD --profile $PROFILE up -d"
+$DOCKER_COMPOSE_CMD --profile $PROFILE up -d
 
 # Проверка результата запуска
 if [ $? -eq 0 ]; then

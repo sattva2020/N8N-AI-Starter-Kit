@@ -3,7 +3,7 @@
 # Версия: 1.0.6
 
 # Set parallel container limit to prevent concurrent map writes error
-export COMPOSE_PARALLEL_LIMIT=1
+# COMPOSE_PARALLEL_LIMIT removed to allow Compose to manage parallelism
 
 # Цвета для вывода
 RED='\033[0;31m'
