@@ -362,7 +362,10 @@ volumes:
   postgres_storage:
   ollama_data:
   traefik_letsencrypt:
-    external: true
+  # Allow Compose to create this volume automatically. Previously this was
+  # declared as external which requires the volume to exist on the host.
+  # Removing `external: true` makes the volume managed by Compose and
+  # avoids "external volume not found" errors on fresh installs.
   pgadmin_data:
   qdrant_storage:
   qdrant_snapshots:
