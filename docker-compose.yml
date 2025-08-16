@@ -187,10 +187,7 @@ services:
       start_period: 40s
 
   qdrant:
-    build:
-      context: ./infra/qdrant
-      dockerfile: Dockerfile
-    image: local-qdrant:latest
+    image: qdrant/qdrant:latest
     restart: unless-stopped
     profiles: [default, cpu, gpu-nvidia, developer]
     ports:
