@@ -439,13 +439,25 @@ while [ "$waited" -lt "$max_wait" ]; do
     if [ "$n8n_status" == "running" ]; then
         n8n_health=$($DOCKER_COMPOSE_CMD ps --format '{{.Health}}' n8n)
         if [[ "$n8n_health" == *"healthy"* ]]; then
-            echo -e "${GREEN}${EMOJI_OK} n8n готов. Запуск импорта...${NC}"
-            $DOCKER_COMPOSE_CMD run --rm n8n-importer
-            if [ $? -eq 0 ]; then
-                echo -e "${GREEN}${EMOJI_OK} Импорт workflows успешно завершен.${NC}"
-            else
-                echo -e "${RED}${EMOJI_ERROR} Ошибка во время импорта workflows.${NC}"
-            fi
+            echo -e "${GREEN}${EMOJI_OK} n8n готов.${NC}"
+
+                # Автоматический импорт выполняется только если явно включён
+                if [ "${N8N_AUTO_IMPORT:-false}" != "true" ]; then
+                    echo -e "${YELLOW}${EMOJI_NOTE} Автоматический импорт отключён (N8N_AUTO_IMPORT!=true). Пропускаем.${NC}"
+                else
+                    # Проверяем, что сервис n8n-importer определён в конфигурации compose
+                    if $DOCKER_COMPOSE_CMD config --services 2>/dev/null | grep -q '^n8n-importer$'; then
+                        echo -e "${BLUE}${EMOJI_SETUP} Запуск n8n-importer...${NC}"
+                        $DOCKER_COMPOSE_CMD run --rm n8n-importer
+                        if [ $? -eq 0 ]; then
+                            echo -e "${GREEN}${EMOJI_OK} Импорт workflows успешно завершен.${NC}"
+                        else
+                            echo -e "${RED}${EMOJI_ERROR} Ошибка во время импорта workflows.${NC}"
+                        fi
+                    else
+                        echo -e "${YELLOW}${EMOJI_WARN} Сервис n8n-importer не определён в compose — пропускаем импорт.${NC}"
+                    fi
+                fi
             break
         fi
     fi
