@@ -445,8 +445,22 @@ echo -e "${BLUE}Остановка существующих контейнеро
 $DOCKER_COMPOSE_CMD down > /dev/null 2>&1
 
 # Запуск с оптимальными настройками
-echo -e "${BLUE}Команда запуска:${NC} $DOCKER_COMPOSE_CMD --profile $PROFILE up -d"
-$DOCKER_COMPOSE_CMD --profile $PROFILE up -d
+# Ensure docker-compose has access to variables defined in .env. Some docker
+# compose versions don't automatically load .env depending on context, so we
+# export the file into the environment and also pass --env-file for robustness.
+ENV_FILE_ARG=""
+if [ -f .env ]; then
+    echo -e "${CYAN}Экспорт переменных из .env для docker compose...${NC}"
+    # Export all variables from .env into the environment (idempotent)
+    set -o allexport
+    # shellcheck disable=SC1090
+    . ./.env 2>/dev/null || . .env 2>/dev/null || true
+    set +o allexport
+    ENV_FILE_ARG="--env-file .env"
+fi
+
+echo -e "${BLUE}Команда запуска:${NC} $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} --profile $PROFILE up -d"
+$DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} --profile $PROFILE up -d
 
 # Проверка результата запуска
 if [ $? -eq 0 ]; then
