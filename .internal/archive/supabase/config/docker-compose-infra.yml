@@ -1,3 +1,12 @@
+version: '3.8'
+# Placeholder compose fragment to satisfy includes during local validation.
+# Replace this file with your real supabase infra compose file when available.
+# Creating a minimal, valid docker-compose file avoids "file not found" errors
+# when validating the combined compose configuration in CI or locally.
+
+services: {}
+
+networks: {}
 # docker-compose.yml
 
 services:

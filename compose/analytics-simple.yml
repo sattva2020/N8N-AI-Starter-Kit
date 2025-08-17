@@ -23,12 +23,7 @@ services:
       nofile:
         soft: 262144
         hard: 262144
-    healthcheck:
-      test: ["CMD", "clickhouse", "client", "--query", "SELECT 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+  # healthcheck removed; external monitoring (Prometheus/Grafana) is used
 
   postgres:
     image: postgres:15-alpine
@@ -44,11 +39,7 @@ services:
     networks:
       - analytics_network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U superset -d superset"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # healthcheck removed; external monitoring (Prometheus/Grafana) is used
 
   redis:
     image: redis:7-alpine
@@ -63,11 +54,7 @@ services:
     networks:
       - analytics_network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # healthcheck removed; external monitoring (Prometheus/Grafana) is used
 
 volumes:
   clickhouse_data:

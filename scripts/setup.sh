@@ -1609,10 +1609,19 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
     print_info "Сгенерирован новый ключ шифрования N8N"
   fi
   n8n_jwt_secret=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
-  supabase_postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
-  supabase_anon_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
-  supabase_service_role_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
-  supabase_jwt_secret=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+  # Supabase keys generation is optional. Controlled by SUPABASE_ENABLED (default: false).
+  if [ "${SUPABASE_ENABLED:-false}" = "true" ]; then
+    supabase_postgres_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+    supabase_anon_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+    supabase_service_role_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+    supabase_jwt_secret=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+  else
+    echo "INFO: SUPABASE_ENABLED is not 'true' - skipping Supabase credential generation"
+    supabase_postgres_pwd=""
+    supabase_anon_key=""
+    supabase_service_role_key=""
+    supabase_jwt_secret=""
+  fi
   jwt_expiry="3600"
   logflare_api_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
   secret_key_base=$(openssl rand -base64 96 | tr -cd '[:alnum:]' | cut -c1-64)

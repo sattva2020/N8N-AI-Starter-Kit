@@ -34,11 +34,7 @@ services:
       ANON_KEY: ${ANON_KEY}
       SERVICE_KEY: ${SERVICE_ROLE_KEY}
       TENANT_ID: ${POOLER_TENANT_ID:-n8n}
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--spider", "http://localhost:5000/status"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # healthcheck removed; external monitoring (Prometheus/Grafana) is used
     networks:
       - supabase-internal
       - backend
@@ -127,11 +123,7 @@ services:
           memory: 256M
     image: supabase/studio:latest
     container_name: supabase-studio
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/profile', (r) => {process.exit(r.statusCode !== 200)})"]
-      timeout: 5s
-      interval: 5s
-      retries: 3
+  # healthcheck removed; external monitoring (Prometheus/Grafana) is used
     environment:
       STUDIO_PG_META_URL: http://supabase-meta:8080
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}

@@ -1,8 +1,6 @@
 # Monitoring Stack для N8N AI Starter Kit
 # Prometheus + Grafana + AlertManager
 
-version: '3.8'
-
 services:
   prometheus:
     image: prom/prometheus:latest

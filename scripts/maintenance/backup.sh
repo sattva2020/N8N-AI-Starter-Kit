@@ -33,13 +33,19 @@ else
 fi
 
 # Экспорт Supabase данных (если используется)
-if docker compose ps | grep -q supabase-db; then
-    log "Экспорт данных Supabase..."
-    docker compose exec -T db pg_dump -U postgres -d postgres > "${BACKUP_DIR}/supabase_db_${TIMESTAMP}.sql" 2>> "${LOG_DIR}/backup_error.log"
-    if [ $? -ne 0 ]; then
-        log "ОШИБКА: Не удалось экспортировать данные Supabase"
+if [ "${SUPABASE_ENABLED:-false}" != "true" ]; then
+    log "INFO: SUPABASE_ENABLED != true — пропускаем бэкап Supabase"
+else
+    if docker compose ps | grep -q supabase-db; then
+        log "Экспорт данных Supabase..."
+        docker compose exec -T db pg_dump -U postgres -d postgres > "${BACKUP_DIR}/supabase_db_${TIMESTAMP}.sql" 2>> "${LOG_DIR}/backup_error.log"
+        if [ $? -ne 0 ]; then
+            log "ОШИБКА: Не удалось экспортировать данные Supabase"
+        else
+            log "Данные Supabase успешно экспортированы"
+        fi
     else
-        log "Данные Supabase успешно экспортированы"
+        log "ОШИБКА: Не удалось экспортировать данные Supabase"
     fi
 fi
 

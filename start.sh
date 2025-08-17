@@ -49,6 +49,10 @@ fi
 
 echo -e "${BLUE}=== Интеллектуальный запуск N8N AI Starter Kit ===${NC}"
 
+# Flag set to 1 when ./scripts/setup.sh created or updated .env during this run.
+# This prevents re-prompting the user later in the script when .env was just generated.
+ENV_CREATED_BY_SETUP=0
+
 # Автоматическое определение оптимального профиля
 detect_optimal_profile() {
     local memory=$(free -m 2>/dev/null | awk 'NR==2{printf "%.0f", $2/1024}' || echo "0")
@@ -146,6 +150,9 @@ run_setup() {
         
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}${EMOJI_OK} Настройка завершена успешно!${NC}"
+            # setup.sh created or updated .env during its run; record this to avoid
+            # re-prompting the user later in the start script.
+            ENV_CREATED_BY_SETUP=1
             # Если мы в интерактивном терминале — спросим пользователя
             # хочет ли он автоматически запустить импорт workflows после старта n8n.
             if [ -t 0 ]; then
@@ -199,14 +206,16 @@ auto_fix_issues() {
     # Создание .env файла если отсутствует
     if [ ! -f .env ]; then
         echo -e "  ${EMOJI_FILE} Файл .env не найден — запускаем генерацию из схемы переменных..."
-        if [ -f "./scripts/setup.sh" ]; then
+            if [ -f "./scripts/setup.sh" ]; then
             echo -e "  ${CYAN}Вызов: ./scripts/setup.sh --generate-only${NC}"
             chmod +x ./scripts/setup.sh
-            ./scripts/setup.sh --generate-only || {
-                echo -e "  ${RED}${EMOJI_ERROR} Не удалось автоматически сгенерировать .env${NC}"
-                echo -e "  ${YELLOW}Запустите ./scripts/setup.sh вручную для интерактивной настройки.${NC}"
-                return 1
-            }
+                ./scripts/setup.sh --generate-only || {
+                    echo -e "  ${RED}${EMOJI_ERROR} Не удалось автоматически сгенерировать .env${NC}"
+                    echo -e "  ${YELLOW}Запустите ./scripts/setup.sh вручную для интерактивной настройки.${NC}"
+                    return 1
+                }
+                # mark that setup created .env
+                ENV_CREATED_BY_SETUP=1
             echo -e "  ${GREEN}${EMOJI_OK} Файл .env сгенерирован из схемы переменных${NC}"
         else
             echo -e "  ${RED}${EMOJI_ERROR} Скрипт ./scripts/setup.sh не найден — создайте .env вручную${NC}"
@@ -294,44 +303,55 @@ fi
 
 # Если .env уже существует, спросим пользователя, что делать: бекап+генерация, перезаписать или продолжить
 if [ -f .env ]; then
-    echo ""
-    echo -e "${YELLOW}${EMOJI_WARN} Обнаружен файл .env в корне проекта.${NC}"
-    echo "Выберите действие для существующего .env:"
-    echo "  1) Создать бэкап (.env.bak.<timestamp>) и сгенерировать новый .env"
-    echo "  2) Перезаписать существующий .env новым (без сохранения бэкапа)"
-    echo "  3) Продолжить с существующим .env (рекомендуется, если вы уверены)"
-    echo -ne "Ваш выбор (1/2/3, по-умолчанию 3): "
-    read -r env_choice
-    env_choice=${env_choice:-3}
+    # Если .env был только что создан мастером в рамках этого запуска — не надо
+    # снова спрашивать пользователя о создании бэкапа/перезаписи.
+    if [ "${ENV_CREATED_BY_SETUP:-0}" -eq 1 ]; then
+        echo ""
+        echo -e "${CYAN}Файл .env был только что сгенерирован мастером; пропускаю запрос о бэкапе и продолжаю.${NC}"
+        env_choice=3
+    else
+        echo ""
+        echo -e "${YELLOW}${EMOJI_WARN} Обнаружен файл .env в корне проекта.${NC}"
+        echo "Выберите действие для существующего .env:"
+        echo "  1) Создать бэкап (.env.bak.<timestamp>) и сгенерировать новый .env"
+        echo "  2) Перезаписать существующий .env новым (без сохранения бэкапа)"
+        echo "  3) Продолжить с существующим .env (рекомендуется, если вы уверены)"
+        echo -ne "Ваш выбор (1/2/3, по-умолчанию 3): "
+        read -r env_choice
+        env_choice=${env_choice:-3}
 
-    case "$env_choice" in
-        1)
-            echo -e "${CYAN}Создаём бэкап .env и запускаем генерацию нового .env...${NC}"
-            timestamp=$(date +%Y%m%d%H%M%S 2>/dev/null || echo "bk_$(date +%s)")
-            cp .env ".env.bak.$timestamp" || { echo -e "${RED}Не удалось создать бэкап .env${NC}"; }
-            if [ -f "./scripts/setup.sh" ]; then
-                chmod +x ./scripts/setup.sh
-                ./scripts/setup.sh --generate-only || echo -e "${YELLOW}Генерация .env завершилась с ошибкой, проверьте./scripts/setup.sh${NC}"
-            else
-                echo -e "${RED}./scripts/setup.sh не найден — создайте .env вручную или поместите скрипт в директорию scripts/${NC}"
-            fi
-            ;;
-        2)
-            echo -e "${CYAN}Перезаписываем .env новым, без создания бэкапа...${NC}"
-            if [ -f "./scripts/setup.sh" ]; then
-                chmod +x ./scripts/setup.sh
-                ./scripts/setup.sh --generate-only || echo -e "${YELLOW}Генерация .env завершилась с ошибкой${NC}"
-            else
-                echo -e "${RED}./scripts/setup.sh не найден — невозможно сгенерировать .env${NC}"
-            fi
-            ;;
-        3)
-            echo -e "${GREEN}Продолжаем с существующим .env${NC}"
-            ;;
-        *)
-            echo -e "${YELLOW}Неверный выбор — продолжаем с существующим .env${NC}"
-            ;;
-    esac
+        case "$env_choice" in
+            1)
+                echo -e "${CYAN}Создаём бэкап .env и запускаем генерацию нового .env...${NC}"
+                timestamp=$(date +%Y%m%d%H%M%S 2>/dev/null || echo "bk_$(date +%s)")
+                cp .env ".env.bak.$timestamp" || { echo -e "${RED}Не удалось создать бэкап .env${NC}"; }
+                if [ -f "./scripts/setup.sh" ]; then
+                    chmod +x ./scripts/setup.sh
+                    ./scripts/setup.sh --generate-only || echo -e "${YELLOW}Генерация .env завершилась с ошибкой, проверьте./scripts/setup.sh${NC}"
+                    # mark that setup created .env
+                    ENV_CREATED_BY_SETUP=1
+                else
+                    echo -e "${RED}./scripts/setup.sh не найден — создайте .env вручную или поместите скрипт в директорию scripts/${NC}"
+                fi
+                ;;
+            2)
+                echo -e "${CYAN}Перезаписываем .env новым, без создания бэкапа...${NC}"
+                if [ -f "./scripts/setup.sh" ]; then
+                    chmod +x ./scripts/setup.sh
+                    ./scripts/setup.sh --generate-only || echo -e "${YELLOW}Генерация .env завершилась с ошибкой${NC}"
+                    ENV_CREATED_BY_SETUP=1
+                else
+                    echo -e "${RED}./scripts/setup.sh не найден — невозможно сгенерировать .env${NC}"
+                fi
+                ;;
+            3)
+                echo -e "${GREEN}Продолжаем с существующим .env${NC}"
+                ;;
+            *)
+                echo -e "${YELLOW}Неверный выбор — продолжаем с существующим .env${NC}"
+                ;;
+        esac
+    fi
 
     # If user chose to continue with existing .env, ask whether to enable automatic import
     if [ "$env_choice" = "3" ] && [ -t 0 ]; then
