@@ -123,7 +123,7 @@ services:
   # N8N Metrics Exporter (custom)
   n8n-exporter:
     build:
-      context: ./services/n8n-exporter
+      context: ../services/n8n-exporter
       dockerfile: Dockerfile
     container_name: n8n-ai-n8n-exporter
     restart: unless-stopped
@@ -136,12 +136,11 @@ services:
     networks:
       - monitoring
       - n8n_network
-    
 
   # PostgreSQL Exporter
   postgres-exporter:
     build:
-      context: ./services/postgres-exporter
+      context: ../services/postgres-exporter
       dockerfile: Dockerfile
     container_name: n8n-ai-postgres-exporter
     restart: unless-stopped
@@ -153,8 +152,6 @@ services:
     networks:
       - monitoring
       - n8n_network
-    
-    # removed healthcheck: Prometheus will scrape the exporter
 
   blackbox:
     image: prom/blackbox-exporter:latest
