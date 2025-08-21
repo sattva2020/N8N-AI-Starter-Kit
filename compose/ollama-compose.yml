@@ -10,7 +10,7 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-      - ../config/ollama-models.txt:/config/ollama-models.txt:ro
+      - ../config:/config:ro
     environment:
       - OLLAMA_HOST=0.0.0.0:11434
       - OLLAMA_MODELS=/root/.ollama/models
@@ -36,20 +36,44 @@ services:
 
   # Сервис для предварительной загрузки моделей Ollama
   ollama-pull:
-    image: curlimages/curl:latest # Используем более подходящий образ
+    image: alpine:3.18 # базовый образ; установим curl+jq в рантайме
     profiles: [default, cpu, gpu-nvidia, developer]
     restart: "no"
     networks:
       - backend
     volumes:
-      - ../config/ollama-models.txt:/config/ollama-models.txt:ro # Монтируем файл с моделями
-      - ../logs/ollama-pull.log:/tmp/ollama-pull.log:rw # Монтируем лог на хост для постоянного хранения
+      - ../config:/config:ro # Монтируем папку config (включая ollama-models.txt)
+      - ../logs/ollama:/var/log/ollama:rw # Монтируем поддиректорию logs/ollama в /var/log/ollama контейнера
     depends_on:
       - ollama
     command: >
       sh -c '
-        # Перенаправляем stdout в файл, чтобы не захламлять терминал; stderr остаётся видимым
-        exec 1>/tmp/ollama-pull.log
+        apk add --no-cache curl jq >/dev/null 2>&1 || true
+
+        # Robust logging: prefer /var/log/ollama if it is a writable directory, otherwise use /tmp
+        LOG_TMP=/tmp/ollama-pull-$$.log
+        if [ -d /var/log/ollama ] 2>/dev/null; then
+          LOG_PATH=/var/log/ollama/ollama-pull.log
+          touch "$$LOG_PATH" 2>/dev/null || true
+          if [ -w "$$LOG_PATH" ] || [ -w /var/log/ollama ]; then
+            exec > >(tee -a "$$LOG_PATH") 2>&1
+          else
+            exec >"$$LOG_TMP" 2>&1
+          fi
+        else
+          mkdir -p /var/log/ollama 2>/dev/null || true
+          if [ -d /var/log/ollama ] 2>/dev/null; then
+            LOG_PATH=/var/log/ollama/ollama-pull.log
+            touch "$$LOG_PATH" 2>/dev/null || true
+            if [ -w "$$LOG_PATH" ] || [ -w /var/log/ollama ]; then
+              exec > >(tee -a "$$LOG_PATH") 2>&1
+            else
+              exec >"$$LOG_TMP" 2>&1
+            fi
+          else
+            exec >"$$LOG_TMP" 2>&1
+          fi
+        fi
 
         echo "Ожидание готовности Ollama (таймаут 5m)..."
         # Ждем пока Ollama ответит на /api/ps (проверяем каждые 5 секунд, максимум 60 попыток = 5 минут)
@@ -91,16 +115,26 @@ services:
             continue
           fi
 
-          # После успешного POST ждём появления модели в /api/list (timeout 30m)
+          # После успешного POST ждём появления модели в /v1/models (timeout 30m)
           wait_ok=0
           checks=0
           max_checks=360  # 360 * 5s = 1800s = 30 минут
           while [ "$$checks" -lt $$max_checks ]; do
-            if curl -sS http://ollama:11434/api/list | grep -F "$$model_name" >/dev/null 2>&1; then
-              echo "  Модель $$model_name зарегистрирована в Ollama"
-              wait_ok=1
-              break
+            # Prefer precise JSON parsing with jq, fallback to grep if jq missing
+            if command -v jq >/dev/null 2>&1; then
+              if curl -sS http://ollama:11434/v1/models | jq -r '.data[].id' | grep -F "$$model_name" >/dev/null 2>&1; then
+                echo "  Модель $$model_name зарегистрирована в Ollama"
+                wait_ok=1
+                break
+              fi
+            else
+              if curl -sS http://ollama:11434/v1/models | grep -F "$$model_name" >/dev/null 2>&1; then
+                echo "  Модель $$model_name зарегистрирована в Ollama"
+                wait_ok=1
+                break
+              fi
             fi
+
             echo "  Модель $$model_name ещё не зарегистрирована, проверка через 5s... ($$checks/$$max_checks)"
             sleep 5
             checks=$$(expr $$checks + 1)
