@@ -17,7 +17,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - E:/AI/n8n-ai-starter-kit/config/prometheus:/etc/prometheus
+      - ../config/prometheus:/etc/prometheus
       - prometheus_data:/prometheus
     networks:
       - monitoring
@@ -70,7 +70,7 @@ services:
     ports:
       - "9093:9093"
     volumes:
-      - E:/AI/n8n-ai-starter-kit/config/alertmanager:/etc/alertmanager
+      - ../config/alertmanager:/etc/alertmanager
       - alertmanager_data:/alertmanager
     networks:
       - monitoring
