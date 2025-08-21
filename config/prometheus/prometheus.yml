@@ -154,5 +154,40 @@ scrape_configs:
       - target_label: __address__
         replacement: blackbox:9115
 
+  # Blackbox TCP probes for services without a stable HTTP endpoint
+  - job_name: 'blackbox-tcp'
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]
+    static_configs:
+      - targets:
+          - neo4j-graphiti:7474
+          - graphiti:8000
+          - ollama:11434
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+
+  # Blackbox HTTP probes for Graphiti and Neo4j HTTP endpoint
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://neo4j-graphiti:7474/
+          - http://graphiti:8000/
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+
 # Recording rules for frequently used queries
   # Can be added later for performance optimization

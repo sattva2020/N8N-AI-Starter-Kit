@@ -1,3 +1,14 @@
+groups:
+  - name: blackbox.rules
+    rules:
+      - alert: ServiceProbeDown
+        expr: probe_success == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service probe failing ({{ $labels.instance }})"
+          description: "Blackbox probe for {{ $labels.instance }} failed for >2m."
 # Prometheus Alert Rules для N8N AI Starter Kit
 # Определяет условия для срабатывания алертов
 
