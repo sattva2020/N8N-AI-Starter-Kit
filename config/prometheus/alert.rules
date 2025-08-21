@@ -12,7 +12,6 @@ groups:
 # Prometheus Alert Rules для N8N AI Starter Kit
 # Определяет условия для срабатывания алертов
 
-groups:
   - name: system.rules
     rules:
       # Высокое использование CPU
