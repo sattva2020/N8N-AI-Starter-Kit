@@ -153,3 +153,8 @@ MISSION_*.md
 CRITICAL_*.md
 "# ���஥��� Git ९����ਨ"  
 "n8n-workflows-es-main/" 
+
+# Ollama: logs and local runtime artifacts
+logs/ollama/
+.ollama/
+ollama_data/
