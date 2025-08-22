@@ -153,6 +153,9 @@ run_setup() {
             # setup.sh created or updated .env during its run; record this to avoid
             # re-prompting the user later in the start script.
             ENV_CREATED_BY_SETUP=1
+            # create a marker file so subshells or subsequent checks can detect
+            # that setup just generated .env and skip the backup prompt.
+            touch .env.created_by_setup 2>/dev/null || true
             # Если мы в интерактивном терминале — спросим пользователя
             # хочет ли он автоматически запустить импорт workflows после старта n8n.
             if [ -t 0 ]; then
@@ -305,10 +308,12 @@ fi
 if [ -f .env ]; then
     # Если .env был только что создан мастером в рамках этого запуска — не надо
     # снова спрашивать пользователя о создании бэкапа/перезаписи.
-    if [ "${ENV_CREATED_BY_SETUP:-0}" -eq 1 ]; then
+    if [ "${ENV_CREATED_BY_SETUP:-0}" -eq 1 ] || [ -f .env.created_by_setup ]; then
         echo ""
         echo -e "${CYAN}Файл .env был только что сгенерирован мастером; пропускаю запрос о бэкапе и продолжаю.${NC}"
         env_choice=3
+        # cleanup marker to avoid stale state next run
+        rm -f .env.created_by_setup 2>/dev/null || true
     else
         echo ""
         echo -e "${YELLOW}${EMOJI_WARN} Обнаружен файл .env в корне проекта.${NC}"
