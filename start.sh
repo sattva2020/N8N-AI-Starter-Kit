@@ -306,9 +306,22 @@ fi
 
 # Если .env уже существует, спросим пользователя, что делать: бекап+генерация, перезаписать или продолжить
 if [ -f .env ]; then
+    # Определяем, был ли .env создан мастером в рамках этого запуска или создан совсем недавно
+    RECENT_ENV=0
+    if command -v stat >/dev/null 2>&1; then
+        mtime=$(stat -c %Y .env 2>/dev/null || echo 0)
+        if [ "$mtime" -ne 0 ]; then
+            age=$(( $(date +%s) - mtime ))
+            # Если .env моложе 120 секунд, считаем, что он только что создан
+            if [ "$age" -lt 120 ]; then
+                RECENT_ENV=1
+            fi
+        fi
+    fi
+
     # Если .env был только что создан мастером в рамках этого запуска — не надо
     # снова спрашивать пользователя о создании бэкапа/перезаписи.
-    if [ "${ENV_CREATED_BY_SETUP:-0}" -eq 1 ] || [ -f .env.created_by_setup ]; then
+    if [ "${ENV_CREATED_BY_SETUP:-0}" -eq 1 ] || [ -f .env.created_by_setup ] || [ "${RECENT_ENV}" -eq 1 ]; then
         echo ""
         echo -e "${CYAN}Файл .env был только что сгенерирован мастером; пропускаю запрос о бэкапе и продолжаю.${NC}"
         env_choice=3
@@ -363,7 +376,7 @@ if [ -f .env ]; then
         echo ""
         read -r -p "Хотите автоматически запускать импорт workflows после старта n8n? (y/N): " import_choice_existing
         import_choice_existing=${import_choice_existing:-N}
-        if [[ "$import_choice_existing" =~ ^[Yy]$ ]]; then
+        if [[ "${import_choice_existing}" =~ ^[Yy]$ ]]; then
             if [ -f .env ]; then
                 if grep -q '^N8N_AUTO_IMPORT=' .env 2>/dev/null; then
                     sed -i 's/^N8N_AUTO_IMPORT=.*/N8N_AUTO_IMPORT=true/' .env 2>/dev/null || true

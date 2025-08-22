@@ -1,0 +1,47 @@
+repos:
+  # Проверка, что документация обновлена при изменениях
+  - repo: local
+    hooks:
+      - id: check-docs-updated
+        name: Проверка обновления документации
+        entry: |
+          sh -c '
+            if git diff --cached --name-only | grep -E "^(docker-compose|compose/|scripts/|env.schema.md)" && 
+               ! git diff --cached --name-only | grep -E "^(README.md|docs/|.env)"; then
+              echo "❌ Изменения в инфраструктуре, но документация не обновлена!"
+              echo "Пожалуйста, обнови: README.md, docs/ARCHITECTURE.md, docs/SETUP_GUIDE.md или env.schema.md"
+              exit 1
+            fi
+            echo "✅ Документация проверена"
+          '
+        language: system
+        pass_filenames: false
+        stages: [commit]
+
+  # Проверка формата Markdown
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.0
+    hooks:
+      - id: prettier
+        types: [markdown]
+        args: [--prose-wrap=always]
+
+  # Проверка .env и env.schema.md на согласованность
+  - repo: local
+    hooks:
+      - id: check-env-sync
+        name: Сравнение env.schema.md и .env
+        entry: |
+          sh -c '
+            if [ -f .env ] && [ -f env.schema.md ]; then
+              echo "Сравниваю env.schema.md и .env..."
+              comm -23 <(sort env.schema.md | grep -v "^#") <(sort .env | grep -v "^#") | grep -q . && {
+                echo "⚠️  Переменные в env.schema.md отсутствуют в .env:"
+                comm -23 <(sort env.schema.md | grep -v "^#") <(sort .env | grep -v "^#")
+                echo "Рекомендуется обновить .env через setup.sh"
+              } || echo "✅ .env и env.schema.md синхронизированы"
+            fi
+          '
+        language: system
+        pass_filenames: false
+        stages: [commit]
