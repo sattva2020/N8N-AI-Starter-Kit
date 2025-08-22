@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Simple, validated docker-compose for local development.
 # Uses Prometheus + Blackbox exporter for service probing (service-health removed).
 
