@@ -73,40 +73,8 @@ jobs:
 
           echo "✅ Validation passed: .env contains all keys from $schema_file and no obvious placeholders."
 
-      - name: CI: check for env placeholders or empty values
-        shell: bash
+      - name: "CI: check for env placeholders or empty values"
         run: |
           set -euo pipefail
-
-          PLACEHOLDER_REGEX='change[_-]?|your[_-]?|example(\.|com)|password|admin123|change_me|generate|placeholder|your_openai|your_n8n'
-
-          files=(env.schema env.schema.md .env .env.example template.env)
-          found=0
-          for f in "${files[@]}"; do
-            if [ ! -f "$f" ]; then
-              continue
-            fi
-            while IFS= read -r line || [ -n "$line" ]; do
-              [[ "$line" =~ ^[[:space:]]*# ]] && continue
-              if [[ "$line" =~ ^([A-Za-z0-9_]+)=(.*)$ ]]; then
-                key=${BASH_REMATCH[1]}
-                val=${BASH_REMATCH[2]}
-                # Trim quotes and whitespace
-                val=$(echo "$val" | sed -E 's/^\s*"?\'?//; s/"?\'?\s*$//')
-                if [[ -z "${val// }" ]]; then
-                  echo "Found EMPTY: $f:$key" >&2
-                  found=1
-                elif echo "$val" | grep -qiE "$PLACEHOLDER_REGEX"; then
-                  echo "Found PLACEHOLDER: $f:$key = '$val'" >&2
-                  found=1
-                fi
-              fi
-            done < "$f"
-          done
-
-          if [ $found -ne 0 ]; then
-            echo "\nFailing CI: env placeholders/empty values detected. Replace placeholders with real values or remove them from the PR." >&2
-            exit 1
-          fi
-
-          echo "✅ CI placeholder check passed."
+          # Use the repository script which inspects files staged/committed in the PR
+          bash scripts/check-env-placeholders.sh
