@@ -304,28 +304,28 @@ fi
 # Если .env уже существует, спросим пользователя, что делать: бекап+генерация, перезаписать или продолжить
 if [ -f .env ]; then
     # Use deterministic template-based completeness check instead of marker/mtime.
-    # Prefer env.schema.md; if it exists compare its keys against .env. If .env contains
-    # all non-empty required keys from the chosen schema file, we skip prompting.
+    # Prefer env.schema (plain canonical). If missing, fall back to env.schema.md (legacy) or template.env.
     check_env_against_template() {
-        # prefer env.schema.md as canonical schema (documented). If missing, fall back to template.env
-        local template_file=""
-        if [ -f env.schema.md ]; then
-            template_file="env.schema.md"
+        # Prefer plain env.schema (canonical). If missing, fall back to env.schema.md
+        # (legacy documented schema), then template.env.
+        local schema_file=""
+        if [ -f env.schema ]; then
+            schema_file="env.schema"
+    elif [ -f env.schema.md ]; then  # This line remains unchanged
+            schema_file="env.schema.md"
         elif [ -f template.env ]; then
-            template_file="template.env"
+            schema_file="template.env"
         else
-            template_file=""
+            schema_file=""
         fi
-        if [ -z "$template_file" ]; then
-            return 2
-        fi
-        if [ ! -f "$template_file" ]; then
-            # No schema available — fall back to previous behavior and prompt
+
+        if [ -z "$schema_file" ] || [ ! -f "$schema_file" ]; then
+            # No schema available — fall back to interactive prompt
             return 2
         fi
 
-        # Extract keys from template (ignore comments/blank lines)
-        mapfile -t tmpl_keys < <(grep -E '^[A-Za-z0-9_]+=.*' "$template_file" | sed -E 's/=.*$//' | sort -u)
+        # Extract keys from schema (ignore comments/blank lines)
+        mapfile -t tmpl_keys < <(grep -E '^[A-Za-z0-9_]+=.*' "$schema_file" | sed -E 's/=.*$//' | sort -u)
 
         missing_keys=()
         for k in "${tmpl_keys[@]}"; do
