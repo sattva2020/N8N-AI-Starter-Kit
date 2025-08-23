@@ -2021,3 +2021,7 @@ graph TD
 Updated README note
 Updated docs: env.schema updated with defaults for local testing (legacy: env.schema.md)
 chore: replaced personal email in env.schema and scripts/ with placeholder
+
+## env.schema is canonical
+
+This repository uses `env.schema` as the canonical environment schema for CI and pre-commit validation. Obvious placeholder values are removed from the committed `env.schema` to prevent leaking example secrets. Add real secrets to your local `.env` or to secure secret stores before deploying.

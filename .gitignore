@@ -134,11 +134,9 @@ LOCAL_SCRIPTS_EXCLUSION.md
 !docker-compose.yml
 .env.example
 *.md
-# env.schema.md is the documented canonical schema; template.env kept for compatibility.
-# These files are not tracked as generated outputs
-env.schema.md
+# env.schema.md was the old documented schema; `env.schema` is now the canonical schema and should be tracked.
+# Keep template.env ignored for compatibility; generated or template files are not tracked.
 template.env
-env.schema.md
 
 # Временные отчеты разработки
 *_v*.md

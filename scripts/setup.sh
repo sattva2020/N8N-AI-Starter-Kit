@@ -575,8 +575,8 @@ choose_setup_mode() {
         SETUP_MODE="interactive"
         break
         ;;
-      2)
-  print_success "Выбран быстрый режим (используется env.schema.md или template.env для совместимости)"
+    2)
+  print_success "Выбран быстрый режим (используется env.schema или template.env для совместимости)"
         SETUP_MODE="template"
         break
         ;;
@@ -1033,7 +1033,7 @@ interactive_setup() {
       ;;
   esac
   
-  # Обновляем файл схемы (env.schema.md или template.env) с новыми значениями
+  # Обновляем файл схемы (env.schema или template.env) с новыми значениями
   update_template_with_user_settings "$domain_name" "$acme_email" "$openai_api_key"
 }
 
@@ -1130,7 +1130,7 @@ if [ "$GENERATE_ONLY" = true ]; then
     traefik_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
   traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1 2>/dev/null || echo "${traefik_pwd}")
 
-  # Write full .env based on env.schema.md with generated secrets and sensible placeholders
+  # Write full .env based on env.schema (preferred) or env.schema.md (legacy) with generated secrets and sensible placeholders
   cat > .env <<EOF
 # Auto-generated .env by setup.sh --generate-only
 DOMAIN_NAME=${DOMAIN_NAME:-sattva-ai.top}
@@ -1526,8 +1526,8 @@ fi
 print_info "Создание .env файла в режиме: $SETUP_MODE"
 
 if [ "$SETUP_MODE" = "template" ]; then
-  print_info "Выполняется быстрый режим (используется env.schema.md или template.env)..."
-  # Быстрый режим - используем схему (env.schema.md), fallback на template.env
+  print_info "Выполняется быстрый режим (используется env.schema или template.env)..."
+  # Быстрый режим - используем схему (env.schema), fallback на env.schema.md or template.env
   if [ -f .env ]; then
     print_warning "Файл .env уже существует."
     read -p "Создать резервную копию и перезаписать? (y/n): " overwrite
@@ -1556,24 +1556,24 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
     print_info "Рекомендуется создать резервную копию перед перезаписью."
     read -p "Создать резервную копию и перезаписать? (y/n): " overwrite
     
-      # Если схема не задана или файл отсутствует — пробуем env.schema.md (документированная каноника),
+  # Если схема не задана или файл отсутствует — пробуем env.schema (каноническая),
       # затем падаем назад к template.env для обратной совместимости, а при отсутствии обоих — прямая генерация .env.
       GENERATE_FROM_TEMPLATE=true
       if [ -z "$SCHEMA_FILE" ] || [ ! -f "$SCHEMA_FILE" ]; then
-        if [ -f env.schema.md ]; then
-          SCHEMA_FILE="env.schema.md"
+        if [ -f env.schema ]; then
+          SCHEMA_FILE="env.schema"
           GENERATE_FROM_TEMPLATE=true
         elif [ -f template.env ]; then
           SCHEMA_FILE="template.env"
           GENERATE_FROM_TEMPLATE=true
         else
-          print_warning "Файл env.schema.md (или template.env) не найден — будет выполнена прямая генерация .env"
+          print_warning "Файл env.schema (или env.schema.md/template.env) не найден — будет выполнена прямая генерация .env"
           GENERATE_FROM_TEMPLATE=false
         fi
       fi
   fi
 
-  # Создаем новый .env файл на основе схемы (env.schema.md или template.env) с интерактивными настройками
+  # Создаем новый .env файл на основе схемы (env.schema preferred, env.schema.md or template.env fallback) с интерактивными настройками
   print_info "Создание нового .env файла с вашими настройками..."
   
   # Копируем схему в .env если это возможно, иначе пропускаем и сгенерируем значения напрямую
@@ -1923,5 +1923,5 @@ clone_official_workflows() {
 # NOTE: historical versions created a transient marker file ".env.created_by_setup"
 # to help start.sh detect a freshly generated .env. That approach proved fragile
 # (leftover markers, clock skew). We now rely on an explicit canonical
-# `env.schema.md` (preferred) / `template.env` (fallback) and completeness checks performed by start.sh. Do not create
+# `env.schema` (preferred) / `env.schema.md` (legacy) / `template.env` (fallback) and completeness checks performed by start.sh. Do not create
 # transient marker files here.
