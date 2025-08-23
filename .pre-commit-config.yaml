@@ -6,10 +6,10 @@ repos:
         name: Проверка обновления документации
         entry: |
           sh -c '
-            if git diff --cached --name-only | grep -E "^(docker-compose|compose/|scripts/|env.schema.md)" && 
-               ! git diff --cached --name-only | grep -E "^(README.md|docs/|.env)"; then
+            if git diff --cached --name-only | grep -E "^(docker-compose|compose/|scripts/|env.schema)" \
+               && ! git diff --cached --name-only | grep -E "^(README.md|docs/|.env)"; then
               echo "❌ Изменения в инфраструктуре, но документация не обновлена!"
-              echo "Пожалуйста, обнови: README.md, docs/ARCHITECTURE.md, docs/SETUP_GUIDE.md или env.schema.md"
+              echo "Пожалуйста, обнови: README.md, docs/ARCHITECTURE.md, docs/SETUP_GUIDE.md или env.schema"
               exit 1
             fi
             echo "✅ Документация проверена"
@@ -26,22 +26,30 @@ repos:
         types: [markdown]
         args: [--prose-wrap=always]
 
-  # Проверка .env и env.schema.md на согласованность
+  # Проверка .env и env.schema на согласованность (legacy env.schema.md поддерживается)
   - repo: local
     hooks:
       - id: check-env-sync
-        name: Сравнение env.schema.md и .env
+        name: Сравнение env.schema и .env (legacy env.schema.md supported)
         entry: |
           sh -c '
-            if [ -f .env ] && [ -f env.schema.md ]; then
-              echo "Сравниваю env.schema.md и .env..."
-              comm -23 <(sort env.schema.md | grep -v "^#") <(sort .env | grep -v "^#") | grep -q . && {
-                echo "⚠️  Переменные в env.schema.md отсутствуют в .env:"
-                comm -23 <(sort env.schema.md | grep -v "^#") <(sort .env | grep -v "^#")
+            schema_file=env.schema
+            if [ ! -f "$schema_file" ] && [ -f env.schema.md ]; then schema_file=env.schema.md; fi
+            if [ -f .env ] && [ -f "$schema_file" ]; then
+              echo "Сравниваю $schema_file и .env..."
+              comm -23 <(grep -E '\^[A-Za-z0-9_]+=.*' "$schema_file" | sed -E 's/=.*$//' | sort -u) <(grep -E '\^[A-Za-z0-9_]+=.*' .env | sed -E 's/=.*$//' | sort -u) | grep -q . && {
+                echo "⚠️  Переменные в $schema_file отсутствуют в .env:"
+                comm -23 <(grep -E '\^[A-Za-z0-9_]+=.*' "$schema_file" | sed -E 's/=.*$//' | sort -u) <(grep -E '\^[A-Za-z0-9_]+=.*' .env | sed -E 's/=.*$//' | sort -u)
                 echo "Рекомендуется обновить .env через setup.sh"
-              } || echo "✅ .env и env.schema.md синхронизированы"
+              } || echo "✅ .env и $schema_file синхронизированы"
             fi
           '
         language: system
+        pass_filenames: false
+        stages: [commit]
+      - id: check-env-placeholders
+        name: Проверка на плейсхолдеры/пустые значения в env файлов
+        entry: scripts/check-env-placeholders.sh
+        language: script
         pass_filenames: false
         stages: [commit]

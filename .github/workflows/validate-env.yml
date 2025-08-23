@@ -1,8 +1,9 @@
-name: Validate .env against env.schema.md
+name: Validate .env against env.schema
 
 on:
   pull_request:
     paths:
+      - 'env.schema'
       - 'env.schema.md'
       - '.env'
       - '.github/workflows/validate-env.yml'
@@ -15,13 +16,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate .env against env.schema.md
+      - name: Validate .env against env.schema
         shell: bash
         run: |
           set -euo pipefail
 
-          if [ ! -f env.schema.md ]; then
-            echo "✖ env.schema.md not found in repository — failing validation"
+          # Prefer env.schema (plain) but accept legacy env.schema.md
+          if [ ! -f env.schema ] && [ ! -f env.schema.md ]; then
+            echo "✖ No schema file found (env.schema or env.schema.md) — failing validation"
             exit 1
           fi
 
@@ -30,8 +32,10 @@ jobs:
             exit 0
           fi
 
-          echo "Extracting keys from env.schema.md..."
-          mapfile -t keys < <(grep -E '^[A-Za-z0-9_]+=.*' env.schema.md | sed -E 's/=.*$//' | sort -u)
+          schema_file=env.schema
+          if [ ! -f "$schema_file" ]; then schema_file=env.schema.md; fi
+          echo "Extracting keys from $schema_file..."
+          mapfile -t keys < <(grep -E '^[A-Za-z0-9_]+=.*' "$schema_file" | sed -E 's/=.*$//' | sort -u)
 
           missing_count=0
           placeholder_count=0
@@ -63,8 +67,46 @@ jobs:
               for i in "${placeholder_list[@]}"; do echo "  - $i"; done
               echo ""
             fi
-            echo "Please either add a valid .env in the PR or update documentation if you intentionally removed/changed variables in env.schema.md."
+            echo "Please either add a valid .env in the PR or update documentation if you intentionally removed/changed variables in $schema_file."
             exit 1
           fi
 
-          echo "✅ Validation passed: .env contains all keys from env.schema.md and no obvious placeholders."
+          echo "✅ Validation passed: .env contains all keys from $schema_file and no obvious placeholders."
+
+      - name: CI: check for env placeholders or empty values
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          PLACEHOLDER_REGEX='change[_-]?|your[_-]?|example(\.|com)|password|admin123|change_me|generate|placeholder|your_openai|your_n8n'
+
+          files=(env.schema env.schema.md .env .env.example template.env)
+          found=0
+          for f in "${files[@]}"; do
+            if [ ! -f "$f" ]; then
+              continue
+            fi
+            while IFS= read -r line || [ -n "$line" ]; do
+              [[ "$line" =~ ^[[:space:]]*# ]] && continue
+              if [[ "$line" =~ ^([A-Za-z0-9_]+)=(.*)$ ]]; then
+                key=${BASH_REMATCH[1]}
+                val=${BASH_REMATCH[2]}
+                # Trim quotes and whitespace
+                val=$(echo "$val" | sed -E 's/^\s*"?\'?//; s/"?\'?\s*$//')
+                if [[ -z "${val// }" ]]; then
+                  echo "Found EMPTY: $f:$key" >&2
+                  found=1
+                elif echo "$val" | grep -qiE "$PLACEHOLDER_REGEX"; then
+                  echo "Found PLACEHOLDER: $f:$key = '$val'" >&2
+                  found=1
+                fi
+              fi
+            done < "$f"
+          done
+
+          if [ $found -ne 0 ]; then
+            echo "\nFailing CI: env placeholders/empty values detected. Replace placeholders with real values or remove them from the PR." >&2
+            exit 1
+          fi
+
+          echo "✅ CI placeholder check passed."
