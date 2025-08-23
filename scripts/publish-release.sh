@@ -190,7 +190,7 @@ echo "Document Processor: http://localhost:8001"
 ## 📋 MIGRATION FROM v1.1.3
 - Automatic workflow import при первом запуске
 - Обновленная структура конфигурации
-- Новые environment variables в template.env
+- Новые environment variables в env.schema.md (template.env для обратной совместимости)
 
 ## 📚 DOCUMENTATION
 - [📖 Complete Setup Guide](./README.md)

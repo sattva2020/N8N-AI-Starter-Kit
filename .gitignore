@@ -134,7 +134,9 @@ LOCAL_SCRIPTS_EXCLUSION.md
 !docker-compose.yml
 .env.example
 *.md
-# template.env and env.schema.md are deprecated; generated only by setup.sh
+# env.schema.md is the documented canonical schema; template.env kept for compatibility.
+# These files are not tracked as generated outputs
+env.schema.md
 template.env
 env.schema.md
 

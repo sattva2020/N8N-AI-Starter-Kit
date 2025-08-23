@@ -153,9 +153,6 @@ run_setup() {
             # setup.sh created or updated .env during its run; record this to avoid
             # re-prompting the user later in the start script.
             ENV_CREATED_BY_SETUP=1
-            # create a marker file so subshells or subsequent checks can detect
-            # that setup just generated .env and skip the backup prompt.
-            touch .env.created_by_setup 2>/dev/null || true
             # Если мы в интерактивном терминале — спросим пользователя
             # хочет ли он автоматически запустить импорт workflows после старта n8n.
             if [ -t 0 ]; then
@@ -306,28 +303,69 @@ fi
 
 # Если .env уже существует, спросим пользователя, что делать: бекап+генерация, перезаписать или продолжить
 if [ -f .env ]; then
-    # Определяем, был ли .env создан мастером в рамках этого запуска или создан совсем недавно
-    RECENT_ENV=0
-    if command -v stat >/dev/null 2>&1; then
-        mtime=$(stat -c %Y .env 2>/dev/null || echo 0)
-        if [ "$mtime" -ne 0 ]; then
-            age=$(( $(date +%s) - mtime ))
-            # Если .env моложе 120 секунд, считаем, что он только что создан
-            if [ "$age" -lt 120 ]; then
-                RECENT_ENV=1
-            fi
+    # Use deterministic template-based completeness check instead of marker/mtime.
+    # Prefer env.schema.md; if it exists compare its keys against .env. If .env contains
+    # all non-empty required keys from the chosen schema file, we skip prompting.
+    check_env_against_template() {
+        # prefer env.schema.md as canonical schema (documented). If missing, fall back to template.env
+        local template_file=""
+        if [ -f env.schema.md ]; then
+            template_file="env.schema.md"
+        elif [ -f template.env ]; then
+            template_file="template.env"
+        else
+            template_file=""
         fi
-    fi
+        if [ -z "$template_file" ]; then
+            return 2
+        fi
+        if [ ! -f "$template_file" ]; then
+            # No schema available — fall back to previous behavior and prompt
+            return 2
+        fi
 
-    # Если .env был только что создан мастером в рамках этого запуска — не надо
-    # снова спрашивать пользователя о создании бэкапа/перезаписи.
-    if [ "${ENV_CREATED_BY_SETUP:-0}" -eq 1 ] || [ -f .env.created_by_setup ] || [ "${RECENT_ENV}" -eq 1 ]; then
+        # Extract keys from template (ignore comments/blank lines)
+        mapfile -t tmpl_keys < <(grep -E '^[A-Za-z0-9_]+=.*' "$template_file" | sed -E 's/=.*$//' | sort -u)
+
+        missing_keys=()
+        for k in "${tmpl_keys[@]}"; do
+            # Get value from .env (last matching line)
+            if grep -q -E "^${k}=" .env; then
+                val=$(grep -E "^${k}=" .env | tail -n1 | cut -d'=' -f2-)
+                # treat empty string or placeholders as missing
+                if [ -z "$val" ] || echo "$val" | grep -qE 'change_this|yourdomain|your_openai_api_key_here'; then
+                    missing_keys+=("$k")
+                fi
+            else
+                missing_keys+=("$k")
+            fi
+        done
+
+        if [ ${#missing_keys[@]} -eq 0 ]; then
+            return 0  # complete
+        else
+            return 1  # incomplete
+        fi
+    }
+
+    # If setup ran in this process (ENV_CREATED_BY_SETUP), skip prompts.
+    if [ "${ENV_CREATED_BY_SETUP:-0}" -eq 1 ]; then
         echo ""
-        echo -e "${CYAN}Файл .env был только что сгенерирован мастером; пропускаю запрос о бэкапе и продолжаю.${NC}"
+        echo -e "${CYAN}Файл .env был сгенерирован мастером в рамках этого запуска; пропускаю запрос о бэкапе и продолжаю.${NC}"
         env_choice=3
-        # cleanup marker to avoid stale state next run
-        rm -f .env.created_by_setup 2>/dev/null || true
     else
+        # If template exists and .env is complete, skip prompting.
+        check_env_against_template
+        tmpl_status=$?
+        if [ "$tmpl_status" -eq 0 ]; then
+            echo ""
+            echo -e "${CYAN}Файл .env соответствует схеме ${template_file} — продолжаю без запроса.${NC}"
+            env_choice=3
+        elif [ "$tmpl_status" -eq 2 ]; then
+            # No template — fall back to interactive prompt
+            :
+        else
+            # .env incomplete — prompt user
         echo ""
         echo -e "${YELLOW}${EMOJI_WARN} Обнаружен файл .env в корне проекта.${NC}"
         echo "Выберите действие для существующего .env:"
@@ -369,6 +407,7 @@ if [ -f .env ]; then
                 echo -e "${YELLOW}Неверный выбор — продолжаем с существующим .env${NC}"
                 ;;
         esac
+        fi
     fi
 
     # If user chose to continue with existing .env, ask whether to enable automatic import

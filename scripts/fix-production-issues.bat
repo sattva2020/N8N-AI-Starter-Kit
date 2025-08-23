@@ -7,7 +7,7 @@ echo 🔧 Исправление критических проблем productio
 
 REM Проверяем наличие .env файла
 if not exist .env (
-    echo ❌ Файл .env не найден. Создайте его из template.env
+    echo ❌ Файл .env не найден. Создайте его из env.schema.md (или template.env для совместимости)
     exit /b 1
 )
 
