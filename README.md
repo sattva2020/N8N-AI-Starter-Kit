@@ -24,10 +24,13 @@
 
 ### Примечание по последним изменениям
 
-- Скрипты настройки и запуска теперь предпочитают `env.schema.md` как канонический
+- Скрипты настройки и запуска теперь предпочитают `env.schema` как канонический
   шаблон для генерации `.env`. Для обратной совместимости `template.env` остаётся
   доступным как fallback. Это убирает зависимость от временных файлов-маркеров
   и делает проверку полноты `.env` детерминированной.
+
+> Примечание: `env.schema` — канонический файл схемы переменных окружения используемый в CI и
+> в pre-commit хуках для валидации `.env` файлов.
 
 **Июнь 2025 (v1.1.4)**: Advanced N8N Workflows & Production Automation.
 - ✅ **НОВОЕ**: 6 продвинутых Production Workflows для полной автоматизации
@@ -2016,7 +2019,5 @@ graph TD
 > [!NOTE]
 > Все примеры кода и готовые workflows будут добавлены в папку `examples/` по мере развития проекта.Updated README note
 Updated README note
-Updated docs: env.schema.md updated with defaults for local testing
-Updated docs: env.schema.md updated with defaults for local testing
-chore: replaced personal email in env.schema.md and scripts/ with placeholder
-chore: replaced personal email in env.schema.md and scripts/ with placeholder
+Updated docs: env.schema updated with defaults for local testing (legacy: env.schema.md)
+chore: replaced personal email in env.schema and scripts/ with placeholder
