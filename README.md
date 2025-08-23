@@ -2015,3 +2015,4 @@ graph TD
 
 > [!NOTE]
 > Все примеры кода и готовые workflows будут добавлены в папку `examples/` по мере развития проекта.Updated README note
+Updated README note
