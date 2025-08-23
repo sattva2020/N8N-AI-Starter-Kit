@@ -1578,7 +1578,8 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
   
   # Копируем схему в .env если это возможно, иначе пропускаем и сгенерируем значения напрямую
   if [ "${GENERATE_FROM_TEMPLATE}" = true ] && [ -n "${SCHEMA_FILE}" ] && [ -f "${SCHEMA_FILE}" ]; then
-    cp "$SCHEMA_FILE" .env
+    # Extract only KEY=VALUE lines from the schema file to avoid copying Markdown or comments
+    grep -E '^[A-Za-z0-9_]+=.*' "$SCHEMA_FILE" > .env || true
   else
     print_info "Пропускаем копирование схемы: будет выполнена прямая генерация .env"
     # создаём пустой .env как база (будет перезаписан далее)
