@@ -102,3 +102,29 @@ N8N_RESET=false
 WORKFLOWS_DOC_DOMAIN=workflows.${DOMAIN_NAME}
 WORKFLOWS_MANAGER_DOMAIN=workflows-manager.${DOMAIN_NAME}
 WORKFLOWS_MANAGER_API_KEY=
+
+# ---- DEFAULTS / SUGGESTIONS ----
+# These are safe defaults for local/testing. Replace secrets in the generated
+# .env file. Do NOT commit secrets to the repository.
+
+# Grafana defaults (change in production)
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=admin123
+
+# Jupyter
+JUPYTER_TOKEN=change_me
+
+# Clickhouse (optional)
+CLICKHOUSE_PASSWORD=change_me
+
+# Superset
+SUPERSET_SECRET_KEY=change_me
+
+# Ollama host
+OLLAMA_HOST=ollama
+
+# n8n task runners
+N8N_RUNNERS_ENABLED=true
+
+# NOTE: After generating .env, please replace placeholders for keys and
+# passwords (OPENAI_API_KEY, N8N_API_KEY, POSTGRES_PASSWORD, NEO4J_PASSWORD, etc.).
