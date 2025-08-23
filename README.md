@@ -1179,7 +1179,8 @@ nvidia-smi --query-gpu=utilization.gpu,memory.used,memory.total --format=csv -l 
 ## Окружение
  - ОС: [например, Windows 10]
  - Версия Docker: [например, 24.0.5]
- - Профиль запуска: [например, cpu, gpu-nvidia]
+
+ - Профиль запуска: [например, cpu, gpu-nvidia, gpu-amd, developer]
  - Используемые модели: [например, Llama3]
 
 ## Дополнительный контекст
