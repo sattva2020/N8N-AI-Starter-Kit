@@ -44,11 +44,11 @@ NODE_ENV=production
 COMPOSE_PROJECT_NAME=n8n-ai-starter-kit
 
 # ---- PGADMIN ----
-PGADMIN_DEFAULT_EMAIL=ruslan.griban@gmail.com
+PGADMIN_DEFAULT_EMAIL=change_me@example.com
 PGADMIN_DEFAULT_PASSWORD=pgadmin_secure_password_123
 
 # ---- TRAEFIK ----
-ACME_EMAIL=ruslan.griban@gmail.com
+ACME_EMAIL=change_me@example.com
 TRAEFIK_USERNAME=admin
 TRAEFIK_PASSWORD_HASHED=traefik_password_hash_placeholder
 

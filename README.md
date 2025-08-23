@@ -2018,3 +2018,4 @@ graph TD
 Updated README note
 Updated docs: env.schema.md updated with defaults for local testing
 Updated docs: env.schema.md updated with defaults for local testing
+chore: replaced personal email in env.schema.md and scripts/ with placeholder
