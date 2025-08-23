@@ -1,0 +1,70 @@
+name: Validate .env against env.schema.md
+
+on:
+  pull_request:
+    paths:
+      - 'env.schema.md'
+      - '.env'
+      - '.github/workflows/validate-env.yml'
+
+jobs:
+  validate-env:
+    name: Validate .env (if present)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate .env against env.schema.md
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ ! -f env.schema.md ]; then
+            echo "✖ env.schema.md not found in repository — failing validation"
+            exit 1
+          fi
+
+          if [ ! -f .env ]; then
+            echo ".env not present in the checked-out code — skipping validation (expected in most PRs)."
+            exit 0
+          fi
+
+          echo "Extracting keys from env.schema.md..."
+          mapfile -t keys < <(grep -E '^[A-Za-z0-9_]+=.*' env.schema.md | sed -E 's/=.*$//' | sort -u)
+
+          missing_count=0
+          placeholder_count=0
+          missing_list=()
+          placeholder_list=()
+
+          for k in "${keys[@]}"; do
+            if ! grep -q -E "^${k}=" .env; then
+              missing_list+=("${k}")
+              missing_count=$((missing_count+1))
+            else
+              val=$(grep -E "^${k}=" .env | tail -n1 | cut -d'=' -f2-)
+              if [ -z "$val" ] || echo "$val" | grep -qE 'change_this|your_|your_openai_api_key_here|yourdomain|sattva-ai.top'; then
+                placeholder_list+=("${k}")
+                placeholder_count=$((placeholder_count+1))
+              fi
+            fi
+          done
+
+          if [ $missing_count -ne 0 ] || [ $placeholder_count -ne 0 ]; then
+            echo "\nValidation failed — issues detected:\n"
+            if [ $missing_count -ne 0 ]; then
+              echo "Missing keys (${missing_count}):"
+              for i in "${missing_list[@]}"; do echo "  - $i"; done
+              echo ""
+            fi
+            if [ $placeholder_count -ne 0 ]; then
+              echo "Keys with placeholder/empty values (${placeholder_count}):"
+              for i in "${placeholder_list[@]}"; do echo "  - $i"; done
+              echo ""
+            fi
+            echo "Please either add a valid .env in the PR or update documentation if you intentionally removed/changed variables in env.schema.md."
+            exit 1
+          fi
+
+          echo "✅ Validation passed: .env contains all keys from env.schema.md and no obvious placeholders."
