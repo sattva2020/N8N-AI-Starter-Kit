@@ -1,20 +1,22 @@
-# Dockerfile для N8N Workflows Auto-Importer v1.2.0
-FROM python:3.11-alpine
+FROM python:3.11-slim
 
-# Устанавливаем необходимые пакеты
-RUN apk add --no-cache curl jq bash
+# Build arg to optionally install Node/npm and n8n CLI if required by the importer
+ARG INSTALL_NODE=false
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Устанавливаем Python зависимости
-RUN pip install --no-cache-dir requests
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends git curl ca-certificates \
+  && if [ "$INSTALL_NODE" = "true" ]; then \
+  apt-get install -y --no-install-recommends gnupg2 nodejs npm; \
+  npm install -g n8n; \
+  fi \
+  && rm -rf /var/lib/apt/lists/*
 
-# Создаем рабочую директорию
-WORKDIR /app
+# The importer expects the host to mount the pre-cloned repository into the image at /opt/n8n-workflows
+# No runtime creation or cloning of /data is performed.
+COPY run-importer.sh /usr/local/bin/run-importer.sh
+RUN chmod +x /usr/local/bin/run-importer.sh
 
-# Копируем Python скрипт импорта
-COPY services/n8n-importer/import-workflows.py /app/import-workflows.py
+WORKDIR /usr/local/bin
 
-# Делаем скрипт исполняемым
-RUN chmod +x /app/import-workflows.py
-
-# Точка входа
-ENTRYPOINT ["python3", "/app/import-workflows.py"]
+ENTRYPOINT ["/usr/local/bin/run-importer.sh"]

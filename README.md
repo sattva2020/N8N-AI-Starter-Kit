@@ -11,6 +11,27 @@
 
 ## 🔄 Последние обновления
 
+**Июль 2025 (v1.2.0)**: Project Reorganization & Zie619 Workflow Integration.
+- ✅ **НОВОЕ**: Интеграция с Zie619 репозиторием (2,053+ готовых N8N workflows)
+- ✅ **НОВОЕ**: Interactive CLI для импорта workflows с фильтрацией по категориям
+- ✅ **НОВОЕ**: Реорганизация структуры проекта - логическое разделение скриптов
+- ✅ **НОВОЕ**: Workflow Management Hub в `n8n/workflows/management/`
+- ✅ **НОВОЕ**: Категоризация scripts по функциональности (deployment, maintenance, utils)
+- ✅ **ИСПРАВЛЕНО**: Навигация в README.md - все ссылки теперь кликабельны
+- ✅ **ИСПРАВЛЕНО**: PostgreSQL authentication для Document Processor (исправлен root cause)
+- ✅ **УЛУЧШЕНО**: Профессиональная структура проекта для production
+- ✅ **ГОТОВО**: Enterprise-ready организация с расширенными возможностями
+
+### Примечание по последним изменениям
+
+- Скрипты настройки и запуска теперь предпочитают `env.schema` как канонический
+  шаблон для генерации `.env`. Для обратной совместимости `template.env` остаётся
+  доступным как fallback. Это убирает зависимость от временных файлов-маркеров
+  и делает проверку полноты `.env` детерминированной.
+
+> Примечание: `env.schema` — канонический файл схемы переменных окружения используемый в CI и
+> в pre-commit хуках для валидации `.env` файлов.
+
 **Июнь 2025 (v1.1.4)**: Advanced N8N Workflows & Production Automation.
 - ✅ **НОВОЕ**: 6 продвинутых Production Workflows для полной автоматизации
 - ✅ **НОВОЕ**: Document Processing Pipeline - автоматическая обработка документов
@@ -22,15 +43,6 @@
 - ✅ **НОВОЕ**: Auto-Import N8N Workflows - автоматический импорт при запуске
 - ✅ **НОВОЕ**: SSL Production Setup - Let's Encrypt, Traefik, Security Headers
 - ✅ **ГОТОВО**: Enterprise-ready AI система с полной автоматизацией
-
-**Январь 2025 (v1.2.0)**: Advanced RAG Pipeline - Web Interface.
-- ✅ **НОВОЕ**: Современный веб-интерфейс для управления документами (FastAPI + Jinja2)
-- ✅ **НОВОЕ**: Document Processor - специализированный сервис обработки файлов
-- ✅ **НОВОЕ**: Advanced Search - семантический поиск с фильтрами и аналитикой
-- ✅ **НОВОЕ**: Enhanced Analytics - детальная статистика и мониторинг системы
-- ✅ **НОВОЕ**: Batch Processing - массовая обработка и импорт документов
-- ✅ **НОВОЕ**: Real-time UI - WebSocket интерфейс с live-обновлениями
-- ✅ **ГОТОВО**: Production-ready Advanced RAG Pipeline
 
 **Июнь 2025 (v1.1.3)**: Миграция с Zep на Graphiti.
 - ✅ **МИГРАЦИЯ**: Полный переход с архивированного Zep Community Edition на Graphiti
@@ -47,17 +59,17 @@
 - ✅ **ОБНОВЛЕНО**: Документация по обновлению на Ubuntu
 - ✅ **ГОТОВО**: Production-окружение полностью готово к развёртыванию
 
-**🚀 Быстрое обновление на Ubuntu:**
+**🚀 Быстрое обновление до v1.2.0:**
 ```bash
 cd ~/N8N-AI-Starter-Kit
 git pull origin main
-chmod +x scripts/fix-ubuntu.sh
-./scripts/fix-ubuntu.sh
+git checkout v1.2.0
+./start.sh
 ```
 
-**🌐 Быстрый доступ v1.1.4:**
+**🌐 Быстрый доступ v1.2.0:**
 ```bash
-# Запуск системы с новыми Advanced Workflows
+# Запуск системы с новыми возможностями
 docker-compose --profile cpu up -d
 
 # Доступ к интерфейсам:
@@ -65,18 +77,18 @@ docker-compose --profile cpu up -d
 # Web Interface: http://localhost:8001  
 # Qdrant Admin: http://localhost:6333/dashboard
 
-# Новые API endpoints для автоматизации:
-# POST /webhook/document-upload - загрузка документов
-# POST /webhook/rag-query - поиск по документам
-# POST /webhook/batch-process - массовая обработка
-# POST /webhook/error-handler - обработка ошибок
-# POST /webhook/send-email - отправка уведомлений
-```
+# Новые возможности v1.2.0:
+# Workflow Management CLI
+cd n8n/workflows/management
+python workflow-import-cli.py
 
-# Доступ к новым сервисам
-echo "Web Interface: http://localhost:8002"
-echo "Document Processor: http://localhost:8001" 
-echo "N8N: http://localhost:5678"
+# Импорт из Zie619 (2,053+ workflows)
+python import-zie619-workflows.py --category ai_ml --limit 50
+
+# Быстрые команды для обслуживания
+./scripts/deployment/deploy-server.sh
+./scripts/maintenance/monitor.sh
+./scripts/utils/check-server-status.sh
 ```
 
 **Май 2025 (v1.0.6)**: Улучшение GitHub-интеграции и документации.
@@ -87,30 +99,33 @@ echo "N8N: http://localhost:5678"
 - Обновлены инструкции по публикации на GitHub
 - Оптимизирован скрипт `entrypoint.sh` для Ollama с индикатором прогресса загрузки моделей
 
-[Подробнее о версии 1.0.4](./CHANGELOG.md) | [Руководство по документации](./docs/DOCUMENTATION_GUIDE.md) | [Распространенные проблемы](./docs/COMMON_ISSUES.md) | [Руководство по установке](./docs/SETUP_SCRIPT.md)
+[Подробнее о версии 1.2.0](./CHANGELOG.md) | [Реорганизация проекта](./REORGANIZATION_COMPLETE.md) | [Навигация исправлена](./README_NAVIGATION_FIXED.md) | [Руководство по установке](./docs/SETUP_SCRIPT.md)
 
 ## 📋 Оглавление
-- [Последние обновления](#-последние-обновления)
-- [Введение](#-введение)
-- [Компоненты](#-компоненты)
-- [Варианты использования](#-варианты-использования)
-- [Структура проекта](#-структура-проекта)
-- [Системные требования](#-системные-требования)
-- [Установка](#-установка)
-  - [Быстрая установка](#️-быстрая-установка-рекомендуется)
-  - [Профили запуска](#профили-запуска)
-- [Быстрый старт](#️-быстрый-старт-и-использование)
-- [Обслуживание системы](#-обслуживание-системы)
-  - [Обновление](#-обновление)
-  - [Резервное копирование](#-резервное-копирование)
-- [Мониторинг производительности](#-мониторинг-производительности)
-- [Обучающие материалы](#-обучающие-материалы-на-английском)
-- [Видео-инструкции](#-видео-инструкция-на-английском)
-- [Шаблоны и примеры](#️-шаблоны-и-примеры-на-английском)
+- [🔄 Последние обновления](#-последние-обновления)
+- [🔍 Введение](#-введение)
+- [🧩 Компоненты](#-компоненты)
+- [🏗️ Полная AI архитектура](#-полная-ai-архитектура)
+- [🚀 Варианты использования](#-варианты-использования)
+- [📁 Структура проекта](#-структура-проекта)
+- [💻 Системные требования](#-системные-требования)
+- [🔄 Установка](#-установка)
+  - [Доступные версии](#доступные-версии)
+  - [Способы клонирования](#способы-клонирования)
+  - [🐧 Развертывание на Ubuntu](#-развертывание-на-ubuntu)
+- [⚡️ Быстрый старт и использование](#-быстрый-старт-и-использование)
+- [🔧 Обслуживание системы](#-обслуживание-системы)
+- [📊 Система мониторинга и аналитики в профиле developer](#-система-мониторинга-и-аналитики-в-профиле-developer)
+- [📈 Мониторинг производительности](#-мониторинг-производительности)
+- [👥 Вклад в проект](#-вклад-в-проект)
+- [👓 Обучающие материалы (на английском)](#-обучающие-материалы-на-английском)
+- [🎥 Видео-инструкция (на английском)](#-видео-инструкция-на-английском)
+- [🛍️ Шаблоны и примеры (на английском)](#-шаблоны-и-примеры-на-английском)
+- [🔄 Импорт workflow из Zie619](#-импорт-workflow-из-zie619)
 - [Советы и хитрости](#советы-и-хитрости)
-- [Устранение неполадок](#-устранение-неполадок)
-- [Лицензия](#-лицензия)
-- [Поддержка](#-поддержка)
+- [🔧 Устранение неполадок](#-устранение-неполадок)
+- [📜 Лицензия](#-лицензия)
+- [💬 Поддержка](#-поддержка)
 
 > [📚 Руководство по документации](./docs/DOCUMENTATION_GUIDE.md) | [🔧 Руководство по установке](./docs/SETUP_SCRIPT.md) | [❗ Распространенные проблемы](./docs/COMMON_ISSUES.md) | [🚨 Устранение неполадок](TROUBLESHOOTING.md)
 
@@ -121,15 +136,20 @@ echo "N8N: http://localhost:5678"
 | [📋 Оглавление](#-оглавление) | Полное содержание документа |
 | [🔍 Введение](#-введение) | Общая информация о проекте |
 | [🧩 Компоненты](#-компоненты) | Список и описание компонентов системы |
+| [🏗️ Полная AI архитектура](#-полная-ai-архитектура) | Диаграммы и схемы взаимодействия |
 | [🚀 Варианты использования](#-варианты-использования) | Сценарии применения системы |
 | [📁 Структура проекта](#-структура-проекта) | Организация файлов и директорий |
 | [💻 Системные требования](#-системные-требования) | Минимальные требования для запуска |
 | [🔄 Установка](#-установка) | Инструкции по установке |
-| [⚡️ Быстрый старт](#️-быстрый-старт-и-использование) | Начало работы с системой |
+| [⚡️ Быстрый старт](#-быстрый-старт-и-использование) | Начало работы с системой |
 | [🔧 Обслуживание системы](#-обслуживание-системы) | Обновление и резервное копирование |
-| [📊 Мониторинг](#-система-мониторинга-и-аналитике-в-профиле-developer) | Система мониторинга и аналитики |
-| [📚 Обучение](#-обучающие-материалы-на-английском) | Уроки и видео для обучения |
-| [🛍️ Шаблоны](#️-шаблоны-и-примеры-на-английском) | Готовые примеры рабочих процессов |
+| [📊 Система мониторинга](#-система-мониторинга-и-аналитики-в-профиле-developer) | Система мониторинга и аналитики |
+| [� Мониторинг производительности](#-мониторинг-производительности) | Производительность системы |
+| [👥 Вклад в проект](#-вклад-в-проект) | Как внести вклад в развитие |
+| [👓 Обучающие материалы](#-обучающие-материалы-на-английском) | Уроки и видео для обучения |
+| [🎥 Видео-инструкции](#-видео-инструкция-на-английском) | Видео-руководства |
+| [🛍️ Шаблоны](#-шаблоны-и-примеры-на-английском) | Готовые примеры рабочих процессов |
+| [🔄 Импорт workflow](#-импорт-workflow-из-zie619) | Импорт готовых workflow |
 | [💡 Советы](#советы-и-хитрости) | Полезные советы по использованию |
 | [🔧 Устранение неполадок](#-устранение-неполадок) | Решение распространенных проблем |
 | [📜 Лицензия](#-лицензия) | Информация о лицензии проекта |
@@ -222,6 +242,31 @@ N8N AI Starter Kit создан для построения моста межд�
 
 ✅ [**Web Interface**](http://localhost:8002) - Современный веб-интерфейс на FastAPI для управления документами, расширенного поиска и аналитики. Обеспечивает удобную загрузку файлов, batch processing, real-time поиск и детализированную аналитику использования системы.
 
+### Включение / отключение `web-interface`
+
+По умолчанию в текущей конфигурации `web-interface` может быть закомментирован в `docker-compose.yml` (аналогично `document-processor`). Чтобы повторно включить сервис, выполните простые шаги:
+
+1. Отредактируйте `docker-compose.yml` и уберите символы `#` у блока `web-interface` (или восстановите из резервной копии).
+2. Убедитесь, что в вашем `.env` заданы необходимые переменные окружения:
+  - `DOCUMENT_PROCESSOR_URL` — URL сервиса document-processor (если он отключён, можно оставить пустым, но часть функционала будет недоступна).
+  - `QDRANT_URL` — внутренний адрес Qdrant (обычно `http://qdrant:6333`).
+  - `WEB_INTERFACE_DOMAIN` — домен для Traefik (опционально, для доступа через прокси).
+
+Примеры команд для включения и проверки:
+
+```bash
+# Запустить только web-interface (сборка при необходимости)
+docker compose up -d --build web-interface
+
+# Просмотреть логи
+docker compose logs -f web-interface
+
+# Быстрая проверка health endpoint
+curl http://localhost:8002/health
+```
+
+Если вы хотите временно оставить `web-interface` отключённым, ничего дополнительно делать не нужно — конфигурация сохранена в виде комментированного блока и легко восстанавливается.
+
 ✅ [**Document Processor**](http://localhost:8001) - Специализированный FastAPI сервис для обработки документов с поддержкой множественных форматов, векторизации и интеграции с Qdrant и базой данных.
 
 ✅ [**Neo4j**](https://neo4j.com/) - Ведущая графовая база данных для работы с связанными данными, используется Graphiti для хранения контекста и знаний.
@@ -229,6 +274,16 @@ N8N AI Starter Kit создан для построения моста межд�
 ✅ [**JupyterLab**](https://jupyter.org/) - Веб-интерактивная среда разработки для создания и анализа документов, содержащих живой код, формулы, визуализацию и текст. *(Профиль: developer)*
 
 ✅ [**Supabase**](https://supabase.com/) - Альтернатива Firebase с открытым исходным кодом, предоставляющая базу данных, аутентификацию и хранилище файлов.
+
+#### Импорт workflow из внешних источников
+✅ [**Zie619 Workflow Import**](#-импорт-workflow-из-zie619) - Интеграция с крупнейшим репозиторием N8N workflow (2,053+ готовых автоматизаций) с возможностью фильтрации по категориям, сложности и интеграциям.
+
+#### Инструменты управления workflow (v1.2.0)
+✅ [**Workflow Management CLI**](./n8n/workflows/management/) - Интерактивный командный интерфейс для импорта и управления workflow с поддержкой фильтрации и предварительного просмотра.
+
+✅ [**Workflow Import Tools**](./n8n/workflows/management/) - Набор Python скриптов для автоматического импорта workflow из различных источников с настройкой зависимостей.
+
+✅ [**Project Organization Tools**](./scripts/) - Структурированная система скриптов для deployment, maintenance, workflow-management и utilities.
 
 ### Расширенные компоненты (профиль developer)
 
@@ -387,7 +442,7 @@ graph TD
 ## 📁 Структура проекта
 
 <pre>
-N8N-AI-Starter-Kit/
+N8N-AI-Starter-Kit/ (v1.2.0 - Reorganized)
 ├── 🐳 docker-compose.yml     # Основной файл конфигурации Docker Compose
 ├── 🔐 .env                   # Файл с переменными окружения (создается из template.env)
 ├── 📋 .env.example           # Пример файла переменных окружения
@@ -400,6 +455,38 @@ N8N-AI-Starter-Kit/
 ├── 🔧 TROUBLESHOOTING.md     # Руководство по устранению неполадок
 ├── 📄 LICENSE                # Лицензия проекта
 ├── 🔍 .gitignore             # Файлы, игнорируемые Git
+├── 🔄 **n8n/workflows/management/** # 🆕 Центр управления Workflow (v1.2.0)
+│   ├── 🎮 workflow-import-cli.py    # Интерактивный CLI для импорта
+│   ├── 📥 import-zie619-workflows.py # Импорт из Zie619 репозитория
+│   ├── 🔗 import-to-n8n.py         # Интеграция с N8N API
+│   ├── ⚙️ setup-workflow-import.py  # Настройка зависимостей
+│   ├── 📦 requirements-workflow-import.txt # Python зависимости
+│   └── 📖 README.md                 # Документация управления workflow
+├── 🔧 **scripts/** (v1.2.0 - Reorganized) # Структурированные операционные скрипты
+│   ├── 🚀 **deployment/**           # Развертывание
+│   │   ├── deploy-server.sh
+│   │   ├── deploy-production.sh
+│   │   └── deploy-production.ps1
+│   ├── 🔧 **maintenance/**          # Обслуживание
+│   │   ├── backup.sh
+│   │   ├── monitor.sh
+│   │   ├── monitor-n8n.sh
+│   │   ├── update.sh
+│   │   └── update-server.sh
+│   ├── 🔄 **workflow-management/**  # Workflow операции
+│   │   ├── auto-import-workflows.sh
+│   │   ├── auto-import-workflows-api.sh
+│   │   ├── simple-workflows-import.sh
+│   │   └── n8n-workflows-import-check.sh
+│   ├── 🔨 **utils/**                # Утилиты
+│   │   ├── check-auto-import-status.sh
+│   │   ├── check-networks.sh
+│   │   ├── check-ollama.sh
+│   │   ├── check-ollama-models.sh
+│   │   ├── check-server-status.sh
+│   │   ├── check-user-setup.sh
+│   │   └── clean-docker.sh
+│   └── 📖 README.md                 # Документация структуры scripts
 ├── 🤖 ai-instructions/       # Инструкции для AI-агентов
 │   ├── 📖 AI_AGENT_GUIDE.md  # Основное руководство для AI-агентов
 │   ├── 🔄 GRAPHITI_MIGRATION_INSTRUCTIONS.md # Инструкции миграции Zep → Graphiti
@@ -650,6 +737,29 @@ chmod +x *.sh
 ./scripts/setup.sh
 ```
 
+### 🧭 CLI флаги для `start.sh`
+
+Добавлены два удобных флага для управления поведением импорта workflows во время запуска без необходимости изменять `.env`:
+
+- `--auto-import` — включить автоматический импорт workflows для этой сессии (эквивалентно `N8N_AUTO_IMPORT=true` во время выполнения). Скрипт не будет записывать это значение в `.env` — действие действует только для текущего запуска.
+- `--no-import-prompt` — полностью подавить все интерактивные запросы по импорту workflows для этой сессии (эквивалентно `N8N_AUTO_IMPORT=false` во время выполнения). Также не изменяет `.env`.
+
+Примеры использования:
+
+```bash
+# Запуск с автоматическим импортом (не меняет .env)
+./start.sh --auto-import
+
+# Запуск без любых запросов об импорте (скрипт не будет ничего записывать в .env)
+./start.sh --no-import-prompt
+
+# Если оба флага заданы — `--auto-import` имеет приоритет
+./start.sh --auto-import --no-import-prompt
+```
+
+Поведение по умолчанию осталось без изменений: если флаги не заданы, `start.sh` продолжит интерактивно спрашивать пользователя о разовом запуске импорта и при согласии запишет `N8N_AUTO_IMPORT` в `.env`.
+
+
 #### 🐧 Специально для Ubuntu VM (новое):
 
 ```bash
@@ -674,6 +784,44 @@ cd N8N-AI-Starter-Kit
 > - 🚫 **НЕ запускайте** скрипты развертывания от root пользователя
 > - ✅ **Используйте** обычного пользователя с sudo правами  
 > - 🔧 **Новые скрипты** автоматически создают пользователя и настраивают права
+
+### 🌐 Развертывание на сервере (SSH)
+
+**Новое в v1.1.4!** Автоматическое развертывание на удаленном сервере через SSH.
+
+#### Быстрое развертывание:
+
+```bash
+# Автоматическая установка на удаленном сервере
+ssh user@your-server-ip
+curl -fsSL https://raw.githubusercontent.com/sattva2020/N8N-AI-Starter-Kit/main/scripts/deploy-server.sh | bash
+```
+
+#### Управление сервером с Windows:
+
+```powershell
+# Загрузка скрипта управления
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sattva2020/N8N-AI-Starter-Kit/main/scripts/manage-server.ps1" -OutFile "manage-server.ps1"
+
+# Развертывание на сервере
+.\manage-server.ps1 -ServerIP "192.168.1.100" -Username "root" -Action "deploy"
+
+# Проверка статуса
+.\manage-server.ps1 -ServerIP "192.168.1.100" -Action "status"
+
+# Обновление системы
+.\manage-server.ps1 -ServerIP "192.168.1.100" -Action "update"
+```
+
+#### Поддерживаемые команды управления:
+- `deploy` - Развертывание системы
+- `status` - Проверка статуса
+- `update` - Обновление до последней версии
+- `start/stop/restart` - Управление сервисами
+- `logs` - Просмотр логов
+- `backup` - Создание резервной копии
+
+> [📖 Полное руководство по серверному развертыванию](./docs/SERVER_DEPLOYMENT.md)
 > - 📖 **Подробная инструкция**: [docs/UBUNTU_VM_COMPLETE_GUIDE.md](./docs/UBUNTU_VM_COMPLETE_GUIDE.md)
 
 > **✨ Что нового в v1.1.3**: 
@@ -1064,7 +1212,8 @@ nvidia-smi --query-gpu=utilization.gpu,memory.used,memory.total --format=csv -l 
 ## Окружение
  - ОС: [например, Windows 10]
  - Версия Docker: [например, 24.0.5]
- - Профиль запуска: [например, cpu, gpu-nvidia]
+
+ - Профиль запуска: [например, cpu, gpu-nvidia, gpu-amd, developer]
  - Используемые модели: [например, Llama3]
 
 ## Дополнительный контекст
@@ -1095,6 +1244,139 @@ n8n полон полезного контента для быстрого ст�
 ### Изучите ключевые концепции ИИ
 
 - [AI Agent Chat](https://n8n.io/workflows/1954-ai-agent-chat/)
+
+## 🔄 Импорт workflow из Zie619
+
+N8N AI Starter Kit теперь поддерживает **автоматический импорт workflow** из крупнейшего сообщественного репозитория [Zie619/n8n-workflows](https://github.com/Zie619/n8n-workflows), содержащего **2,053+ готовых автоматизаций**.
+
+### 🚀 Быстрый старт (v1.2.0)
+
+#### Интерактивный импорт (Рекомендуется):
+```bash
+# Переход в центр управления workflow
+cd n8n/workflows/management
+
+# Установка зависимостей (один раз)
+python setup-workflow-import.py
+
+# Запуск интерактивного импорта
+python workflow-import-cli.py
+```
+
+#### Прямой импорт с фильтрами:
+```bash
+# AI и машинное обучение (ChatGPT, OpenAI, Anthropic)
+python import-zie619-workflows.py --category ai_ml --limit 25
+
+# Бизнес-автоматизация (email, мессенджеры, проект-менеджмент)  
+python import-zie619-workflows.py --category messaging email --min-nodes 3 --limit 30
+
+# Инструменты разработчика (webhooks, APIs, GitHub)
+python import-zie619-workflows.py --category development --keywords webhook api github --limit 20
+```
+
+### 📂 Доступные категории
+
+| Категория | Описание | Примеры интеграций |
+|-----------|----------|-------------------|
+| `ai_ml` | 🤖 ИИ и машинное обучение | OpenAI, Anthropic, ChatGPT, Claude |
+| `messaging` | 💬 Мессенджеры и чат-боты | Telegram, Discord, Slack, WhatsApp |
+| `email` | 📧 Email автоматизация | Gmail, Outlook, SMTP/IMAP |
+| `database` | 🗄️ Базы данных | PostgreSQL, MySQL, MongoDB, Airtable |
+| `cloud_storage` | ☁️ Облачные хранилища | Google Drive, Dropbox, OneDrive |
+| `development` | ⚙️ Инструменты разработки | Webhook, HTTP Request, GitHub, GitLab |
+| `project_management` | 📋 Управление проектами | Jira, Trello, Asana, Monday |
+| `ecommerce` | 🛒 Электронная коммерция | Shopify, Stripe, PayPal |
+
+### 🎯 Готовые пресеты
+
+```bash
+# Стартовый набор для новичков (простые workflow)
+python scripts/import-zie619-workflows.py --preset starter_pack
+
+# AI автоматизация (продвинутые ИИ-workflow)
+python scripts/import-zie619-workflows.py --preset ai_workflows
+
+# Бизнес-процессы (корпоративная автоматизация)
+python scripts/import-zie619-workflows.py --preset business_automation
+
+# Инструменты разработчика
+python scripts/import-zie619-workflows.py --preset developer_tools
+```
+
+### 🔗 Интеграция с N8N
+
+После импорта workflow, автоматически импортируйте их в ваш N8N инстанс:
+
+```bash
+# Импорт через API (рекомендуется)
+python import-to-n8n.py ../imported
+
+# Импорт через CLI (резервный способ)
+python import-to-n8n.py ../imported --use-cli
+
+# Фильтрация при импорте в N8N
+python import-to-n8n.py ../imported --min-nodes 3 --complexity medium high
+```
+
+### 📊 Структура импортированных workflow
+
+```
+n8n/workflows/imported/
+├── ai_ml/                     # ИИ и машинное обучение
+│   ├── ChatGPT_Document_Analysis.json
+│   ├── OpenAI_Content_Generator.json
+│   └── Anthropic_Claude_Assistant.json
+├── messaging/                 # Мессенджеры и боты
+│   ├── Telegram_Bot_Automation.json
+│   ├── Discord_Notification_System.json
+│   └── Slack_Workflow_Integration.json
+├── development/               # Инструменты разработчика
+│   ├── GitHub_Issue_Tracker.json
+│   ├── Webhook_Data_Processor.json
+│   └── API_Integration_Helper.json
+└── zie619_import_report.md   # Отчет об импорте
+```
+
+### ⚡ Примеры использования
+
+#### Импорт ИИ-workflow для начинающих:
+```bash
+python scripts/import-zie619-workflows.py \
+  --category ai_ml \
+  --complexity low medium \
+  --max-nodes 10 \
+  --limit 15
+```
+
+#### Продвинутая бизнес-автоматизация:
+```bash
+python scripts/import-zie619-workflows.py \
+  --category messaging email project_management \
+  --min-nodes 5 \
+  --keywords automation notification \
+  --limit 40
+```
+
+#### Интеграционные инструменты для разработчиков:
+```bash
+python scripts/import-zie619-workflows.py \
+  --category development \
+  --keywords webhook api github gitlab \
+  --min-nodes 3 \
+  --limit 25
+```
+
+### 🔧 Дополнительные возможности
+
+- **Автоматическая категоризация** workflow по типу интеграций
+- **Фильтрация по сложности** (количество узлов: low/medium/high)
+- **Поиск по ключевым словам** в названиях workflow
+- **Пакетная обработка** с отчетами об импорте
+- **История импорта** с SQLite базой данных
+- **Интеграция с N8N API** для прямого импорта
+
+📚 **Подробная документация**: [docs/WORKFLOW_IMPORT_GUIDE.md](docs/WORKFLOW_IMPORT_GUIDE.md)
 - [AI chat with any data source (using the n8n workflow too)](https://n8n.io/workflows/2026-ai-chat-with-any-data-source-using-the-n8n-workflow-tool/)
 - [Chat with OpenAI Assistant (by adding a memory)](https://n8n.io/workflows/2098-chat-with-openai-assistant-by-adding-a-memory/)
 - [Use an open-source LLM (via Hugging Face)](https://n8n.io/workflows/1980-use-an-open-source-llm-via-huggingface/)
@@ -1158,13 +1440,93 @@ Self-hosted AI starter kit создаст общую папку (по умолч
 
 ## 🔧 Устранение неполадок
 
+## 🛠️ Bootstrap для новых хостов
+
+Если вы разворачиваете стек на чистом хосте, выполните предварительную подготовку, чтобы избежать ошибок с внешним томом Traefik (acme storage):
+
+```bash
+# Создать том и гарантировать наличие acme.json с правами 600
+./scripts/bootstrap.sh
+
+# Затем поднять стек
+docker compose up -d
+```
+
+Скрипт `scripts/bootstrap.sh` идемпотентен — его можно запускать многократно без побочных эффектов.
+
+## 🔁 Автоматический импорт workflows (опционально)
+
+По умолчанию автоматический импорт workflow'ов отключён. Поведение:
+
+- Чтобы включить автo-импорт при старте, добавьте в ваш `.env`:
+
+```env
+N8N_AUTO_IMPORT=true
+```
+
+- Скрипт `./start.sh` запускает импорт только если переменная `N8N_AUTO_IMPORT=true`.
+- Если переменная не установлена, в интерактивном режиме вам будет предложено разово запустить импорт вручную.
+- В неинтерактивных/CI сценариях импорт пропускается.
+
+Минимальный пример сервиса `n8n-importer` (добавьте в ваш `docker-compose.yml` или в include-файл):
+
+```yaml
+services:
+  n8n-importer:
+    build: ./services/n8n-importer  # или image: your-registry/n8n-importer:latest
+    depends_on:
+      - n8n
+    environment:
+      - N8N_HOST=n8n
+      - N8N_PORT=5678
+    volumes:
+      - ./n8n/import-scripts:/app:ro
+      - ./services/n8n-importer/n8n-workflows:/opt/n8n-workflows:ro  # persistent clone should be stored here (host path)
+    entrypoint: ["/usr/local/bin/run-importer.sh"]
+```
+
+Как запустить импорт вручную (из корня проекта):
+
+```bash
+# Однократный запуск импортера (контейнер service должен быть определён в compose)
+docker compose run --rm n8n-importer
+```
+
+Если нужно разрешить runtime-клонинг внутри контейнера (только для тестирования/CI, не рекомендуется в production):
+
+```bash
+# Запуск с разрешением runtime clone (контейнер попытается клонировать удалённый репозиторий самостоятельно)
+docker compose run --rm -e ALLOW_RUNTIME_CLONE=true n8n-importer
+```
+
+Если у вас нет сервиса `n8n-importer`, `./start.sh` безопасно пропустит импорт и выведет подсказку.
+
 N8N AI Starter Kit включает подробное руководство по устранению распространенных проблем, с которыми вы можете столкнуться при работе с системой.
 
-### Частые проблемы
+### Частые проблемы v1.2.0
 
-#### 1. Конфликт сетей Docker
+#### 1. Ошибка аутентификации Document Processor
+```
+ERROR:app:Ошибка инициализации: password authentication failed for user "n8n"
+WARNING:app:Сервис запущен в режиме ограниченной функциональности
+```
+
+**Быстрое решение:**
+```bash
+# Автоматическое исправление
+./scripts/utils/fix-document-processor.sh
+
+# Или проверьте .env файл:
+grep -E "(POSTGRES|N8N).*PASSWORD" .env
+
+# Убедитесь что есть:
+# POSTGRES_PASSWORD=changeme
+# N8N_DB_PASSWORD=changeme
+```
+
+#### 2. Конфликт сетей Docker
 Если вы сталкиваетесь с ошибками типа "networks.backend conflicts with imported resource", используйте специальные скрипты для решения проблемы:
-```powershell
+```bash
 # Linux/macOS
 ./scripts/fix-and-start.sh
 
@@ -1172,10 +1534,8 @@ N8N AI Starter Kit включает подробное руководство п
 .\scripts\fix-and-start.ps1
 ```
 
-#### 2. Проблемы с переменными окружения
+#### 3. Проблемы с переменными окружения
 Если Docker Compose выдает предупреждения о неопределенных переменных, используйте:
-```powershell
-# Linux/macOS
 ./scripts/fix-env-vars.sh
 
 # Windows PowerShell
@@ -1290,7 +1650,7 @@ docker logs n8n-ai-starter-kit-ollama-1
     *   **Anon Key:** Используйте значение переменной `SUPABASE_ANON_KEY` из вашего файла `.env`.
     *   **Service Role Key:** Используйте значение переменной `SUPABASE_SERVICE_ROLE_KEY` из вашего файла `.env`.
 
-    **Примечание:** Внешний доступ к API Supabase настроен через Traefik по адресу, указанному в переменной `SUPABASE_API_DOMAIN` вашего `.env` файла (например, `https://api.supabase.sattva-ai.top`). Для подключения из n8n к API Supabase используется внутренний адрес `http://supabase-kong:8000`. Доступ к Supabase Studio (веб-интерфейсу) осуществляется по адресу, указанному в переменной `SUPABASE_STUDIO_DOMAIN` (например, `https://supabase.sattva-ai.top`).
+  **Примечание:** Внешний доступ к API Supabase настроен через Traefik по адресу, указанному в переменной `SUPABASE_API_DOMAIN` вашего `.env` файла (например, `https://api.supabase.example.com`). Для подключения из n8n к API Supabase используется внутренний адрес `http://supabase-kong:8000`. Доступ к Supabase Studio (веб-интерфейсу) осуществляется по адресу, указанному в переменной `SUPABASE_STUDIO_DOMAIN` (например, `https://supabase.example.com`).
 
 Эти инструкции помогут пользователям правильно настроить n8n для работы со всеми основными компонентами вашего стартового набора. Убедитесь, что имена сервисов (`minio`, `qdrant`, `postgres`, `graphiti`, `neo4j-graphiti`, `supabase`) и порты соответствуют тем, что указаны в вашем актуальном файле `docker-compose.yml`.
 
@@ -1680,4 +2040,11 @@ graph TD
 > Начните с простых workflows и постепенно добавляйте сложность. Каждый компонент можно тестировать независимо, а затем объединять в комплексные решения.
 
 > [!NOTE]
-> Все примеры кода и готовые workflows будут добавлены в папку `examples/` по мере развития проекта.
+> Все примеры кода и готовые workflows будут добавлены в папку `examples/` по мере развития проекта.Updated README note
+Updated README note
+Updated docs: env.schema updated with defaults for local testing (legacy: env.schema.md)
+chore: replaced personal email in env.schema and scripts/ with placeholder
+
+## env.schema is canonical
+
+This repository uses `env.schema` as the canonical environment schema for CI and pre-commit validation. Obvious placeholder values are removed from the committed `env.schema` to prevent leaking example secrets. Add real secrets to your local `.env` or to secure secret stores before deploying.

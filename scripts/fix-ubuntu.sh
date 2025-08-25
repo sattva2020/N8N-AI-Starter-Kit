@@ -67,8 +67,12 @@ fix_env_file() {
     log "📝 Проверка и исправление .env файла..."
     
     if [ ! -f ".env" ]; then
-        warning ".env файл не найден, копирую из template.env"
-        cp template.env .env
+        warning ".env файл не найден, генерируем с помощью setup.sh --generate-only"
+        if [ -x "./scripts/setup.sh" ]; then
+            ./scripts/setup.sh --generate-only
+        else
+            warning "Не найден ./scripts/setup.sh — создайте .env вручную"
+        fi
     fi
     
     # Исправить POSTGRES_USER если неправильный

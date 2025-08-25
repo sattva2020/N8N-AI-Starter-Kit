@@ -1,9 +1,0 @@
-# Zep Configuration
-api_secret: ${ZEP_API_SECRET} # Zep server API secret
-postgres:
-  user: ${ZEP_POSTGRES_USER}
-  password: ${ZEP_POSTGRES_PASSWORD}
-  host: zep-db # Правильное имя сервиса из zep-compose.yaml
-  port: 5432
-  database: ${ZEP_POSTGRES_DB}
-  schema_name: public # Default schema for Zep

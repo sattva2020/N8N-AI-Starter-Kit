@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<clickhouse>
+    <users>
+        <!-- Default user -->
+        <default>
+            <password></password>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <profile>default</profile>
+            <quota>default</quota>
+            <databases>
+                <database>*</database>
+            </databases>
+            <access_management>1</access_management>
+        </default>
+        
+        <!-- Analytics user -->
+        <analytics_user>
+            <password_sha256_hex>a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3</password_sha256_hex>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <profile>default</profile>
+            <quota>default</quota>
+            <databases>
+                <database>n8n_analytics</database>
+                <database>system</database>
+            </databases>
+            <access_management>0</access_management>
+        </analytics_user>
+        
+        <!-- Read-only user for dashboards -->
+        <readonly_user>
+            <password_sha256_hex>e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</password_sha256_hex>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <profile>readonly</profile>
+            <quota>default</quota>
+            <databases>
+                <database>n8n_analytics</database>
+            </databases>
+            <access_management>0</access_management>
+        </readonly_user>
+    </users>
+    
+    <quotas>
+        <default>
+            <interval>
+                <duration>3600</duration>
+                <queries>0</queries>
+                <errors>0</errors>
+                <result_rows>0</result_rows>
+                <read_rows>0</read_rows>
+                <execution_time>0</execution_time>
+            </interval>
+        </default>
+    </quotas>
+</clickhouse>

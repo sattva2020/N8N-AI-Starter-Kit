@@ -1,0 +1,5 @@
+# Zie619 Workflow Import Dependencies
+requests>=2.25.0
+inquirer>=2.7.0
+pathlib>=1.0.0
+sqlite3
