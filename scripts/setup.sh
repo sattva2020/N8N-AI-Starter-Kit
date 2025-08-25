@@ -133,6 +133,22 @@ validate_domain_name() {
   fi
 }
 
+# Функция нормализации введённого домена — возвращает последний валидный фрагмент домена
+normalize_domain() {
+  local raw="$1"
+  # Вытащим все подстроки, которые выглядят как домены, и вернём последнюю
+  # Используем grep -oE с тем же regex, затем tail -n1
+  local matches
+  matches=$(echo "$raw" | grep -oE '([a-zA-Z0-9](-?[a-zA-Z0-9]){0,62}\.)+[a-zA-Z]{2,}' || true)
+  if [ -n "$matches" ]; then
+    # Возвращаем последнюю найденную подстроку (если их несколько — вероятно дублирование)
+    echo "$matches" | tail -n1
+  else
+    # Ничего не найдено — возвращаем исходное значение (позже валидация поймает ошибку)
+    echo "$raw"
+  fi
+}
+
 # Функция для проверки email адреса
 validate_email() {
   local email=$1
@@ -833,7 +849,7 @@ update_traefik_config() {
   # Обновляем development.yml если есть жестко заданные домены
   if [ -f "config/traefik/dynamic/development.yml" ]; then
     # Replace generic placeholder domains with the configured DOMAIN_NAME.
-    # Avoid embedding any project-specific domain like 'sattva-ai.top' directly in the repo.
+  # Avoid embedding any project-specific domain directly in the repo; use a neutral default like example.com
     if grep -q "yourdomain\.com" config/traefik/dynamic/development.yml; then
       if [ ! -f "config/traefik/dynamic/development.yml.backup" ]; then
         cp config/traefik/dynamic/development.yml config/traefik/dynamic/development.yml.backup
@@ -1068,6 +1084,12 @@ interactive_setup() {
     print_error "Домен не может быть пустым!"
     read -p "Введите ваш основной домен (например, example.com): " domain_name
   done
+  # Нормализуем ввод: убираем случайные дублирования и оставляем последний валидный домен
+  domain_name=$(normalize_domain "$domain_name")
+  if ! validate_domain_name "$domain_name"; then
+    print_error "Введённый домен не прошёл валидацию: $domain_name"
+    exit 1
+  fi
   
   # Запрашиваем email для Let's Encrypt
   read -p "Введите email для Let's Encrypt (для SSL сертификатов): " acme_email
@@ -1114,6 +1136,15 @@ update_template_with_user_settings() {
   local openai_api_key=$3
 
   print_info "Обновление конфигурации с пользовательскими настройками..."
+
+  # Нормализуем domain_name на случай, если функция вызвана извне
+  if [ -n "$domain_name" ]; then
+    domain_name=$(normalize_domain "$domain_name")
+    if ! validate_domain_name "$domain_name"; then
+      print_warning "Параметр domain_name='$domain_name' не прошёл валидацию. Пропускаем обновление доменов." 
+      domain_name=""
+    fi
+  fi
 
   # Предпочитаем обновлять .env — это текущий источник истины для установки.
   if [ -f ".env" ]; then
@@ -1202,6 +1233,15 @@ if [ "$GENERATE_ONLY" = true ]; then
   traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1 2>/dev/null || echo "${traefik_pwd}")
 
   # Write full .env based on env.schema (preferred) or env.schema.md (legacy) with generated secrets and sensible placeholders
+  # Normalize DOMAIN_NAME if provided
+  if [ -n "${DOMAIN_NAME:-}" ]; then
+    DOMAIN_NAME=$(normalize_domain "${DOMAIN_NAME}")
+    if ! validate_domain_name "$DOMAIN_NAME"; then
+      print_warning "Переданный DOMAIN_NAME='${DOMAIN_NAME}' не прошёл валидацию. Используется example.com"
+      DOMAIN_NAME=example.com
+    fi
+  fi
+
   cat > .env <<EOF
 # Auto-generated .env by setup.sh --generate-only
 DOMAIN_NAME=${DOMAIN_NAME:-example.com}
@@ -1795,6 +1835,7 @@ EOF
   echo "NEO4J_HTTP_PORT=${NEO4J_HTTP_PORT:-7474}" >> .env
 
   # Обновляем домены на пользовательские в .env (если уже присутствуют шаблонные значения)
+  # Используем нормализованный domain_name для замены, чтобы избежать дублирования
   sed -i "s/example.com/${domain_name}/g" .env || true
 
   print_success "Файл .env успешно создан!"
