@@ -19,7 +19,7 @@ fi
 
 for f in $staged_files; do
   case "$f" in
-    env.schema|env.schema.md|.env|.env.example|template.env)
+    .env|.env.example|template.env)
       # Read staged content
       if ! content=$(git show ":$f" 2>/dev/null); then
         # If not staged (shouldn't happen), skip

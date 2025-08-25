@@ -99,6 +99,10 @@ run_with_spinner() {
   fi
 }
 
+# Repository root (one level above scripts/) — used to ensure clones go into the repo, not system root
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+
+
 # Определение типа ОС
 detect_os() {
   if [ -f /etc/os-release ]; then
@@ -379,11 +383,28 @@ check_cpu_resources() {
 # disabled. This project requires the repository to be installed manually by
 # the operator to avoid accidental modifications to the upstream source.
 clone_official_workflows() {
-  print_warning "Automatic cloning of Zie619/n8n-workflows is disabled."
-  print_info "Please install the repository manually in the project root:"
-  echo "  git clone https://github.com/Zie619/n8n-workflows.git n8n-workflows"
-  echo "  mkdir -p n8n/workflows && cp -r n8n-workflows/workflows/* n8n/workflows/"
-  echo "  # Then build the workflows-doc service when ready: docker compose build workflows-doc"
+  # Default target is inside the repository under services to avoid accidental system-wide clones
+  local target_dir="${ROOT_DIR}/services/n8n-importer/n8n-workflows"
+  print_info "Automatic cloning target: ${target_dir}"
+  if [ -d "${target_dir}/.git" ]; then
+    echo "n8n-workflows already cloned in ${target_dir}, skipping."
+    return 0
+  fi
+
+  mkdir -p "${target_dir}"
+  if command -v git >/dev/null 2>&1; then
+    echo "Cloning Zie619/n8n-workflows into ${target_dir}..."
+    if git clone --depth 1 https://github.com/Zie619/n8n-workflows.git "${target_dir}"; then
+      echo "Clone completed."
+      return 0
+    else
+      echo "Error cloning n8n-workflows." >&2
+      return 1
+    fi
+  else
+    echo "git not found on host; install git and run: git clone https://github.com/Zie619/n8n-workflows.git ${target_dir}" >&2
+    return 1
+  fi
 }
 
 # Функция для создания файла с советами по устранению неполадок
@@ -653,9 +674,10 @@ create_env_from_template() {
   traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1)
 
   # Создаём .env напрямую
+# Write full .env based on env.schema (preferred) or env.schema.md (legacy) with generated secrets and sensible placeholders
   cat > .env <<EOF
 # Generated .env - N8N AI Starter Kit
-DOMAIN_NAME=${DOMAIN_NAME:-sattva-ai.top}
+  DOMAIN_NAME=${DOMAIN_NAME:-example.com}
 
 # POSTGRES
 POSTGRES_USER=${POSTGRES_USER:-n8n}
@@ -668,21 +690,21 @@ POSTGRES_PORT=${POSTGRES_PORT:-5432}
 N8N_ENCRYPTION_KEY=${n8n_encryption_key}
 N8N_USER_MANAGEMENT_JWT_SECRET=${n8n_jwt_secret}
 N8N_DEFAULT_BINARY_DATA_MODE=filesystem
-N8N_HOST=n8n.
+  N8N_HOST=n8n.${DOMAIN_NAME:-example.com}
 N8N_PORT=5678
 N8N_PROTOCOL=http
 N8N_SECURE_COOKIE=false
-WEBHOOK_URL=http://n8n.
+  WEBHOOK_URL=http://n8n.${DOMAIN_NAME:-example.com}/
 N8N_API_KEY=${n8n_api_key}
 N8N_API_AUTH_ACTIVE=true
 
 # PGADMIN
-PGADMIN_DEFAULT_EMAIL=admin@sattva-ai.top
+PGADMIN_DEFAULT_EMAIL=admin@example.com
 PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
-PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-sattva-ai.top}}
+  PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-example.com}}
 
 # TRAEFIK
-ACME_EMAIL=admin@sattva-ai.top
+  ACME_EMAIL=admin@example.com
 TRAEFIK_USERNAME=admin
 TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
 
@@ -710,7 +732,7 @@ EOF
 # ---- NEO4J (Graphiti) ----
 NEO4J_URI=${NEO4J_URI:-bolt://neo4j-graphiti:7687}
 NEO4J_USER=${NEO4J_USER:-neo4j}
-NEO4J_PASSWORD=${NEO4J_PASSWORD:-change_this_secure_password_123}
+NEO4J_PASSWORD=${NEO4J_PASSWORD:-$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)}
 NEO4J_HOST=${NEO4J_HOST:-neo4j-graphiti}
 NEO4J_PORT=${NEO4J_PORT:-7687}
 NEO4J_BOLT_PORT=${NEO4J_BOLT_PORT:-7687}
@@ -736,9 +758,17 @@ NEOEOF
   fi
 
   # Опционально клонируем репозиторий Zie619/n8n-workflows для последующего импорта
-  if ! clone_n8n_workflows_once; then
-    print_warning "Не удалось автоматически клонировать n8n-workflows (это не критично)."
+  # Клонируем только если явно включён автo-импорт (например, во время развёртывания)
+  if [ "${N8N_AUTO_IMPORT:-false}" = "true" ]; then
+    if ! clone_n8n_workflows_once; then
+      print_warning "Не удалось автоматически клонировать n8n-workflows (это не критично)."
+    fi
+  else
+    print_info "Авто-импорт workflows отключён (N8N_AUTO_IMPORT!=true) — клонирование пропущено. При развёртывании включите N8N_AUTO_IMPORT=true для автоматического импорта."
   fi
+
+  # Ensure profile/domain defaults exist so compose profiles don't warn
+  ensure_profile_defaults || true
 
 }
 
@@ -802,17 +832,58 @@ update_traefik_config() {
 
   # Обновляем development.yml если есть жестко заданные домены
   if [ -f "config/traefik/dynamic/development.yml" ]; then
-    if grep -q "yourdomain\.com\|sattva-ai\.top" config/traefik/dynamic/development.yml; then
+    # Replace generic placeholder domains with the configured DOMAIN_NAME.
+    # Avoid embedding any project-specific domain like 'sattva-ai.top' directly in the repo.
+    if grep -q "yourdomain\.com" config/traefik/dynamic/development.yml; then
       if [ ! -f "config/traefik/dynamic/development.yml.backup" ]; then
         cp config/traefik/dynamic/development.yml config/traefik/dynamic/development.yml.backup
       fi
-      sed -i "s/sattva-ai\.top/${DOMAIN_NAME}/g" config/traefik/dynamic/development.yml
-      sed -i "s/yourdomain\.com/${DOMAIN_NAME}/g" config/traefik/dynamic/development.yml
+      sed -i "s/yourdomain\.com/${DOMAIN_NAME}/g" config/traefik/dynamic/development.yml || true
       print_success "development.yml обновлен"
     fi
   fi
 
   print_success "Конфигурация Traefik обновлена для домена: $DOMAIN_NAME"
+}
+
+# Ensure common profile-related env defaults exist to avoid docker-compose WARNs
+ensure_profile_defaults() {
+  # Read domain name from .env or fallback
+  domain_name=$(grep -E '^DOMAIN_NAME=' .env 2>/dev/null | tail -n1 | cut -d'=' -f2-)
+  domain_name=${domain_name:-example.com}
+
+  # defaults to ensure
+  defaults=(
+    "POSTGRES_DB=n8n"
+    "PGADMIN_DOMAIN=pgadmin.${domain_name}"
+    "JUPYTER_DOMAIN=jupyter.${domain_name}"
+    "QDRANT_DOMAIN=qdrant.${domain_name}"
+    "GRAPHITI_DOMAIN=graphiti.${domain_name}"
+    "OLLAMA_DOMAIN=ollama.${domain_name}"
+    "N8N_DOMAIN=n8n.${domain_name}"
+    "N8N_HOST=n8n.${domain_name}"
+    "N8N_PORT=5678"
+    "N8N_PROTOCOL=http"
+    "WEBHOOK_URL=http://n8n.${domain_name}/"
+    "DB_TYPE=postgresdb"
+    "DB_POSTGRESDB_HOST=postgres"
+    "DB_POSTGRESDB_PORT=5432"
+    "DB_POSTGRESDB_DATABASE=n8n"
+    "DB_POSTGRESDB_USER=n8n"
+    "ACME_EMAIL=admin@${domain_name}"
+    "PGADMIN_DEFAULT_EMAIL=admin@${domain_name}"
+  )
+
+  for kv in "${defaults[@]}"; do
+    key=${kv%%=*}
+    val=${kv#*=}
+    if grep -q -E "^${key}=" .env 2>/dev/null; then
+      sed -i "s|^${key}=.*|${key}=${val}|" .env 2>/dev/null || true
+    else
+      echo "${key}=${val}" >> .env
+    fi
+  done
+  return 0
 }
 
 # Проверяет и при необходимости создаёт внешний том traefik_letsencrypt
@@ -1133,7 +1204,7 @@ if [ "$GENERATE_ONLY" = true ]; then
   # Write full .env based on env.schema (preferred) or env.schema.md (legacy) with generated secrets and sensible placeholders
   cat > .env <<EOF
 # Auto-generated .env by setup.sh --generate-only
-DOMAIN_NAME=${DOMAIN_NAME:-sattva-ai.top}
+DOMAIN_NAME=${DOMAIN_NAME:-example.com}
 
 # ---- POSTGRESQL ----
 POSTGRES_USER=${POSTGRES_USER:-n8n}
@@ -1146,21 +1217,21 @@ POSTGRES_PORT=${POSTGRES_PORT:-5432}
 N8N_ENCRYPTION_KEY=${n8n_encryption_key}
 N8N_USER_MANAGEMENT_JWT_SECRET=${n8n_jwt_secret}
 N8N_DEFAULT_BINARY_DATA_MODE=filesystem
-N8N_HOST=n8n.${DOMAIN_NAME:-sattva-ai.top}
+N8N_HOST=n8n.${DOMAIN_NAME:-example.com}
 N8N_PORT=5678
 N8N_PROTOCOL=http
 N8N_SECURE_COOKIE=false
-WEBHOOK_URL=http://n8n.${DOMAIN_NAME:-sattva-ai.top}/
+WEBHOOK_URL=http://n8n.${DOMAIN_NAME:-example.com}/
 N8N_API_KEY=${n8n_api_key}
 N8N_API_AUTH_ACTIVE=true
 
 # ---- DOMAINS FOR DEVELOPMENT ----
-N8N_DOMAIN=n8n.${DOMAIN_NAME:-sattva-ai.top}
-WEB_INTERFACE_DOMAIN=web.${DOMAIN_NAME:-sattva-ai.top}
-DOCUMENT_PROCESSOR_DOMAIN=doc-processor.${DOMAIN_NAME:-sattva-ai.top}
-QDRANT_DOMAIN=qdrant.${DOMAIN_NAME:-sattva-ai.top}
-OLLAMA_DOMAIN=ollama.${DOMAIN_NAME:-sattva-ai.top}
-TRAEFIK_DASHBOARD_DOMAIN=traefik.${DOMAIN_NAME:-sattva-ai.top}
+N8N_DOMAIN=n8n.${DOMAIN_NAME:-example.com}
+WEB_INTERFACE_DOMAIN=web.${DOMAIN_NAME:-example.com}
+DOCUMENT_PROCESSOR_DOMAIN=doc-processor.${DOMAIN_NAME:-example.com}
+QDRANT_DOMAIN=qdrant.${DOMAIN_NAME:-example.com}
+OLLAMA_DOMAIN=ollama.${DOMAIN_NAME:-example.com}
+TRAEFIK_DASHBOARD_DOMAIN=traefik.${DOMAIN_NAME:-example.com}
 
 # ---- SYSTEM SETTINGS ----
 GENERIC_TIMEZONE=UTC
@@ -1168,27 +1239,27 @@ NODE_ENV=production
 COMPOSE_PROJECT_NAME=n8n-ai-starter-kit
 
 # ---- PGADMIN ----
-PGADMIN_DEFAULT_EMAIL=${ACME_EMAIL:-admin@${DOMAIN_NAME:-sattva-ai.top}}
+PGADMIN_DEFAULT_EMAIL=${ACME_EMAIL:-admin@${DOMAIN_NAME:-example.com}}
 PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
-PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-sattva-ai.top}}
+PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-example.com}}
 
 # ---- TRAEFIK ----
-ACME_EMAIL=${ACME_EMAIL:-admin@${DOMAIN_NAME:-sattva-ai.top}}
+ACME_EMAIL=${ACME_EMAIL:-admin@${DOMAIN_NAME:-example.com}}
 TRAEFIK_USERNAME=admin
 TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
 
 # ---- GRAPHITI / OPENAI ----
 OPENAI_API_KEY=${OPENAI_API_KEY:-}
-GRAPHITI_DOMAIN=graphiti.${DOMAIN_NAME:-sattva-ai.top}
+GRAPHITI_DOMAIN=graphiti.${DOMAIN_NAME:-example.com}
 
 # Optional defaults to avoid docker-compose warnings
-PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-sattva-ai.top}}
-JUPYTER_DOMAIN=${JUPYTER_DOMAIN:-jupyter.${DOMAIN_NAME:-sattva-ai.top}}
+PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-example.com}}
+JUPYTER_DOMAIN=${JUPYTER_DOMAIN:-jupyter.${DOMAIN_NAME:-example.com}}
 MODEL_NAME=${MODEL_NAME:-}
 
 # Optional defaults to avoid docker-compose warnings
-PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-sattva-ai.top}}
-JUPYTER_DOMAIN=${JUPYTER_DOMAIN:-jupyter.${DOMAIN_NAME:-sattva-ai.top}}
+PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-example.com}}
+JUPYTER_DOMAIN=${JUPYTER_DOMAIN:-jupyter.${DOMAIN_NAME:-example.com}}
 MODEL_NAME=${MODEL_NAME:-}
 
 # ---- NEO4J ----
@@ -1216,8 +1287,8 @@ DB_POSTGRESDB_PASSWORD=${postgres_pwd}
 N8N_RESET=false
 
 # Workflows manager
-WORKFLOWS_DOC_DOMAIN=workflows.${DOMAIN_NAME:-sattva-ai.top}
-WORKFLOWS_MANAGER_DOMAIN=workflows-manager.${DOMAIN_NAME:-sattva-ai.top}
+WORKFLOWS_DOC_DOMAIN=workflows.${DOMAIN_NAME:-example.com}
+WORKFLOWS_MANAGER_DOMAIN=workflows-manager.${DOMAIN_NAME:-example.com}
 WORKFLOWS_MANAGER_API_KEY=
 
 EOF
@@ -1231,10 +1302,17 @@ EOF
   if ! ensure_traefik_volume_exists; then
     print_warning "Проблемы при проверке/создании docker volume traefik_letsencrypt — проверьте вручную"
   fi
+  # Ensure JUPYTER token exists to avoid empty value in compose
+  if ! grep -q '^JUPYTER_TOKEN=' .env 2>/dev/null; then
+    jupyter_token=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+    echo "JUPYTER_TOKEN=${jupyter_token}" >> .env
+  fi
   return 0
   }
 
   generate_env_only
+  # Ensure profile defaults written into generated .env
+  ensure_profile_defaults || true
   exit 0
 fi
 
@@ -1685,19 +1763,39 @@ EOF
   echo "LOGFLARE_API_KEY=${logflare_api_key}" >> .env
   echo "QDRANT_API_KEY=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)" >> .env
 
+  # Ensure JUPYTER_TOKEN is set (some compose profiles expect it)
+  if ! grep -q '^JUPYTER_TOKEN=' .env 2>/dev/null; then
+    JUPYTER_TOKEN_VAL=${JUPYTER_TOKEN:-$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)}
+    echo "JUPYTER_TOKEN=${JUPYTER_TOKEN_VAL}" >> .env
+  fi
+
   # Ensure NEO4J defaults exist for interactive generated .env so validation succeeds
   echo "" >> .env
   echo "# ---- NEO4J (Graphiti) ----" >> .env
   echo "NEO4J_URI=${NEO4J_URI:-bolt://neo4j-graphiti:7687}" >> .env
   echo "NEO4J_USER=${NEO4J_USER:-neo4j}" >> .env
-  echo "NEO4J_PASSWORD=${NEO4J_PASSWORD:-change_this_secure_password_123}" >> .env
+  # Interactive prompt: allow user to set Neo4j password or generate a secure one
+  if [ "${SETUP_MODE}" = "interactive" ]; then
+    read -p "Введите пароль для Neo4j (оставьте пустым для автогенерации): " neo4j_pwd_input
+    if [ -z "${neo4j_pwd_input}" ]; then
+      neo4j_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+      echo "NEO4J_PASSWORD=${neo4j_pwd}" >> .env
+      print_info "Сгенерирован пароль для Neo4j: ${neo4j_pwd}"
+    else
+      echo "NEO4J_PASSWORD=${neo4j_pwd_input}" >> .env
+    fi
+  else
+    # Non-interactive: generate a secure password
+    neo4j_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+    echo "NEO4J_PASSWORD=${neo4j_pwd}" >> .env
+  fi
   echo "NEO4J_HOST=${NEO4J_HOST:-neo4j-graphiti}" >> .env
   echo "NEO4J_PORT=${NEO4J_PORT:-7687}" >> .env
   echo "NEO4J_BOLT_PORT=${NEO4J_BOLT_PORT:-7687}" >> .env
   echo "NEO4J_HTTP_PORT=${NEO4J_HTTP_PORT:-7474}" >> .env
 
   # Обновляем домены на пользовательские в .env (если уже присутствуют шаблонные значения)
-  sed -i "s/sattva-ai.top/${domain_name}/g" .env || true
+  sed -i "s/example.com/${domain_name}/g" .env || true
 
   print_success "Файл .env успешно создан!"
   print_warning "ВАЖНО: Сохраните копию файла .env в безопасном месте!"
@@ -1741,6 +1839,9 @@ EOF
     print_warning "Проблемы при проверке/создании docker volume traefik_letsencrypt — проверьте вручную"
   fi
 
+  # Ensure profile defaults are present after interactive generation
+  ensure_profile_defaults || true
+
   # Предложение предзагрузки моделей
   echo -e "\n${BLUE}===============================================${NC}"
   echo -e "${BOLD}Предварительная загрузка моделей для Ollama${NC}"
@@ -1783,6 +1884,14 @@ validate_required_envs() {
   if [ ${#missing[@]} -gt 0 ]; then
     print_error "Отсутствуют обязательные переменные в .env: ${missing[*]}"
     print_info "Запустите './scripts/setup.sh --generate-only' или заполните .env вручную, затем повторите запуск."
+    exit 1
+  fi
+
+  # Additional safety check: ensure Neo4j password is not the placeholder value
+  neo4j_pwd_val=$(grep -E '^NEO4J_PASSWORD=' .env | tail -n1 | cut -d'=' -f2-)
+  if [ -z "${neo4j_pwd_val}" ] || [ "${neo4j_pwd_val}" = "change_this_secure_password_123" ]; then
+    print_error "Neo4j пароль не задан или использует небезопасный placeholder 'change_this_secure_password_123'."
+    print_info "Запустите './scripts/setup.sh' и задайте надёжный пароль для Neo4j или выполните './scripts/setup.sh --generate-only' для автогенерации пароля."
     exit 1
   fi
 
@@ -1847,11 +1956,11 @@ print_info "${BOLD}./start.sh gpu-nvidia${NC} - Запуск с NVIDIA GPU AI-с
 # Показываем адреса в зависимости от режима
 if [ "$SETUP_MODE" = "template" ]; then
   print_info "\nПосле запуска доступ к сервисам по адресам:"
-  print_info "N8N: http://n8n.sattva-ai.top"
-  print_info "Traefik Dashboard: http://traefik.sattva-ai.top"
-  print_info "Qdrant: http://qdrant.sattva-ai.top"
-  print_info "Document Processor: http://doc-processor.sattva-ai.top"
-  print_info "Web Interface: http://web.sattva-ai.top"
+  print_info "N8N: http://n8n.${DOMAIN_NAME:-example.com}"
+  print_info "Traefik Dashboard: http://traefik.${DOMAIN_NAME:-example.com}"
+  print_info "Qdrant: http://qdrant.${DOMAIN_NAME:-example.com}"
+  print_info "Document Processor: http://doc-processor.${DOMAIN_NAME:-example.com}"
+  print_info "Web Interface: http://web.${DOMAIN_NAME:-example.com}"
   print_info ""
 elif [ "$SETUP_MODE" = "interactive" ]; then
   print_info "\nПосле запуска, доступ к сервисам будет по адресам:"
@@ -1866,57 +1975,35 @@ print_info "Полная документация: https://github.com/n8n-io/n8n
 
 # Функция для клонирования официального репозитория n8n workflows
 clone_official_workflows() {
-  print_info "📥 Клонирование официального репозитория n8n workflows..."
-  
-  # Официальный репозиторий с workflow'ами от Zie619
+  print_info "📥 Cloning official n8n-workflows into repo services path..."
   local repo_url="https://github.com/Zie619/n8n-workflows.git"
-  local target_dir="n8n-workflows"
-  
-  if [ -d "$target_dir" ]; then
-    print_info "📁 Репозиторий уже существует, обновляем..."
-    cd "$target_dir"
-    if git pull origin main >/dev/null 2>&1; then
-      print_success "✅ Репозиторий обновлен: $target_dir"
-    else
-      print_warning "⚠️ Не удалось обновить репозиторий $target_dir"
-    fi
-    cd ..
+  local target_dir="${ROOT_DIR}/services/n8n-importer/n8n-workflows"
+
+  mkdir -p "${target_dir}"
+  if [ -d "${target_dir}/.git" ]; then
+    print_info "📁 Repo already cloned: ${target_dir}, attempting pull..."
+    (cd "${target_dir}" && git pull origin main) >/dev/null 2>&1 || print_warning "⚠️ Could not update ${target_dir}"
   else
-    print_info "📥 Клонирование репозитория n8n-workflows..."
-    if git clone "$repo_url" "$target_dir" >/dev/null 2>&1; then
-      print_success "✅ Успешно склонирован репозиторий: $target_dir"
-      
-      # Проверяем наличие папки workflows
-      if [ -d "$target_dir/workflows" ]; then
-        local workflow_count=$(find "$target_dir/workflows" -name "*.json" | wc -l)
-        print_info "📊 Найдено $workflow_count workflow'ов"
-      fi
+    if command -v git >/dev/null 2>&1; then
+      (git clone --depth 1 "${repo_url}" "${target_dir}") >/dev/null 2>&1 && print_success "✅ Cloned to ${target_dir}" || print_warning "⚠️ Clone failed for ${repo_url}"
     else
-      print_warning "⚠️ Не удалось клонировать репозиторий $repo_url"
-      print_info "🔍 Проверьте подключение к интернету или доступность репозитория"
+      print_warning "git not available on host; please install git and run: git clone ${repo_url} ${target_dir}"
     fi
   fi
-  
-  # Копирование workflows в n8n директорию
-  print_info "📋 Копирование workflows в n8n директорию..."
-  mkdir -p n8n/workflows
-  if [ -d "$target_dir/workflows" ]; then
-    cp -r "$target_dir/workflows/"* n8n/workflows/ 2>/dev/null || print_warning "⚠️ Нет workflows для копирования"
-    print_success "✅ Workflows скопированы в n8n/workflows/"
+
+  # Copy workflows into repo-local n8n/workflows to keep everything inside project
+  mkdir -p "${ROOT_DIR}/n8n/workflows"
+  if [ -d "${target_dir}/workflows" ]; then
+    cp -r "${target_dir}/workflows/"* "${ROOT_DIR}/n8n/workflows/" 2>/dev/null || print_warning "⚠️ No workflows to copy"
+    print_success "✅ Workflows copied to ${ROOT_DIR}/n8n/workflows/"
   fi
-  
-  # Создание credentials директории
-  mkdir -p n8n/credentials
-  print_success "✅ Workflows готовы к импорту"
-  
-  # Запуск веб-сервиса документации
-  print_info "🌐 Запуск веб-сервиса документации workflows..."
-  if docker compose build workflows-doc >/dev/null 2>&1; then
-    print_success "✅ Образ workflows-doc собран"
-    print_info "📖 Веб-интерфейс будет доступен по адресу: http://localhost:8000"
-    print_info "🔍 Используйте веб-интерфейс для просмотра и поиска workflow'ов"
-  else
-    print_warning "⚠️ Не удалось собрать образ workflows-doc"
+
+  mkdir -p "${ROOT_DIR}/n8n/credentials"
+  print_success "✅ Workflows ready for import"
+
+  # Attempt to build workflows-doc but prefer running from repo root
+  if command -v docker >/dev/null 2>&1; then
+    (cd "${ROOT_DIR}" && ${DC_CMD} build workflows-doc) >/dev/null 2>&1 && print_success "✅ workflows-doc built" || print_warning "⚠️ workflows-doc build failed"
   fi
 }
 

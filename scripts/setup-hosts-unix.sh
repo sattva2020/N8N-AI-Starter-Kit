@@ -58,7 +58,7 @@ add_entries() {
     echo ""
     echo -e "${BLUE}Проверяем, есть ли уже записи...${NC}"
     
-    if grep -q "n8n.sattva-ai.top" "$HOSTS_FILE" 2>/dev/null; then
+    if grep -q "n8n.example.com" "$HOSTS_FILE" 2>/dev/null; then
         echo -e "${YELLOW}Записи уже существуют в hosts файле!${NC}"
         read -p "Хотите их обновить? (y/N): " update
         if [[ $update =~ ^[Yy]$ ]]; then
@@ -74,23 +74,23 @@ add_entries() {
     {
         echo ""
         echo "$MARKER"
-        echo "127.0.0.1 n8n.sattva-ai.top"
-        echo "127.0.0.1 qdrant.sattva-ai.top"
-        echo "127.0.0.1 traefik.sattva-ai.top"
-        echo "127.0.0.1 doc-processor.sattva-ai.top"
-        echo "127.0.0.1 web.sattva-ai.top"
-        echo "127.0.0.1 ollama.sattva-ai.top"
-        echo "127.0.0.1 pgadmin.sattva-ai.top"
-        echo "127.0.0.1 jupyter.sattva-ai.top"
-        echo "127.0.0.1 graphiti.sattva-ai.top"
-        echo "127.0.0.1 supabase.sattva-ai.top"
-        echo "127.0.0.1 api.sattva-ai.top"
-        echo "127.0.0.1 zep.sattva-ai.top"
+    echo "127.0.0.1 n8n.example.com"
+    echo "127.0.0.1 qdrant.example.com"
+    echo "127.0.0.1 traefik.example.com"
+    echo "127.0.0.1 doc-processor.example.com"
+    echo "127.0.0.1 web.example.com"
+    echo "127.0.0.1 ollama.example.com"
+    echo "127.0.0.1 pgadmin.example.com"
+    echo "127.0.0.1 jupyter.example.com"
+    echo "127.0.0.1 graphiti.example.com"
+    echo "127.0.0.1 supabase.example.com"
+    echo "127.0.0.1 api.example.com"
+    echo "127.0.0.1 zep.example.com"
     } | sudo tee -a "$HOSTS_FILE" > /dev/null
 
     echo -e "${GREEN}УСПЕШНО: Записи добавлены в hosts файл!${NC}"
     echo ""
-    echo "Теперь можно запускать N8N AI Starter Kit с доменами .sattva-ai.top"
+    echo "Теперь можно запускать N8N AI Starter Kit с доменами .example.com"
     test_connectivity
 }
 
@@ -106,7 +106,7 @@ remove_entries_silent() {
     
     # Создаем временный файл без наших записей
     TEMP_FILE=$(mktemp)
-    grep -v "sattva-ai.top" "$HOSTS_FILE" | grep -v "$MARKER" > "$TEMP_FILE"
+    grep -v "example.com" "$HOSTS_FILE" | grep -v "$MARKER" > "$TEMP_FILE"
     sudo cp "$TEMP_FILE" "$HOSTS_FILE"
     rm "$TEMP_FILE"
 }
@@ -114,9 +114,9 @@ remove_entries_silent() {
 # Показать записи
 show_entries() {
     echo ""
-    echo "Текущие записи в hosts файле связанные с sattva-ai.top:"
+    echo "Текущие записи в hosts файле связанные с example.com:"
     echo "========================================================="
-    if grep -E "(sattva-ai.top|$MARKER)" "$HOSTS_FILE" 2>/dev/null; then
+    if grep -E "(example.com|$MARKER)" "$HOSTS_FILE" 2>/dev/null; then
         echo ""
     else
         echo "Записи не найдены."
@@ -129,7 +129,7 @@ test_connectivity() {
     echo -e "${BLUE}Тестируем подключение к доменам...${NC}"
     echo ""
 
-    domains=("n8n.sattva-ai.top" "qdrant.sattva-ai.top" "traefik.sattva-ai.top")
+    domains=("n8n.example.com" "qdrant.example.com" "traefik.example.com")
     
     for domain in "${domains[@]}"; do
         echo "Проверяем $domain..."

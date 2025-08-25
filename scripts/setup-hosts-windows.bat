@@ -15,27 +15,27 @@ if %errorLevel% == 0 (
 copy C:\Windows\System32\drivers\etc\hosts C:\Windows\System32\drivers\etc\hosts.backup >nul
 
 :: Добавляем домены
-echo 127.0.0.1 sattva-ai.top >> C:\Windows\System32\drivers\etc\hosts
-echo 127.0.0.1 n8n.sattva-ai.top >> C:\Windows\System32\drivers\etc\hosts
-echo 127.0.0.1 web.sattva-ai.top >> C:\Windows\System32\drivers\etc\hosts
-echo 127.0.0.1 doc-processor.sattva-ai.top >> C:\Windows\System32\drivers\etc\hosts
-echo 127.0.0.1 qdrant.sattva-ai.top >> C:\Windows\System32\drivers\etc\hosts
-echo 127.0.0.1 ollama.sattva-ai.top >> C:\Windows\System32\drivers\etc\hosts
-echo 127.0.0.1 traefik.sattva-ai.top >> C:\Windows\System32\drivers\etc\hosts
-echo 127.0.0.1 pgadmin.sattva-ai.top >> C:\Windows\System32\drivers\etc\hosts
-echo 127.0.0.1 jupyter.sattva-ai.top >> C:\Windows\System32\drivers\etc\hosts
-echo 127.0.0.1 graphiti.sattva-ai.top >> C:\Windows\System32\drivers\etc\hosts
-echo 127.0.0.1 supabase.sattva-ai.top >> C:\Windows\System32\drivers\etc\hosts
-echo 127.0.0.1 api.sattva-ai.top >> C:\Windows\System32\drivers\etc\hosts
+echo 127.0.0.1 example.com >> C:\Windows\System32\drivers\etc\hosts
+echo 127.0.0.1 n8n.example.com >> C:\Windows\System32\drivers\etc\hosts
+echo 127.0.0.1 web.example.com >> C:\Windows\System32\drivers\etc\hosts
+echo 127.0.0.1 doc-processor.example.com >> C:\Windows\System32\drivers\etc\hosts
+echo 127.0.0.1 qdrant.example.com >> C:\Windows\System32\drivers\etc\hosts
+echo 127.0.0.1 ollama.example.com >> C:\Windows\System32\drivers\etc\hosts
+echo 127.0.0.1 traefik.example.com >> C:\Windows\System32\drivers\etc\hosts
+echo 127.0.0.1 pgadmin.example.com >> C:\Windows\System32\drivers\etc\hosts
+echo 127.0.0.1 jupyter.example.com >> C:\Windows\System32\drivers\etc\hosts
+echo 127.0.0.1 graphiti.example.com >> C:\Windows\System32\drivers\etc\hosts
+echo 127.0.0.1 supabase.example.com >> C:\Windows\System32\drivers\etc\hosts
+echo 127.0.0.1 api.example.com >> C:\Windows\System32\drivers\etc\hosts
 
 echo Domains added to hosts file successfully!
 echo.
 echo You can now access:
-echo - N8N: http://n8n.sattva-ai.top
-echo - Traefik Dashboard: http://traefik.sattva-ai.top
-echo - Qdrant: http://qdrant.sattva-ai.top:6333
-echo - Ollama: http://ollama.sattva-ai.top:11434
-echo - Document Processor: http://doc-processor.sattva-ai.top:8001
-echo - Graphiti: http://graphiti.sattva-ai.top:8003
+echo - N8N: http://n8n.example.com
+echo - Traefik Dashboard: http://traefik.example.com
+echo - Qdrant: http://qdrant.example.com:6333
+echo - Ollama: http://ollama.example.com:11434
+echo - Document Processor: http://doc-processor.example.com:8001
+echo - Graphiti: http://graphiti.example.com:8003
 echo.
 pause

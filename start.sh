@@ -3,6 +3,18 @@
 # Интеллектуальный скрипт запуска N8N AI Starter Kit
 # Версия: 1.0.7
 
+# Документация флагов CLI (коротко):
+#  --auto-import         Включить автоматический импорт workflows только для этой сессии
+#                        (эквивалент N8N_AUTO_IMPORT=true во время выполнения). Скрипт
+#                        не будет записывать это значение в .env — действие временно.
+#  --no-import-prompt    Подавить все запросы об импорте workflows для этой сессии
+#                        (эквивалент N8N_AUTO_IMPORT=false во время выполнения). Не изменяет .env.
+#
+# Примеры:
+#   ./start.sh --auto-import
+#   ./start.sh --no-import-prompt
+#   ./start.sh --auto-import --no-import-prompt  # --auto-import имеет приоритет
+
 # Цвета для вывода
 # Проверка на Windows-подобную систему (например, Git Bash) для отключения цветов
 if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
@@ -52,6 +64,55 @@ echo -e "${BLUE}=== Интеллектуальный запуск N8N AI Starter
 # Flag set to 1 when ./scripts/setup.sh created or updated .env during this run.
 # This prevents re-prompting the user later in the script when .env was just generated.
 ENV_CREATED_BY_SETUP=0
+
+# CLI flags to control import prompt behavior without editing .env
+CLI_AUTO_IMPORT=false
+CLI_NO_IMPORT_PROMPT=false
+
+# Parse optional CLI flags (they are allowed before the optional profile positional arg)
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        --auto-import)
+            CLI_AUTO_IMPORT=true
+            shift
+            ;;
+        --no-import-prompt)
+            CLI_NO_IMPORT_PROMPT=true
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: $0 [--auto-import] [--no-import-prompt] [profile]"
+            echo "  --auto-import        enable automatic import of workflows (equivalent to N8N_AUTO_IMPORT=true)"
+            echo "  --no-import-prompt   never prompt about importing workflows; skip import prompts (equivalent to N8N_AUTO_IMPORT=false)"
+            exit 0
+            ;;
+        --*)
+            # Unknown flag — stop parsing and leave positional args
+            break
+            ;;
+        *)
+            # first non-flag is positional profile — stop parsing
+            break
+            ;;
+    esac
+done
+
+# If CLI flags were provided, set an override marker and export N8N_AUTO_IMPORT
+# so the rest of the script respects the flag without modifying .env.
+CLI_OVERRIDE_IMPORT=0
+if [ "$CLI_AUTO_IMPORT" = "true" ] && [ "$CLI_NO_IMPORT_PROMPT" = "true" ]; then
+    echo -e "${YELLOW}${EMOJI_WARN} Both --auto-import and --no-import-prompt were provided; --auto-import will take precedence.${NC}"
+    CLI_NO_IMPORT_PROMPT=false
+fi
+if [ "$CLI_AUTO_IMPORT" = "true" ]; then
+    export N8N_AUTO_IMPORT=true
+    CLI_OVERRIDE_IMPORT=1
+    echo -e "${CYAN}CLI: auto-import enabled for this run (won't be written to .env).${NC}"
+elif [ "$CLI_NO_IMPORT_PROMPT" = "true" ]; then
+    export N8N_AUTO_IMPORT=false
+    CLI_OVERRIDE_IMPORT=1
+    echo -e "${CYAN}CLI: import prompts suppressed for this run (won't be written to .env).${NC}"
+fi
 
 # Автоматическое определение оптимального профиля
 detect_optimal_profile() {
@@ -155,7 +216,10 @@ run_setup() {
             ENV_CREATED_BY_SETUP=1
             # Если мы в интерактивном терминале — спросим пользователя
             # хочет ли он автоматически запустить импорт workflows после старта n8n.
-            if [ -t 0 ]; then
+            # If CLI override provided, do not prompt and do not write to .env
+            if [ "$CLI_OVERRIDE_IMPORT" -eq 1 ]; then
+                echo -e "${CYAN}Import behavior controlled by CLI flag for this run; not changing .env.${NC}"
+            elif [ -t 0 ]; then
                 echo -e ""
                 read -r -p "Хотите автоматически запустить импорт workflows после старта n8n? (y/N): " import_choice
                 import_choice=${import_choice:-N}
@@ -197,6 +261,52 @@ generate_password() {
     openssl rand -base64 $length 2>/dev/null | tr -d '=/+' | cut -c1-$length || \
     cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w $length | head -n 1 2>/dev/null || \
     echo "$(date +%s)_$(whoami)_$(hostname)" | sha256sum | cut -c1-$length
+}
+
+# Merge old .env into new .env: preserve any key=value lines that existed in
+# the old file but are missing (or empty) in the newly generated file.
+merge_env_files() {
+    local oldfile="$1"
+    local newfile="$2"
+    local tmpnew
+    tmpnew=$(mktemp 2>/dev/null || echo "./.env.tmp.$$")
+
+    # If new does not exist, fall back to copying old
+    if [ ! -f "$newfile" ]; then
+        if [ -f "$oldfile" ]; then
+            cp -p "$oldfile" "$newfile" || true
+        fi
+        return 0
+    fi
+
+    # Start with the new file contents
+    cp -p "$newfile" "$tmpnew"
+
+    # For each key in the old file, append it if it's missing from new
+    if [ -f "$oldfile" ]; then
+        while IFS= read -r line; do
+            # only consider lines like KEY=VALUE (ignore comments/blank)
+            if [[ "$line" =~ ^([A-Za-z0-9_]+)=(.*) ]]; then
+                key="${BASH_REMATCH[1]}"
+                # if key not present in newfile (exact key=) then append the old line
+                if ! grep -q -E "^${key}=" "$newfile" 2>/dev/null; then
+                    echo "$line" >> "$tmpnew"
+                else
+                    # if present but value empty in newfile, replace with old value
+                    val=$(grep -E "^${key}=" "$newfile" | tail -n1 | cut -d'=' -f2-)
+                    if [ -z "$val" ]; then
+                        # remove existing empty line(s) for key in tmpnew and append full old line
+                        sed -i.bak "/^${key}=/d" "$tmpnew" 2>/dev/null || true
+                        echo "$line" >> "$tmpnew"
+                    fi
+                fi
+            fi
+        done < "$oldfile"
+    fi
+
+    # Move merged file into place
+    mv "$tmpnew" "$newfile" 2>/dev/null || cp -f "$tmpnew" "$newfile" || true
+    rm -f "${tmpnew}.bak" 2>/dev/null || true
 }
 
 # Функция автоматического исправления проблем (быстрые исправления)
@@ -383,7 +493,13 @@ if [ -f .env ]; then
                 cp .env ".env.bak.$timestamp" || { echo -e "${RED}Не удалось создать бэкап .env${NC}"; }
                 if [ -f "./scripts/setup.sh" ]; then
                     chmod +x ./scripts/setup.sh
+                    # Preserve previous .env path
+                    prev_env=".env.bak.$timestamp"
                     ./scripts/setup.sh --generate-only || echo -e "${YELLOW}Генерация .env завершилась с ошибкой, проверьте./scripts/setup.sh${NC}"
+                    # If a previous .env existed and a new .env was generated, merge
+                    if [ -f "$prev_env" ] && [ -f .env ]; then
+                        merge_env_files "$prev_env" .env
+                    fi
                     # mark that setup created .env
                     ENV_CREATED_BY_SETUP=1
                 else
@@ -394,7 +510,18 @@ if [ -f .env ]; then
                 echo -e "${CYAN}Перезаписываем .env новым, без создания бэкапа...${NC}"
                 if [ -f "./scripts/setup.sh" ]; then
                     chmod +x ./scripts/setup.sh
+                    # Save temporary copy of old .env (if present) so merge can preserve keys
+                    if [ -f .env ]; then
+                        cp .env .env.preoverwrite.$(date +%s) 2>/dev/null || true
+                        prev_tmp=".env.preoverwrite.$(date +%s)"
+                    else
+                        prev_tmp=""
+                    fi
                     ./scripts/setup.sh --generate-only || echo -e "${YELLOW}Генерация .env завершилась с ошибкой${NC}"
+                    if [ -n "$prev_tmp" ] && [ -f "$prev_tmp" ] && [ -f .env ]; then
+                        merge_env_files "$prev_tmp" .env
+                        rm -f "$prev_tmp" 2>/dev/null || true
+                    fi
                     ENV_CREATED_BY_SETUP=1
                 else
                     echo -e "${RED}./scripts/setup.sh не найден — невозможно сгенерировать .env${NC}"
@@ -411,25 +538,29 @@ if [ -f .env ]; then
     fi
 
     # If user chose to continue with existing .env, ask whether to enable automatic import
-    if [ "$env_choice" = "3" ] && [ -t 0 ]; then
-        echo ""
-        read -r -p "Хотите автоматически запускать импорт workflows после старта n8n? (y/N): " import_choice_existing
-        import_choice_existing=${import_choice_existing:-N}
-        if [[ "${import_choice_existing}" =~ ^[Yy]$ ]]; then
-            if [ -f .env ]; then
-                if grep -q '^N8N_AUTO_IMPORT=' .env 2>/dev/null; then
-                    sed -i 's/^N8N_AUTO_IMPORT=.*/N8N_AUTO_IMPORT=true/' .env 2>/dev/null || true
-                else
-                    echo "N8N_AUTO_IMPORT=true" >> .env
+    if [ "$env_choice" = "3" ]; then
+        if [ "$CLI_OVERRIDE_IMPORT" -eq 1 ]; then
+            echo -e "${CYAN}Import behavior forced by CLI flag for this run; not prompting and not modifying .env.${NC}"
+        elif [ -t 0 ]; then
+            echo ""
+            read -r -p "Хотите автоматически запускать импорт workflows после старта n8n? (y/N): " import_choice_existing
+            import_choice_existing=${import_choice_existing:-N}
+            if [[ "${import_choice_existing}" =~ ^[Yy]$ ]]; then
+                if [ -f .env ]; then
+                    if grep -q '^N8N_AUTO_IMPORT=' .env 2>/dev/null; then
+                        sed -i 's/^N8N_AUTO_IMPORT=.*/N8N_AUTO_IMPORT=true/' .env 2>/dev/null || true
+                    else
+                        echo "N8N_AUTO_IMPORT=true" >> .env
+                    fi
                 fi
-            fi
-            echo -e "${GREEN}Импорт workflows будет запущен автоматически после старта n8n.${NC}"
-        else
-            if [ -f .env ]; then
-                if grep -q '^N8N_AUTO_IMPORT=' .env 2>/dev/null; then
-                    sed -i 's/^N8N_AUTO_IMPORT=.*/N8N_AUTO_IMPORT=false/' .env 2>/dev/null || true
-                else
-                    echo "N8N_AUTO_IMPORT=false" >> .env
+                echo -e "${GREEN}Импорт workflows будет запущен автоматически после старта n8n.${NC}"
+            else
+                if [ -f .env ]; then
+                    if grep -q '^N8N_AUTO_IMPORT=' .env 2>/dev/null; then
+                        sed -i 's/^N8N_AUTO_IMPORT=.*/N8N_AUTO_IMPORT=false/' .env 2>/dev/null || true
+                    else
+                        echo "N8N_AUTO_IMPORT=false" >> .env
+                    fi
                 fi
             fi
         fi

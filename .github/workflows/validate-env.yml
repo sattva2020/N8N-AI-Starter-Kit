@@ -48,7 +48,7 @@ jobs:
               missing_count=$((missing_count+1))
             else
               val=$(grep -E "^${k}=" .env | tail -n1 | cut -d'=' -f2-)
-              if [ -z "$val" ] || echo "$val" | grep -qE 'change_this|your_|your_openai_api_key_here|yourdomain|sattva-ai.top'; then
+              if [ -z "$val" ] || echo "$val" | grep -qE 'change_this|your_|your_openai_api_key_here|yourdomain|example.com'; then
                 placeholder_list+=("${k}")
                 placeholder_count=$((placeholder_count+1))
               fi
