@@ -681,11 +681,109 @@ if [ $? -eq 0 ]; then
     printf "  ${EMOJI_NOTE} Логи: ${YELLOW}docker logs n8n-ai-starter-kit-n8n-1${NC}\n"
     printf "  ${EMOJI_ERROR} Остановка: ${YELLOW}$DOCKER_COMPOSE_CMD down${NC}\n"
     echo ""
-    printf "${BLUE}Доступ к сервисам:${NC}\n"
-    printf "  🌐 N8N: ${YELLOW}http://localhost:5678${NC}\n"
-    printf "  🔍 Qdrant: ${YELLOW}http://localhost:6333/dashboard${NC}\n"
-    printf "  🤖 Ollama: ${YELLOW}http://localhost:11434${NC}\n"
-    printf "  🚦 Traefik: ${YELLOW}http://localhost:8080${NC}\n"
+    # Dynamic endpoint printer: show public domain (if set), host-published ports and service list
+    print_endpoints() {
+        echo -e "${BLUE}Доступ к сервисам:${NC}"
+
+        # Try to read domain/port from .env if present
+        if [ -f .env ]; then
+            N8N_DOMAIN_VAL=$(grep -E '^N8N_DOMAIN=' .env | tail -n1 | cut -d'=' -f2-)
+            N8N_PORT_VAL=$(grep -E '^N8N_PORT=' .env | tail -n1 | cut -d'=' -f2-)
+        fi
+        N8N_PORT_VAL=${N8N_PORT_VAL:-5678}
+
+        if [ -n "${N8N_DOMAIN_VAL}" ]; then
+            echo -e "  🌐 N8N (public): ${YELLOW}https://${N8N_DOMAIN_VAL}${NC}"
+
+            # Check domain reachability (HTTPS preferred). Use curl if available.
+            if command -v curl >/dev/null 2>&1; then
+                    # Prefer HTTPS, fallback to HTTP if HTTPS fails
+                    http_code=$(curl -sS -o /dev/null -w "%{http_code}" --connect-timeout 5 --max-time 7 "https://${N8N_DOMAIN_VAL}" 2>/dev/null || echo "000")
+                    if [ "$http_code" = "200" ] || [ "$http_code" = "301" ] || [ "$http_code" = "302" ]; then
+                        echo -e "    ${GREEN}${EMOJI_OK} Публичный домен отвечает по HTTPS: HTTP ${http_code}${NC}"
+                    else
+                        # Try HTTP as fallback
+                        http_code_http=$(curl -sS -o /dev/null -w "%{http_code}" --connect-timeout 5 --max-time 5 "http://${N8N_DOMAIN_VAL}" 2>/dev/null || echo "000")
+                        if [ "$http_code_http" = "200" ] || [ "$http_code_http" = "301" ] || [ "$http_code_http" = "302" ]; then
+                            echo -e "    ${YELLOW}${EMOJI_WARN} HTTPS недоступен, но HTTP отвечает: HTTP ${http_code_http} — проверьте конфиг TLS/Traefik${NC}"
+                        else
+                            echo -e "    ${YELLOW}${EMOJI_WARN} Публичный домен недоступен (HTTPS код: ${http_code}, HTTP код: ${http_code_http}) — проверьте Traefik/DNS${NC}"
+                        fi
+                    fi
+                else
+                    echo -e "    ${YELLOW}curl не установлен — пропущена проверка доступности публичного домена${NC}"
+                fi
+        fi
+
+        # If the service port is published on the host, show host:port
+        hostport=$(docker compose port n8n ${N8N_PORT_VAL} 2>/dev/null || echo "")
+        if [ -n "$hostport" ]; then
+            echo -e "  🌐 N8N (host): ${YELLOW}http://${hostport}${NC}"
+        else
+            echo -e "  🌐 N8N (internal): ${YELLOW}http://localhost:${N8N_PORT_VAL}${NC}"
+        fi
+
+        # List all services and their published ports (if any)
+        services=$(docker compose config --services 2>/dev/null || echo "")
+
+        # If Traefik API returned a response, extract exposed services from its JSON
+        exposed_services=""
+        if [ -n "$tr_resp" ]; then
+            # Try to extract service names from the routers JSON if possible
+            exposed_services=$(echo "$tr_resp" | grep -o '"service"[[:space:]]*:[[:space:]]*"[^"]*"' | sed -E 's/.*"service"[[:space:]]*:[[:space:]]*"([^"]*)"/\1/' | sort -u | tr '\n' ' ')
+        fi
+
+        if [ -n "$services" ]; then
+            echo -e "${BLUE}  Все сервисы и опубликованные порты:${NC}"
+            for s in $services; do
+                ports=$(docker ps --filter "name=${s}" --format '{{.Ports}}' | sed 's/,$//' )
+                if [ -z "$ports" ]; then
+                    marker="${YELLOW}internal${NC}"
+                else
+                    marker="${YELLOW}${ports}${NC}"
+                fi
+
+                # Mark service as public if Traefik exposes it
+                if [ -n "$exposed_services" ] && echo " $exposed_services " | grep -qw "${s}"; then
+                    echo -e "    - ${s}: ${marker} ${GREEN}(public via Traefik)${NC}"
+                else
+                    echo -e "    - ${s}: ${marker}"
+                fi
+            done
+        else
+            echo -e "  ${YELLOW}Не удалось получить список сервисов (docker compose config вернул ошибку)${NC}"
+        fi
+
+        # Traefik dashboard hint
+        echo -e "  🚦 Traefik dashboard: ${YELLOW}http://localhost:8080${NC} (проверьте Traefik для публичных роутов)"
+
+        # Try to query Traefik API for routers if curl is available
+        if command -v curl >/dev/null 2>&1; then
+            echo -e "${BLUE}  Попытка получить роуты из Traefik API...${NC}"
+            tr_resp=$(curl -sS --max-time 5 "http://localhost:8080/api/http/routers" 2>/dev/null || echo "")
+            if [ -n "$tr_resp" ]; then
+                # Show routers that mention the domain (simple text search)
+                echo "$tr_resp" | tr -d '\\n' | sed 's/},{/}\n{/g' | grep -i "Host(\`" -n | sed -n '1,10p' || echo -e "    ${YELLOW}Traefik API ответил, но роуты с Host не найдены${NC}"
+                # If N8N_DOMAIN_VAL is set, try to find matching router by domain
+                if [ -n "${N8N_DOMAIN_VAL}" ]; then
+                    matches=$(echo "$tr_resp" | grep -o "Host(\\\`[^\\\`]*\\\`)" | grep -i "${N8N_DOMAIN_VAL}" || true)
+                    if [ -n "$matches" ]; then
+                        echo -e "    ${GREEN}${EMOJI_OK} Найдены Traefik-роуты для ${N8N_DOMAIN_VAL}:${NC}"
+                        echo "$matches" | sed 's/^/      /'
+                    else
+                        echo -e "    ${YELLOW}Не найдены Traefik-роуты, совпадающие с ${N8N_DOMAIN_VAL}${NC}"
+                    fi
+                fi
+            else
+                echo -e "    ${YELLOW}Не удалось получить ответ от Traefik API на localhost:8080 — вероятно dashboard недоступен${NC}"
+            fi
+        else
+            echo -e "    ${YELLOW}curl не установлен — пропущена проверка Traefik API${NC}"
+        fi
+    }
+
+    # Call the dynamic printer
+    print_endpoints
     
     # Проверка OpenAI API Key
     if [ -f .env ] && (grep -q "^# OPENAI_API_KEY=" .env || ! grep -q "OPENAI_API_KEY=" .env); then
