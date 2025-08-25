@@ -35,6 +35,15 @@ x-service-n8n: &service-n8n
     - backend
   volumes:
     - ./n8n/credentials:/home/node/.n8n/credentials:ro
+  healthcheck:
+    # Use loopback for container-local health probe so the check does not depend
+    # on externally configured N8N_HOST/N8N_DOMAIN which may point to an
+    # external resolver/Traefik and cause the healthcheck to fail during startup.
+    test: ["CMD-SHELL", "curl -f --max-time 5 http://127.0.0.1:${N8N_PORT:-5678}${N8N_HEALTH_PATH:-/} || (curl -I --max-time 5 http://127.0.0.1:${N8N_PORT:-5678} | grep -E 'HTTP/1.[01] (200|301|302)' >/dev/null)" ]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 10s
 
 services:
   traefik:
