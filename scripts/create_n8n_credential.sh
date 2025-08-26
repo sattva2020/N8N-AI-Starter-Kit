@@ -26,11 +26,27 @@ TOKEN=""
 NAME=""
 TYPE=""
 DATA=""
+ENV_FILE=".env"
+
+# Try to load environment from .env if present (will be optional)
+load_env_file() {
+  local f="$1"
+  if [[ -f "$f" ]]; then
+    # shellcheck disable=SC1090
+    set -a
+    # source the file in a subshell style to avoid errors if it contains spaces
+    # but allow simple variable assignments
+    # Use `.` to source so exported variables are available
+    . "$f"
+    set +a
+  fi
+}
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --n8n-url) N8N_URL="$2"; shift 2;;
     --token) TOKEN="$2"; shift 2;;
+    --env-file) ENV_FILE="$2"; shift 2;;
     --name) NAME="$2"; shift 2;;
     --type) TYPE="$2"; shift 2;;
     --data) DATA="$2"; shift 2;;
@@ -39,8 +55,28 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Load .env (defaults) if present
+if [[ -n "$ENV_FILE" && -f "$ENV_FILE" ]]; then
+  load_env_file "$ENV_FILE"
+fi
+
+# Allow reading token and n8n url from env if not provided via CLI
+: ${N8N_URL:=$N8N_URL}
+: ${TOKEN:=${N8N_ADMIN_TOKEN:-${N8N_TOKEN:-}}}
+
+# If DATA not provided, try to construct a sensible default for known types
+if [[ -z "$DATA" ]]; then
+  if [[ "$TYPE" == "qdrantApi" || "$TYPE" == "qdrantapi" || "$TYPE" == "qdrantApi" ]]; then
+    # prefer QDRANT_URL env, fallback to http://qdrant:6333
+    QDR_URL=${QDRANT_URL:-${QDRANT_URL:-http://qdrant:6333}}
+    QDR_KEY=${QDRANT_API_KEY:-}
+    # build JSON string
+    DATA=$(jq -n --arg url "$QDR_URL" --arg apiKey "$QDR_KEY" '{apiKey: $apiKey, url: $url}')
+  fi
+fi
+
 if [[ -z "$TOKEN" || -z "$NAME" || -z "$TYPE" || -z "$DATA" ]]; then
-  echo "Missing required args" >&2
+  echo "Missing required args (token/name/type/data). You can provide --env-file to load defaults from a .env file." >&2
   print_usage
   exit 2
 fi

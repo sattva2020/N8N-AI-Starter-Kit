@@ -196,6 +196,8 @@ python import-zie619-workflows.py --category ai_ml --limit 50
 
 Краткое руководство по учетным данным (credentials): `docs/credentials.md` — как хранить секреты, создавать credential в n8n (Ollama, Qdrant, LightRAG и др.) и безопасно управлять API‑ключами.
 
+Инструмент для автоматизации: `scripts/create_n8n_credential.sh` — утилита для создания credential в n8n через REST API (использует admin token). См. `docs/credentials.md` для примеров использования.
+
 > [📚 Руководство по документации](./docs/DOCUMENTATION_GUIDE.md) | [🔧 Руководство по установке](./docs/SETUP_SCRIPT.md) | [❗ Распространенные проблемы](./docs/COMMON_ISSUES.md) | [🚨 Устранение неполадок](TROUBLESHOOTING.md)
 
 ## 🔄 Быстрый переход к разделам
