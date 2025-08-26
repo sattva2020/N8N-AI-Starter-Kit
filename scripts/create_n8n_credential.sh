@@ -27,6 +27,7 @@ NAME=""
 TYPE=""
 DATA=""
 ENV_FILE=".env"
+FORCE=false
 
 # Try to load environment from .env if present (will be optional)
 load_env_file() {
@@ -47,6 +48,7 @@ while [[ $# -gt 0 ]]; do
     --n8n-url) N8N_URL="$2"; shift 2;;
     --token) TOKEN="$2"; shift 2;;
     --env-file) ENV_FILE="$2"; shift 2;;
+  --force) FORCE=true; shift 1;;
     --bulk-file) BULK_FILE="$2"; shift 2;;
     --name) NAME="$2"; shift 2;;
     --type) TYPE="$2"; shift 2;;
@@ -84,9 +86,61 @@ fi
 
 API_URL="${N8N_URL%/}/rest/credentials"
 
+validate_against_schema() {
+  # args: type data n8n_url token
+  local _type="$1" _data="$2" _n8n="$3" _token="$4"
+  # Fetch schema
+  local schema_url="${_n8n%/}/rest/credentials/schema/$_type"
+  echo "Checking credential schema for type '$_type' at $schema_url" >&2
+  schema_resp=$(curl -sS -w "HTTPSTATUS:%{http_code}" -X GET "$schema_url" -H "Authorization: Bearer $_token" -H "Accept: application/json") || true
+  schema_status=$(echo "$schema_resp" | sed -n 's/.*HTTPSTATUS:\([0-9][0-9][0-9]\)$/\1/p')
+  schema_body=$(echo "$schema_resp" | sed 's/\(.*\)HTTPSTATUS:[0-9][0-9][0-9]$/\1/')
+  if [[ "$schema_status" != "200" ]]; then
+    echo "Warning: could not fetch schema for '$_type' (HTTP $schema_status). Skipping strict validation." >&2
+    return 0
+  fi
+
+  # Extract required fields from schema (if any)
+  required_fields=$(echo "$schema_body" | jq -r '.required[]?') || true
+  if [[ -z "$required_fields" ]]; then
+    # nothing to validate
+    return 0
+  fi
+
+  # For each required field, ensure _data contains it and it's not null/empty
+  local missing=0
+  while read -r field; do
+    if [[ -z "$field" ]]; then
+      continue
+    fi
+    # check presence
+    if ! echo "$2" | jq -e "has(\"$field\") and (.[\"$field\"] != null and .[\"$field\"] != \"\")" >/dev/null 2>&1; then
+      echo "Required field '$field' missing or empty in credential data for type '$_type'" >&2
+      missing=1
+    fi
+  done <<<"$required_fields"
+
+  if [[ $missing -ne 0 ]]; then
+    if [[ "$FORCE" == "true" ]]; then
+      echo "Continuing despite missing required fields because --force was set." >&2
+      return 0
+    else
+      echo "Validation failed for credential type '$_type'. Use --force to override." >&2
+      return 2
+    fi
+  fi
+  return 0
+}
+
 payload=$(jq -n --arg name "$NAME" --arg type "$TYPE" --argjson data "$DATA" '{name: $name, type: $type, nodesAccess: [], data: $data}')
 
 echo "Creating credential '$NAME' (type=$TYPE) at $API_URL"
+
+# Validate before sending
+if ! validate_against_schema "$TYPE" "$DATA" "$N8N_URL" "$TOKEN"; then
+  echo "Aborting due to schema validation failure." >&2
+  exit 2
+fi
 
 resp=$(curl -sS -w "HTTPSTATUS:%{http_code}" -X POST "$API_URL" \
   -H "Authorization: Bearer $TOKEN" \
@@ -105,8 +159,6 @@ else
   echo "$body" | jq . || echo "$body"
   exit 3
 fi
-
-}
 
 # Bulk processing
 if [[ -n "${BULK_FILE:-}" ]]; then
