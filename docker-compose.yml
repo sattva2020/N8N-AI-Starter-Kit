@@ -13,7 +13,8 @@ x-traefik-base: &traefik-base
     - traefik_letsencrypt:/letsencrypt
     - ./config/traefik:/etc/traefik/dynamic
   networks:
-    - frontend
+  - frontend
+  - backend
 
 x-service-n8n: &service-n8n
   image: n8nio/n8n:latest

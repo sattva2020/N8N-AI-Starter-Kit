@@ -1,0 +1,12 @@
+service,profiles,networks,host_ports,traefik_labels,public
+traefik,default|cpu|gpu-nvidia|developer,frontend|backend,80,443,127.0.0.1:8080,internal (proxy)
+n8n,default|cpu|gpu-nvidia|developer,frontend|backend,5678:5678,Host(${N8N_DOMAIN}) websecure,true
+postgres,default|cpu|gpu-nvidia|developer,database|backend,,no,false
+pgadmin,developer,frontend|database,,Host(${PGADMIN_DOMAIN}),conditional (developer profile)
+jupyterlab,developer,frontend|backend,,Host(${JUPYTER_DOMAIN}),conditional (developer profile)
+qdrant,default,backend|frontend,6333:6333;6334:6334,Host(${QDRANT_DOMAIN}),true
+ollama,default|cpu|gpu-nvidia|developer,frontend|backend,11434:11434,Host(${OLLAMA_DOMAIN}),true
+graphiti,default,backend|frontend,8003:8001,Host(${GRAPHITI_DOMAIN}),true
+neo4j,default,backend|database,8474:7474;8687:7687,no,true
+lightrag,developer|cpu|gpu-nvidia,backend|frontend,9621:9621,Host(${LIGHRAG_DOMAIN}),conditional (developer profile)
+n8n-importer,developer,backend,,no,false
