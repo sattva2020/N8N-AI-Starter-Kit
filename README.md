@@ -1579,7 +1579,9 @@ services:
       - N8N_PORT=5678
     volumes:
       - ./n8n/import-scripts:/app:ro
-      - ./services/n8n-importer/n8n-workflows:/opt/n8n-workflows:ro  # persistent clone should be stored here (host path)
+    - ./services/n8n-importer/n8n-workflows:/opt/n8n-workflows:ro  # persistent clone should be stored here (host path)
+
+  Note: the project now prefers a local importer script when present. If `./scripts/import_workflows_to_n8n.sh` (or `host-scripts/import_workflows_to_n8n.sh` inside the mounted workflows repo) is executable, `start.sh` will run it locally before falling back to the `n8n-importer` service. The importer supports `--match-by`, `--dry-run` and `--no-activate` flags.
     entrypoint: ["/usr/local/bin/run-importer.sh"]
 ```
 

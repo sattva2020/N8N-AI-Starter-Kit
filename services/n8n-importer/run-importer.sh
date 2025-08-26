@@ -71,12 +71,44 @@ if [ -f requirements.txt ]; then
 fi
 
 if [ "${SKIP_IMPORT}" = "true" ]; then
-  echo "SKIP_IMPORT=true — skipping actual python import (test mode)"
+  echo "SKIP_IMPORT=true — skipping actual import (test mode)"
   echo "$(date -u --iso-8601=seconds) IMPORT_SKIPPED ${WORK_DIR}" >> "${AUDIT_LOG}" 2>/dev/null || true
 else
-  echo "Running import_workflows.py from ${WORK_DIR}"
-  python import_workflows.py
-  echo "$(date -u --iso-8601=seconds) IMPORT_FINISHED ${WORK_DIR}" >> "${AUDIT_LOG}" 2>/dev/null || true
+  # Prefer a host-supplied, repo-controlled bash importer if present inside the
+  # mounted workflows repository. This allows the project to provide a single
+  # canonical importer script (for example: scripts/import_workflows_to_n8n.sh)
+  # copied or symlinked into the mounted folder under host-scripts/ or project root.
+  HOST_SCRIPT1="${WORK_DIR%/}/host-scripts/import_workflows_to_n8n.sh"
+  HOST_SCRIPT2="${WORK_DIR%/}/import_workflows_to_n8n.sh"
+
+  if [ -x "${HOST_SCRIPT1}" ]; then
+    echo "Found host importer script: ${HOST_SCRIPT1} — executing"
+    echo "$(date -u --iso-8601=seconds) IMPORT_START_HOST_SCRIPT ${HOST_SCRIPT1}" >> "${AUDIT_LOG}" 2>/dev/null || true
+    # prefer internal service DNS name for n8n when running inside container
+    INTERNAL_N8N_URL=${N8N_INTERNAL_URL:-http://n8n:5678}
+    # call script with token if available
+    if [ -n "${N8N_ADMIN_TOKEN:-}" ]; then
+      "${HOST_SCRIPT1}" --dir "${WORK_DIR%/}/n8n/workflows/imported" --token "${N8N_ADMIN_TOKEN}" --n8n-url "${INTERNAL_N8N_URL}"
+    else
+      "${HOST_SCRIPT1}" --dir "${WORK_DIR%/}/n8n/workflows/imported" --n8n-url "${INTERNAL_N8N_URL}"
+    fi
+    echo "$(date -u --iso-8601=seconds) IMPORT_FINISHED_HOST_SCRIPT ${HOST_SCRIPT1}" >> "${AUDIT_LOG}" 2>/dev/null || true
+  elif [ -x "${HOST_SCRIPT2}" ]; then
+    echo "Found host importer script: ${HOST_SCRIPT2} — executing"
+    echo "$(date -u --iso-8601=seconds) IMPORT_START_HOST_SCRIPT ${HOST_SCRIPT2}" >> "${AUDIT_LOG}" 2>/dev/null || true
+    INTERNAL_N8N_URL=${N8N_INTERNAL_URL:-http://n8n:5678}
+    if [ -n "${N8N_ADMIN_TOKEN:-}" ]; then
+      "${HOST_SCRIPT2}" --dir "${WORK_DIR%/}/n8n/workflows/imported" --token "${N8N_ADMIN_TOKEN}" --n8n-url "${INTERNAL_N8N_URL}"
+    else
+      "${HOST_SCRIPT2}" --dir "${WORK_DIR%/}/n8n/workflows/imported" --n8n-url "${INTERNAL_N8N_URL}"
+    fi
+    echo "$(date -u --iso-8601=seconds) IMPORT_FINISHED_HOST_SCRIPT ${HOST_SCRIPT2}" >> "${AUDIT_LOG}" 2>/dev/null || true
+  else
+    echo "No host bash importer found — falling back to python importer"
+    echo "Running import_workflows.py from ${WORK_DIR}"
+    python import_workflows.py
+    echo "$(date -u --iso-8601=seconds) IMPORT_FINISHED ${WORK_DIR}" >> "${AUDIT_LOG}" 2>/dev/null || true
+  fi
 fi
 
 echo "Importer finished"
