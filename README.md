@@ -194,6 +194,8 @@ python import-zie619-workflows.py --category ai_ml --limit 50
 
 Краткая таблица экспозиции сервисов: `docs/services_exposure.csv` (список сервисов, какие порты проброшены, какие сервисы выставлены через Traefik и при каких профилях).
 
+Краткое руководство по учетным данным (credentials): `docs/credentials.md` — как хранить секреты, создавать credential в n8n (Ollama, Qdrant, LightRAG и др.) и безопасно управлять API‑ключами.
+
 > [📚 Руководство по документации](./docs/DOCUMENTATION_GUIDE.md) | [🔧 Руководство по установке](./docs/SETUP_SCRIPT.md) | [❗ Распространенные проблемы](./docs/COMMON_ISSUES.md) | [🚨 Устранение неполадок](TROUBLESHOOTING.md)
 
 ## 🔄 Быстрый переход к разделам
