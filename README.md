@@ -52,6 +52,12 @@ environment generator to create LightRAG secrets (see `env.schema` and
 `LIGHTRAG_API_KEY` or `TOKEN_SECRET` in your `.env` before exposing the service
 via Traefik to avoid accidental public access.
 
+Important: the compose configuration now requires `LIGHRAG_DOMAIN`,
+`LIGHTRAG_API_KEY` and `TOKEN_SECRET` to be present in your `.env` (no
+"change_me" defaults). This ensures Traefik receives the correct SNI hostname
+and avoids the proxy serving a default self-signed certificate. See
+`compose/optional-services.yml`, `env.schema` and `scripts/setup.sh` for details.
+
 Note: recent changes added the LightRAG optional service to
 `compose/optional-services.yml` (profiles: `developer`, `cpu`, `gpu-nvidia`).
 If you enable it, ensure `services/lightrag` is present or set an external

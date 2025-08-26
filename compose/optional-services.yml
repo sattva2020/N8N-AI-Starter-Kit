@@ -229,10 +229,12 @@ services:
       - LIGHRAG_WORKDIR=/data/lightrag
       - LIGHRAG_ENV=production
       # Set LIGHRAG_DOMAIN in the root .env to enable Traefik routing (example: lightrag.example.com)
-      - LIGHRAG_DOMAIN=${LIGHRAG_DOMAIN:-}
-      # Protect the service by setting one of these secrets in your .env. Do NOT commit real secrets.
-      - LIGHTRAG_API_KEY=${LIGHTRAG_API_KEY:-change_me}
-      - TOKEN_SECRET=${TOKEN_SECRET:-change_me}
+      # Do NOT leave this empty — Traefik will not match SNI and may serve the default cert.
+      - LIGHRAG_DOMAIN=${LIGHRAG_DOMAIN}
+      # Protect the service by setting these secrets in your .env. Do NOT commit real secrets.
+      # We intentionally do not provide "change_me" defaults here so missing values are explicit.
+      - LIGHTRAG_API_KEY=${LIGHTRAG_API_KEY}
+      - TOKEN_SECRET=${TOKEN_SECRET}
       # Default Qdrant URL when qdrant service is available in the stack
       - QDRANT_URL=${QDRANT_URL:-http://qdrant:6333}
       # Disallow anonymous/public access by default; application should honour these vars
