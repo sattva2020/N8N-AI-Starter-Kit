@@ -179,10 +179,42 @@ echo -n "${LIGHTRAG_API_KEY}" | docker secret create lightRag_api_key -
 ---
 
 ### Что добавить позже (TODO для раздела)
-- Шаблоны для HashiCorp Vault / Azure KeyVault интеграции. 
-- Примеры использования Docker secrets и Kubernetes secrets с `helm` манифестами.
-- Скрипты для автоматической ротации ключей и обновления `.env`.
+
+
+Если нужно, добавлю примеры изменённого `docker-compose.yml` для стабильной сетевой конфигурации и пример `README` по интеграции с Vault.
 
 ---
 
-Если нужно, добавлю примеры изменённого `docker-compose.yml` для стабильной сетевой конфигурации и пример `README` по интеграции с Vault.
+## Автоматическое создание credentials в n8n (API)
+
+Для автоматического создания credential в n8n можно использовать REST API. Скрипт‑пример добавлен в `scripts/create_n8n_credential.sh`.
+
+Пример ручного вызова (curl) для Qdrant credential (adapt для вашего n8n URL / token):
+
+```bash
+N8N_URL="http://localhost:5678"
+AUTH_TOKEN="<YOUR_N8N_ADMIN_TOKEN>"
+
+curl -sS -X POST "$N8N_URL/rest/credentials" \
+	-H "Authorization: Bearer $AUTH_TOKEN" \
+	-H "Content-Type: application/json" \
+	-d '{
+		"name": "QdrantApi account",
+		"type": "qdrantApi",
+		"nodesAccess": [],
+		"data": {
+			"apiKey": "",
+			"url": "http://qdrant:6333"
+		}
+	}' | jq .
+```
+
+Использование скрипта:
+
+```bash
+./scripts/create_n8n_credential.sh --token "<YOUR_N8N_ADMIN_TOKEN>" \
+	--name "QdrantApi account" --type qdrantApi \
+	--data '{"apiKey":"","url":"http://qdrant:6333"}' --n8n-url http://localhost:5678
+```
+
+Примечание: формат поля `type` должен соответствовать internal type в вашей версии n8n; если сомневаетесь, создайте credential вручную в UI и посмотрите структуру через API.
