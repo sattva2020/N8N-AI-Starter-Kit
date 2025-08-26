@@ -685,6 +685,10 @@ create_env_from_template() {
   n8n_encryption_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
   n8n_api_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
   n8n_jwt_secret=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+  # N8N admin token for automation
+  n8n_admin_token=$(openssl rand -hex 32)
+  # N8N admin token for automation (used by scripts that call n8n REST API)
+  n8n_admin_token=$(openssl rand -hex 32)
   # LightRAG secrets
   lightrag_api_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-32)
   lightrag_token_secret=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-40)
@@ -716,6 +720,8 @@ N8N_SECURE_COOKIE=false
   WEBHOOK_URL=http://n8n.${DOMAIN_NAME:-example.com}/
 N8N_API_KEY=${n8n_api_key}
 N8N_API_AUTH_ACTIVE=true
+N8N_ADMIN_TOKEN=${n8n_admin_token}
+N8N_ADMIN_TOKEN=${N8N_ADMIN_TOKEN:-${n8n_admin_token}}
 
 # PGADMIN
 PGADMIN_DEFAULT_EMAIL=admin@example.com
@@ -1800,6 +1806,16 @@ PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
 TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
 OPENAI_API_KEY=${openai_api_key:-}
 EOF
+
+  # Ensure N8N admin token exists (for automation). Preserve existing if present.
+  if ! grep -q '^N8N_ADMIN_TOKEN=' .env 2>/dev/null; then
+    if [ -n "${N8N_ADMIN_TOKEN:-}" ]; then
+      echo "N8N_ADMIN_TOKEN=${N8N_ADMIN_TOKEN}" >> .env
+    else
+      gen_admin_token=$(openssl rand -hex 32)
+      echo "N8N_ADMIN_TOKEN=${gen_admin_token}" >> .env
+    fi
+  fi
 
   # Генерируем и добавляем дополнительные значения
   echo "" >> .env

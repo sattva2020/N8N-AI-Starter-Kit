@@ -52,9 +52,12 @@ environment generator to create LightRAG secrets (see `env.schema` and
 `LIGHTRAG_API_KEY` or `TOKEN_SECRET` in your `.env` before exposing the service
 via Traefik to avoid accidental public access.
 
-Important: the compose configuration now requires `LIGHRAG_DOMAIN`,
-`LIGHTRAG_API_KEY` and `TOKEN_SECRET` to be present in your `.env` (no
-"change_me" defaults). This ensures Traefik receives the correct SNI hostname
+NOTE: Recent infra changes added an optional LightRAG service and updated the
+environment generator to create LightRAG secrets (see `env.schema` and
+`scripts/setup.sh`). If you enable LightRAG, set `LIGHRAG_DOMAIN` and a
+`LIGHTRAG_API_KEY` or `TOKEN_SECRET` in your `.env` before exposing the service
+via Traefik to avoid accidental public access.
+Также: генератор переменных окружения (`scripts/setup.sh`) теперь при создании/обновлении `.env` автоматически генерирует и сохраняет `N8N_ADMIN_TOKEN`, при этом сохраняет уже существующие значения переменных — подробности в `env.schema` и `scripts/setup.sh`.
 and avoids the proxy serving a default self-signed certificate. See
 `compose/optional-services.yml`, `env.schema` and `scripts/setup.sh` for details.
 
