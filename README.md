@@ -51,6 +51,18 @@ Note: recent changes added the LightRAG optional service to
 If you enable it, ensure `services/lightrag` is present or set an external
 image in the compose file.
 
+If you don't want to build LightRAG locally, you can use the prebuilt GHCR image
+by setting the `lightrag` service image to `ghcr.io/hkuds/lightrag:v1.4.7rc1`
+in `compose/optional-services.yml`. Example:
+
+```yaml
+services:
+  lightrag:
+    image: ghcr.io/hkuds/lightrag:v1.4.7rc1
+    profiles: [developer, cpu, gpu-nvidia]
+    # ... other settings ...
+```
+
 ### Примечание по инфраструктуре
 
 Внимание: недавно в `docker-compose.yml` было изменено поведение healthcheck для

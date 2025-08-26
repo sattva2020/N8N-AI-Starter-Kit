@@ -213,8 +213,9 @@ services:
   # - Clone the LightRAG repo into `services/lightrag` or set `image: <registry>/lightrag:tag`
   # - Adjust environment variables (see services/lightrag/README.md)
   lightrag:
-    build: ../services/lightrag
-    image: lightrag:local
+    # Use the official GHCR image for LightRAG (example tag shown below).
+    # If you prefer to build locally, restore the `build:` line and remove `image:`.
+    image: ghcr.io/hkuds/lightrag:v1.4.7rc1
     restart: unless-stopped
     profiles: [developer, cpu, gpu-nvidia]
     ports:
@@ -224,7 +225,7 @@ services:
       - LIGHRAG_ENV=production
       # Provide LIGHRAG_DOMAIN in your .env to enable Traefik routing
     volumes:
-      - ../services/lightrag:/opt/lightrag:ro
+      # Only mount persistent data; the application code is provided by the GHCR image
       - ../lightrag_data:/data/lightrag:rw
     networks:
       - backend
