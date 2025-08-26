@@ -1,3 +1,62 @@
+# Управление учетными данными (credentials) в N8N
+
+Этот документ описывает использование `scripts/create_n8n_credential.sh` для создания учетных данных (credential) в n8n через REST API, включая массовое создание из CSV/JSON (`--bulk-file`) и пример шаблона CSV.
+
+## Быстрый обзор
+
+- Скрипт: `scripts/create_n8n_credential.sh`
+- Требуется: admin token n8n (через `N8N_ADMIN_TOKEN` в `.env` или флаг `--token`)
+- Поддерживает: одиночное создание, массовое создание (`--bulk-file`), `--dry-run`, `--force`
+
+## Пример использования
+
+1) Одиночное создание (пример Qdrant):
+
+```bash
+./scripts/create_n8n_credential.sh --token "$N8N_ADMIN_TOKEN" --name "Qdrant" --type qdrantApi --n8n-url http://localhost:5678
+```
+
+2) Dry-run (проверить payload, ничего не менять):
+
+```bash
+./scripts/create_n8n_credential.sh --dry-run --token "$N8N_ADMIN_TOKEN" --name "Qdrant" --type qdrantApi
+```
+
+3) Массовое создание из JSON:
+
+```bash
+./scripts/create_n8n_credential.sh --bulk-file credentials.json --token "$N8N_ADMIN_TOKEN"
+```
+
+4) Массовое создание из CSV (см. шаблон ниже):
+
+```bash
+./scripts/create_n8n_credential.sh --bulk-file credentials.csv --token "$N8N_ADMIN_TOKEN"
+```
+
+## CSV шаблон
+
+Файл CSV должен содержать заголовки: `name,type,data,token,n8n_url`
+
+Пример `credentials.csv`:
+
+```csv
+name,type,data,token,n8n_url
+Qdrant,qdrantApi,"{\"url\": \"http://qdrant:6333\", \"apiKey\": \"\"}",,
+MinIO,awsS3,"{\"accessKeyId\": \"miniouser\", \"secretAccessKey\": \"miniosecret\", \"endpoint\": \"http://minio:9000\", \"region\": \"us-east-1\"}",,
+```
+
+> Примечание: поле `data` ожидает JSON-строку. Если поле `token` пустое, будет использован токен из общего окружения.
+
+## Безопасность и рекомендации
+
+- Никогда не храните реальные секреты или `N8N_ADMIN_TOKEN` в системе контроля версий.
+- Тестируйте массовые операции в staging окружении перед production.
+- Используйте `--dry-run` для проверки payload перед фактическим созданием.
+
+## Интеграция с `start.sh`
+
+Если в `.env` установлена переменная `N8N_AUTO_CREATE_CREDENTIALS=true`, `start.sh` попытается выполнить `./scripts/create_n8n_credential.sh` при старте (если он исполняемый). См. `README.md` для деталей.
 ## Раздел: Credentials (учётные данные) — ручное создание и хранение
 
 Кратко: в этом разделе собрано оперативное руководство по тому, как вручную создать, поместить и безопасно хранить секреты/ключи/токены (далее — credentials) для сервисов в этом проекте (n8n, Ollama, LightRAG, Traefik/ACME и т.п.). Материал даёт рабочие команды и практические примеры.
@@ -218,3 +277,39 @@ curl -sS -X POST "$N8N_URL/rest/credentials" \
 ```
 
 Примечание: формат поля `type` должен соответствовать internal type в вашей версии n8n; если сомневаетесь, создайте credential вручную в UI и посмотрите структуру через API.
+
+---
+
+### Как получить admin token (PASTE_ADMIN_TOKEN_HERE)
+
+Для автоматического создания credentials через REST API скрипт использует заголовок
+Authorization: Bearer <TOKEN>. Обычно удобнее всего создать Personal Access Token
+в UI n8n и потом положить его в `.env` под понятным именем (в наших примерах мы
+используем `PASTE_ADMIN_TOKEN_HERE` как плейсхолдер).
+
+Шаги (UI):
+1. Войдите в n8n под учётной записью администратора.
+2. Нажмите на аватар/иконку пользователя в правом верхнем углу и выберите "Settings" (Настройки).
+3. Перейдите в раздел "Security" → "Personal Access Tokens" (или аналогичное название в вашей версии).
+4. Нажмите "Create token" / "New token", задайте имя (например "automation-script") и опционально срок действия.
+5. Скопируйте сгенерированный токен — он показывается только один раз. Это и есть значение `{PASTE_ADMIN_TOKEN_HERE}`.
+
+Пример: поместите токен в локальный `.env.local` (не коммитите файл):
+
+```
+# .env.local (не коммитить)
+N8N_ADMIN_TOKEN=PASTE_ADMIN_TOKEN_HERE
+N8N_URL=http://localhost:5678
+```
+
+После этого можно вызывать скрипт так:
+
+```bash
+./scripts/create_n8n_credential.sh --env-file .env.local --bulk-file data/credentials-bulk.json
+```
+
+Если у вашей версии n8n нет GUI для Personal Access Tokens, или вы управляете пользователями
+через внешний провайдер, альтернативный путь — создать временного администратора в UI и
+получить токен через функционал вашей инсталляции (в некоторых установках поддерживается
+создание токена через API/CLI). Всегда храните токены в защищённом месте и не вставляйте их
+в публичные репозитории.

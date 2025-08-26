@@ -28,6 +28,8 @@ TYPE=""
 DATA=""
 ENV_FILE=".env"
 FORCE=false
+DRY_RUN=false
+BULK_FILE=""
 
 # Try to load environment from .env if present (will be optional)
 load_env_file() {
@@ -47,9 +49,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --n8n-url) N8N_URL="$2"; shift 2;;
     --token) TOKEN="$2"; shift 2;;
-    --env-file) ENV_FILE="$2"; shift 2;;
+  --env-file) ENV_FILE="$2"; shift 2;;
   --force) FORCE=true; shift 1;;
-    --bulk-file) BULK_FILE="$2"; shift 2;;
+  --dry-run) DRY_RUN=true; shift 1;;
+  --bulk-file) BULK_FILE="$2"; shift 2;;
     --name) NAME="$2"; shift 2;;
     --type) TYPE="$2"; shift 2;;
     --data) DATA="$2"; shift 2;;
@@ -69,12 +72,39 @@ fi
 
 # If DATA not provided, try to construct a sensible default for known types
 if [[ -z "$DATA" ]]; then
-  if [[ "$TYPE" == "qdrantApi" || "$TYPE" == "qdrantapi" || "$TYPE" == "qdrantApi" ]]; then
-    # prefer QDRANT_URL env, fallback to http://qdrant:6333
-    QDR_URL=${QDRANT_URL:-${QDRANT_URL:-http://qdrant:6333}}
+  # Qdrant
+  if [[ "$TYPE" =~ ^(qdrantApi|qdrantapi|qdrant)$ ]]; then
+    QDR_URL=${QDRANT_URL:-http://qdrant:6333}
     QDR_KEY=${QDRANT_API_KEY:-}
-    # build JSON string
     DATA=$(jq -n --arg url "$QDR_URL" --arg apiKey "$QDR_KEY" '{apiKey: $apiKey, url: $url}')
+  fi
+
+  # MinIO / S3 (n8n AWS S3 credential expects accessKeyId, secretAccessKey, region, endpoint)
+  if [[ "$TYPE" =~ ^(s3|aws|awsS3|minio)$ ]]; then
+    S3_ACCESS=${MINIO_ROOT_USER:-${AWS_ACCESS_KEY_ID:-}}
+    S3_SECRET=${MINIO_ROOT_PASSWORD:-${AWS_SECRET_ACCESS_KEY:-}}
+    S3_ENDPOINT=${MINIO_ENDPOINT:-${MINIO_URL:-http://minio:9000}}
+    S3_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+    DATA=$(jq -n --arg accessKeyId "$S3_ACCESS" --arg secretAccessKey "$S3_SECRET" --arg endpoint "$S3_ENDPOINT" --arg region "$S3_REGION" '{accessKeyId: $accessKeyId, secretAccessKey: $secretAccessKey, endpoint: $endpoint, region: $region}')
+  fi
+
+  # Postgres credential
+  if [[ "$TYPE" =~ ^(postgres|pg|postgresql)$ ]]; then
+    PG_HOST=${POSTGRES_HOST:-postgres}
+    PG_PORT=${POSTGRES_PORT:-5432}
+    PG_DB=${POSTGRES_DB:-${N8N_DB_NAME:-n8n}}
+    PG_USER=${POSTGRES_USER:-postgres}
+    PG_PASS=${POSTGRES_PASSWORD:-}
+    DATA=$(jq -n --arg host "$PG_HOST" --arg port "$PG_PORT" --arg database "$PG_DB" --arg user "$PG_USER" --arg password "$PG_PASS" '{host: $host, port: ($port|tonumber), database: $database, user: $user, password: $password}')
+  fi
+
+  # Neo4j / Bolt
+  if [[ "$TYPE" =~ ^(neo4j|bolt)$ ]]; then
+    N4_HOST=${NEO4J_HOST:-neo4j-graphiti}
+    N4_PORT=${NEO4J_PORT:-7687}
+    N4_USER=${NEO4J_USER:-neo4j}
+    N4_PASS=${NEO4J_PASSWORD:-}
+    DATA=$(jq -n --arg host "$N4_HOST" --arg port "$N4_PORT" --arg username "$N4_USER" --arg password "$N4_PASS" '{host: $host, port: ($port|tonumber), username: $username, password: $password}')
   fi
 fi
 
@@ -131,36 +161,7 @@ validate_against_schema() {
   fi
   return 0
 }
-
-payload=$(jq -n --arg name "$NAME" --arg type "$TYPE" --argjson data "$DATA" '{name: $name, type: $type, nodesAccess: [], data: $data}')
-
-echo "Creating credential '$NAME' (type=$TYPE) at $API_URL"
-
-# Validate before sending
-if ! validate_against_schema "$TYPE" "$DATA" "$N8N_URL" "$TOKEN"; then
-  echo "Aborting due to schema validation failure." >&2
-  exit 2
-fi
-
-resp=$(curl -sS -w "HTTPSTATUS:%{http_code}" -X POST "$API_URL" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d "$payload") || true
-
-http_status=$(echo "$resp" | sed -n 's/.*HTTPSTATUS:\([0-9][0-9][0-9]\)$/\1/p')
-body=$(echo "$resp" | sed 's/\(.*\)HTTPSTATUS:[0-9][0-9][0-9]$/\1/')
-
-if [[ "$http_status" == "200" || "$http_status" == "201" ]]; then
-  echo "Credential created successfully."
-  echo "$body" | jq .
-  exit 0
-else
-  echo "Failed to create credential. HTTP status: $http_status" >&2
-  echo "$body" | jq . || echo "$body"
-  exit 3
-fi
-
-# Bulk processing
+# If a bulk file is provided, handle bulk processing first (safer, avoids accidental single POST)
 if [[ -n "${BULK_FILE:-}" ]]; then
   if [[ ! -f "$BULK_FILE" ]]; then
     echo "Bulk file $BULK_FILE not found" >&2
@@ -212,23 +213,62 @@ PY
     CUR_TOKEN=${ENTRY_TOKEN:-$TOKEN}
     CUR_N8N=${ENTRY_N8N:-$N8N_URL}
 
-    # call API for this entry
     API_URL_RENDER="${CUR_N8N%/}/rest/credentials"
     payload=$(jq -n --arg name "$NAME" --arg type "$TYPE" --argjson data "$DATA" '{name: $name, type: $type, nodesAccess: [], data: $data}')
     echo "Creating credential: $NAME (type=$TYPE) -> $API_URL_RENDER"
-    resp=$(curl -sS -w "HTTPSTATUS:%{http_code}" -X POST "$API_URL_RENDER" \
-      -H "Authorization: Bearer $CUR_TOKEN" \
-      -H "Content-Type: application/json" \
-      -d "$payload") || true
-    http_status=$(echo "$resp" | sed -n 's/.*HTTPSTATUS:\([0-9][0-9][0-9]\)$/\1/p')
-    body=$(echo "$resp" | sed 's/\(.*\)HTTPSTATUS:[0-9][0-9][0-9]$/\1/')
-    if [[ "$http_status" == "200" || "$http_status" == "201" ]]; then
-      echo "  OK: $NAME"
+    if [[ "$DRY_RUN" == "true" ]]; then
+      echo "DRY-RUN: payload for $NAME:" >&2
+      echo "$payload" | jq .
     else
-      echo "  FAIL ($http_status): $NAME" >&2
-      echo "$body" | jq . || echo "$body"
+      resp=$(curl -sS -w "HTTPSTATUS:%{http_code}" -X POST "$API_URL_RENDER" \
+        -H "Authorization: Bearer $CUR_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "$payload") || true
+      http_status=$(echo "$resp" | sed -n 's/.*HTTPSTATUS:\([0-9][0-9][0-9]\)$/\1/p')
+      body=$(echo "$resp" | sed 's/\(.*\)HTTPSTATUS:[0-9][0-9][0-9]$/\1/')
+      if [[ "$http_status" == "200" || "$http_status" == "201" ]]; then
+        echo "  OK: $NAME"
+      else
+        echo "  FAIL ($http_status): $NAME" >&2
+        echo "$body" | jq . || echo "$body"
+      fi
     fi
   done
   rm -f "$tmp_json"
   exit 0
+fi
+
+# Single credential creation path
+payload=$(jq -n --arg name "$NAME" --arg type "$TYPE" --argjson data "$DATA" '{name: $name, type: $type, nodesAccess: [], data: $data}')
+
+echo "Creating credential '$NAME' (type=$TYPE) at $API_URL"
+
+# Validate before sending
+if ! validate_against_schema "$TYPE" "$DATA" "$N8N_URL" "$TOKEN"; then
+  echo "Aborting due to schema validation failure." >&2
+  exit 2
+fi
+
+if [[ "$DRY_RUN" == "true" ]]; then
+  echo "DRY-RUN: would send payload:" >&2
+  echo "$payload" | jq .
+  exit 0
+fi
+
+resp=$(curl -sS -w "HTTPSTATUS:%{http_code}" -X POST "$API_URL" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "$payload") || true
+
+http_status=$(echo "$resp" | sed -n 's/.*HTTPSTATUS:\([0-9][0-9][0-9]\)$/\1/p')
+body=$(echo "$resp" | sed 's/\(.*\)HTTPSTATUS:[0-9][0-9][0-9]$/\1/')
+
+if [[ "$http_status" == "200" || "$http_status" == "201" ]]; then
+  echo "Credential created successfully."
+  echo "$body" | jq .
+  exit 0
+else
+  echo "Failed to create credential. HTTP status: $http_status" >&2
+  echo "$body" | jq . || echo "$body"
+  exit 3
 fi
