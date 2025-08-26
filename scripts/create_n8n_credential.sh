@@ -49,10 +49,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --n8n-url) N8N_URL="$2"; shift 2;;
     --token) TOKEN="$2"; shift 2;;
-  --env-file) ENV_FILE="$2"; shift 2;;
-  --force) FORCE=true; shift 1;;
-  --dry-run) DRY_RUN=true; shift 1;;
-  --bulk-file) BULK_FILE="$2"; shift 2;;
+    --env-file) ENV_FILE="$2"; shift 2;;
+    --force) FORCE=true; shift 1;;
+    --dry-run) DRY_RUN=true; shift 1;;
+    --bulk-file) BULK_FILE="$2"; shift 2;;
     --name) NAME="$2"; shift 2;;
     --type) TYPE="$2"; shift 2;;
     --data) DATA="$2"; shift 2;;
@@ -105,6 +105,21 @@ if [[ -z "$DATA" ]]; then
     N4_USER=${NEO4J_USER:-neo4j}
     N4_PASS=${NEO4J_PASSWORD:-}
     DATA=$(jq -n --arg host "$N4_HOST" --arg port "$N4_PORT" --arg username "$N4_USER" --arg password "$N4_PASS" '{host: $host, port: ($port|tonumber), username: $username, password: $password}')
+  fi
+  
+  # Redis
+  if [[ "$TYPE" =~ ^(redis)$ ]]; then
+    REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    # If URL contains auth, prefer that; otherwise expose password separately
+    DATA=$(jq -n --arg url "$REDIS_URL" --arg password "$REDIS_PASSWORD" '{url: $url, password: $password}')
+  fi
+
+  # Graphiti (generic API key / base URL)
+  if [[ "$TYPE" =~ ^(graphiti|graphitiApi|graphiti_api)$ ]]; then
+    G_API=${GRAPHITI_API_KEY:-${GRAPHITI_KEY:-}}
+    G_URL=${GRAPHITI_URL:-http://graphiti:8000}
+    DATA=$(jq -n --arg apiKey "$G_API" --arg url "$G_URL" '{apiKey: $apiKey, url: $url}')
   fi
 fi
 

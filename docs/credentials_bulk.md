@@ -54,6 +54,7 @@ ollama,http,"{\"baseUrl\":\"http://ollama:11434\"}",,
 
 ```bash
 ./scripts/create_n8n_credential.sh --token "MY_ADMIN_TOKEN" --bulk-file data/credentials.csv
+См. также: раздел "Как получить admin token (PASTE_ADMIN_TOKEN_HERE)" в `docs/credentials.md` для инструкции по созданию и безопасному хранению токена.
 ```
 
 Поведение и возвратные коды

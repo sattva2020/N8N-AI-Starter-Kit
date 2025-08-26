@@ -832,6 +832,22 @@ while [ "$waited" -lt "$max_wait" ]; do
         echo -e "${GREEN}${EMOJI_OK} n8n отвечает по HTTP — считается готовым.${NC}"
 
         # Выполняем импорт workflows по той же логике, что и раньше
+        # Optional: auto-create credentials from env before importing workflows
+        if [ "${N8N_AUTO_CREATE_CREDENTIALS:-false}" = "true" ]; then
+            if [ -x "./scripts/create_n8n_credential.sh" ]; then
+                echo -e "${CYAN}${EMOJI_SETUP} Автоматическое создание credential из переменных окружения включено${NC}"
+                # Example: create Qdrant credential if QDRANT_URL or QDRANT_API_KEY present
+                if [ -n "${QDRANT_URL:-}" ] || [ -n "${QDRANT_API_KEY:-}" ]; then
+                    echo "Creating Qdrant credential from env..."
+                    set +e
+                    ./scripts/create_n8n_credential.sh --token "${N8N_ADMIN_TOKEN:-}" --type qdrantApi --name "${N8N_QDRANT_CREDENTIAL_NAME:-Qdrant API}" --n8n-url "http://${N8N_PROBE_HOST:-127.0.0.1}:${N8N_PORT:-5678}" || true
+                    set -e
+                fi
+                # Add other known credential types here as needed (e.g., S3, redis).
+            else
+                echo -e "${YELLOW}${EMOJI_WARN} Скрипт ./scripts/create_n8n_credential.sh не найден или не исполняем — пропускаю автоматическое создание credential.${NC}"
+            fi
+        fi
         if [ "${N8N_AUTO_IMPORT:-false}" != "true" ]; then
             if [ -t 0 ]; then
                 echo -e "${YELLOW}${EMOJI_NOTE} Автоматический импорт отключён (N8N_AUTO_IMPORT!=true).${NC}"
