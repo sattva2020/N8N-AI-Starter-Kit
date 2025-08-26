@@ -65,7 +65,7 @@ services:
       - "--log.filePath=/var/log/traefik.log"
       - "--log.format=json"
       - "--ping=true"
-      - "--log.level=INFO"
+      - "--log.level=DEBUG"
       - "--accesslog=true"
 
   n8n:
