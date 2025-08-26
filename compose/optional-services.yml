@@ -208,6 +208,35 @@
 # Optional n8n-importer service (developer profile). Enable when you want the
 # importer to run in docker-compose. Paths are relative to the compose/ folder.
 services:
+  # Optional LightRAG service (developer profile)
+  # To enable:
+  # - Clone the LightRAG repo into `services/lightrag` or set `image: <registry>/lightrag:tag`
+  # - Adjust environment variables (see services/lightrag/README.md)
+  lightrag:
+    build: ../services/lightrag
+    image: lightrag:local
+    restart: unless-stopped
+  profiles: [developer, cpu, gpu-nvidia]
+    ports:
+      - "8000:8000"
+    environment:
+      - LIGHRAG_WORKDIR=/data/lightrag
+      - LIGHRAG_ENV=production
+      # Provide LIGHRAG_DOMAIN in your .env to enable Traefik routing
+    volumes:
+      - ../services/lightrag:/opt/lightrag:ro
+      - ../lightrag_data:/data/lightrag:rw
+    networks:
+      - backend
+      - frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lightrag.rule=Host(`${LIGHRAG_DOMAIN}`)"
+      - "traefik.http.routers.lightrag.entrypoints=websecure"
+      - "traefik.http.routers.lightrag.tls=true"
+      - "traefik.http.routers.lightrag.tls.certresolver=myresolver"
+      - "traefik.http.services.lightrag.loadbalancer.server.port=8000"
+
   n8n-importer:
     build: ../services/n8n-importer
     image: n8n-importer:local

@@ -38,6 +38,14 @@
   entrypoint `websecure` и `certresolver=myresolver`). Это изменение
   документировано здесь и в `env.schema` для соответствия pre-commit хукам.
 
+### Optional services
+
+We provide optional developer services under `compose/optional-services.yml`.
+One of them is an optional LightRAG service (local build) — enable it by
+cloning the upstream LightRAG repo into `services/lightrag` or by replacing
+the `image:` with a registry image. See `compose/optional-services.yml` and
+`services/lightrag/README.lightrag.md` for details.
+
 ### Примечание по инфраструктуре
 
 Внимание: недавно в `docker-compose.yml` было изменено поведение healthcheck для
