@@ -46,6 +46,11 @@ cloning the upstream LightRAG repo into `services/lightrag` or by replacing
 the `image:` with a registry image. See `compose/optional-services.yml` and
 `services/lightrag/README.lightrag.md` for details.
 
+Note: recent changes added the LightRAG optional service to
+`compose/optional-services.yml` (profiles: `developer`, `cpu`, `gpu-nvidia`).
+If you enable it, ensure `services/lightrag` is present or set an external
+image in the compose file.
+
 ### Примечание по инфраструктуре
 
 Внимание: недавно в `docker-compose.yml` было изменено поведение healthcheck для

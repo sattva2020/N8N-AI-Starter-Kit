@@ -216,7 +216,7 @@ services:
     build: ../services/lightrag
     image: lightrag:local
     restart: unless-stopped
-  profiles: [developer, cpu, gpu-nvidia]
+    profiles: [developer, cpu, gpu-nvidia]
     ports:
       - "8000:8000"
     environment:
