@@ -215,15 +215,28 @@ services:
   lightrag:
     # Use the official GHCR image for LightRAG (example tag shown below).
     # If you prefer to build locally, restore the `build:` line and remove `image:`.
-    image: ghcr.io/hkuds/lightrag:v1.4.7rc1
+    container_name: lightrag
+    image: ghcr.io/hkuds/lightrag:latest
     restart: unless-stopped
     profiles: [developer, cpu, gpu-nvidia]
+    # Expose a single configurable host port (default 9621). The container listens on 9621 by default in this stack.
     ports:
-      - "8000:8000"
+      - "${PORT:-9621}:9621"
+    depends_on:
+      - qdrant
     environment:
+      - PORT=${PORT:-9621}
       - LIGHRAG_WORKDIR=/data/lightrag
       - LIGHRAG_ENV=production
-      # Provide LIGHRAG_DOMAIN in your .env to enable Traefik routing
+      # Set LIGHRAG_DOMAIN in the root .env to enable Traefik routing (example: lightrag.example.com)
+      - LIGHRAG_DOMAIN=${LIGHRAG_DOMAIN:-}
+      # Protect the service by setting one of these secrets in your .env. Do NOT commit real secrets.
+      - LIGHTRAG_API_KEY=${LIGHTRAG_API_KEY:-change_me}
+      - TOKEN_SECRET=${TOKEN_SECRET:-change_me}
+      # Default Qdrant URL when qdrant service is available in the stack
+      - QDRANT_URL=${QDRANT_URL:-http://qdrant:6333}
+      # Disallow anonymous/public access by default; application should honour these vars
+      - ALLOW_ANONYMOUS_ACCESS=${ALLOW_ANONYMOUS_ACCESS:-false}
     volumes:
       # Only mount persistent data; the application code is provided by the GHCR image
       - ../lightrag_data:/data/lightrag:rw
@@ -236,7 +249,7 @@ services:
       - "traefik.http.routers.lightrag.entrypoints=websecure"
       - "traefik.http.routers.lightrag.tls=true"
       - "traefik.http.routers.lightrag.tls.certresolver=myresolver"
-      - "traefik.http.services.lightrag.loadbalancer.server.port=8000"
+      - "traefik.http.services.lightrag.loadbalancer.server.port=9621"
 
   n8n-importer:
     build: ../services/n8n-importer

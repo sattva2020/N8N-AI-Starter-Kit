@@ -685,6 +685,9 @@ create_env_from_template() {
   n8n_encryption_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
   n8n_api_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
   n8n_jwt_secret=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-24)
+  # LightRAG secrets
+  lightrag_api_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-32)
+  lightrag_token_secret=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-40)
   pgadmin_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
   traefik_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
   traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1)
@@ -723,6 +726,14 @@ PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
   ACME_EMAIL=admin@example.com
 TRAEFIK_USERNAME=admin
 TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
+
+# LIGHTRAG
+LIGHRAG_DOMAIN=${LIGHRAG_DOMAIN:-lightrag.${DOMAIN_NAME:-example.com}}
+PORT=${PORT:-9621}
+QDRANT_URL=${QDRANT_URL:-http://qdrant:6333}
+LIGHTRAG_API_KEY=${LIGHTRAG_API_KEY:-${lightrag_api_key}}
+TOKEN_SECRET=${TOKEN_SECRET:-${lightrag_token_secret}}
+ALLOW_ANONYMOUS_ACCESS=${ALLOW_ANONYMOUS_ACCESS:-false}
 
 # GRAPHITI / OPENAI
 OPENAI_API_KEY=your_openai_api_key_here
