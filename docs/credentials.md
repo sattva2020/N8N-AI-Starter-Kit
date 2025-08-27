@@ -332,3 +332,46 @@ N8N_URL=http://localhost:5678
 получить токен через функционал вашей инсталляции (в некоторых установках поддерживается
 создание токена через API/CLI). Всегда храните токены в защищённом месте и не вставляйте их
 в публичные репозитории.
+
+## После установки: как получить admin token и применить bulk‑credentials
+
+Если вы только что выполнили `scripts/setup.sh` и запустили стек (`docker compose up -d` или `./start.sh`), n8n может потребовать время до полной готовности UI.
+Чтобы корректно выполнить массовое создание credential, выполните эти шаги после того, как n8n UI станет доступен:
+
+1) Запустите n8n и дождитесь готовности UI. Примеры:
+
+```bash
+# из корня репозитория
+docker compose up -d
+# или
+./start.sh
+```
+
+2) В n8n UI создайте Personal/Admin token (Settings → Security → Personal Access Tokens) и сохраните его безопасно.
+
+3) Выполните dry-run для проверки payload'ов (не изменяет состояние n8n):
+
+```bash
+./scripts/create_n8n_credential.sh --dry-run --token "<YOUR_N8N_ADMIN_TOKEN>" \
+	--bulk-file config/samples/credentials-bulk.json --n8n-url http://localhost:5678
+```
+
+4) Если dry-run прошёл успешно, примените создание credential (выполнит реальные POST‑запросы):
+
+```bash
+./scripts/create_n8n_credential.sh --token "<YOUR_N8N_ADMIN_TOKEN>" \
+	--bulk-file config/samples/credentials-bulk.json --n8n-url http://localhost:5678
+```
+
+Альтернативно в CI или скриптах можно экспортировать токен и запускать без интерактивности, например:
+
+```bash
+export N8N_ADMIN_TOKEN="<YOUR_N8N_ADMIN_TOKEN>" \
+	&& ./scripts/create_n8n_credential.sh --dry-run --bulk-file config/samples/credentials-bulk.json --n8n-url http://localhost:5678
+```
+
+Просмотрите вывод `--dry-run` и убедитесь, что payload'ы корректны, прежде чем выполнять реальный импорт.
+
+Если n8n ещё не доступен из CI-пайплайна (например, запускается в compose на том же runner), добавьте wait/poll шаг перед выполнением dry-run.
+
+Безопасность: никогда не логируйте или не коммитьте admin token; используйте защищённые переменные CI/CD или менеджер секретов.
