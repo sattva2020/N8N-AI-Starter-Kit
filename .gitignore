@@ -9,14 +9,11 @@ puttygen.exe
 docker-compose copy.yml.backup
 backup/
 .internal/
-n8n-workflows/
 
 # Директории с данными
 backups/
 logs/
 volumes/db/data/
-n8n/
-!n8n/workflows/management/
 storage-master
 
 # Логи и временные файлы
@@ -26,7 +23,6 @@ storage-master
 .env.test*
 
 # Данные контейнеров (только локальные)
-data/
 volumes/
 !/data/.gitkeep
 
