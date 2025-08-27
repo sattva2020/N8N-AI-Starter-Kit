@@ -1304,6 +1304,10 @@ if [ "$GENERATE_ONLY" = true ]; then
     traefik_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
   traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1 2>/dev/null || echo "${traefik_pwd}")
 
+    # Generate LightRAG secrets for --generate-only mode
+    lightrag_api_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-32)
+    lightrag_token_secret=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-40)
+
   # Write full .env based on env.schema (preferred) or env.schema.md (legacy) with generated secrets and sensible placeholders
   # Normalize DOMAIN_NAME if provided
   if [ -n "${DOMAIN_NAME:-}" ]; then
@@ -1363,6 +1367,14 @@ TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
 # ---- GRAPHITI / OPENAI ----
 OPENAI_API_KEY=${OPENAI_API_KEY:-}
 GRAPHITI_DOMAIN=graphiti.${DOMAIN_NAME:-example.com}
+
+# ---- LIGHTRAG / RAG SERVICE ----
+LIGHRAG_DOMAIN=lightrag.${DOMAIN_NAME:-example.com}
+PORT=9621
+QDRANT_URL=http://qdrant:6333
+LIGHTRAG_API_KEY=${lightrag_api_key}
+TOKEN_SECRET=${lightrag_token_secret}
+ALLOW_ANONYMOUS_ACCESS=false
 
 # Optional defaults to avoid docker-compose warnings
 PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-example.com}}
@@ -1850,6 +1862,10 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
   # Создание файла .env интерактивно — генерируем напрямую и не используем схему-шаблон
   print_info "Создание файла .env (интерактивный режим) — генерируем значения напрямую..."
 
+  # Генерация переменных LightRAG для интерактивного режима
+  lightrag_api_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-32)
+  lightrag_token_secret=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-40)
+
   # Добавляем метку времени и базовые секции
   cat > .env <<EOF
 # Создано автоматически $(date)
@@ -1861,6 +1877,14 @@ N8N_USER_MANAGEMENT_JWT_SECRET=${n8n_jwt_secret}
 PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
 TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
 OPENAI_API_KEY=${openai_api_key:-}
+
+# ---- LIGHTRAG / RAG SERVICE ----
+LIGHRAG_DOMAIN=lightrag.${domain_name}
+PORT=9621
+QDRANT_URL=http://qdrant:6333
+LIGHTRAG_API_KEY=${lightrag_api_key}
+TOKEN_SECRET=${lightrag_token_secret}
+ALLOW_ANONYMOUS_ACCESS=false
 EOF
 
   # Ensure N8N admin token exists (for automation). Preserve existing if present.
