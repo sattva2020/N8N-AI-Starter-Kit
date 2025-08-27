@@ -95,7 +95,7 @@ docs/IMPROVEMENTS_SUMMARY*.md
 # Ignore per-repo instruction folder (local-only guidance files)
 .github/instructions/
 # Local-only tools and per-developer config (keep local copies, do not push)
-# bfg.jar is a binary used for repo-cleaning; .pre-commit-config.yaml is per-developer
+# bfg.jar is a repo-cleaning binary; .pre-commit-config.yaml is per-developer
 # if you prefer to keep pre-commit centrally, remove this entry.
 bfg.jar
 .pre-commit-config.yaml
@@ -156,10 +156,15 @@ template.env
 *TEST*.md
 MISSION_*.md
 CRITICAL_*.md
-"# ���஥��� Git ९����ਨ"  
+"# ஥ Git ९ਨ"  
 "n8n-workflows-es-main/" 
 
 # Ollama: logs and local runtime artifacts
 logs/ollama/
 .ollama/
 ollama_data/
+
+# Application data
+/data/
+/compose/data/
+/n8n/

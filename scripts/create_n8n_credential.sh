@@ -156,14 +156,7 @@ if [[ -z "$DATA" ]]; then
     DATA=$(jq -n --arg url "$QDR_URL" --arg apiKey "$QDR_KEY" '{apiKey: $apiKey, url: $url}')
   fi
 
-  # MinIO / S3 (n8n AWS S3 credential expects accessKeyId, secretAccessKey, region, endpoint)
-  if [[ "$TYPE" =~ ^(s3|aws|awsS3|minio)$ ]]; then
-    S3_ACCESS=${MINIO_ROOT_USER:-${AWS_ACCESS_KEY_ID:-}}
-    S3_SECRET=${MINIO_ROOT_PASSWORD:-${AWS_SECRET_ACCESS_KEY:-}}
-    S3_ENDPOINT=${MINIO_ENDPOINT:-${MINIO_URL:-http://minio:9000}}
-    S3_REGION=${AWS_DEFAULT_REGION:-us-east-1}
-    DATA=$(jq -n --arg accessKeyId "$S3_ACCESS" --arg secretAccessKey "$S3_SECRET" --arg endpoint "$S3_ENDPOINT" --arg region "$S3_REGION" '{accessKeyId: $accessKeyId, secretAccessKey: $secretAccessKey, endpoint: $endpoint, region: $region}')
-  fi
+  
 
   # Postgres credential
   if [[ "$TYPE" =~ ^(postgres|pg|postgresql)$ ]]; then

@@ -131,7 +131,7 @@ fix_services_step_by_step() {
     sleep 10
     
     # Проверить базовые сервисы
-    if ! docker compose ps | grep -E "(traefik|postgres|minio)" | grep -q "Up"; then
+    if ! docker compose ps | grep -E "(traefik|postgres)" | grep -q "Up"; then
         error "Базовые сервисы не запустились"
         return 1
     fi

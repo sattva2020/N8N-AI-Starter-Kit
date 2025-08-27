@@ -77,13 +77,7 @@ def detect_type_from_env(env: Dict[str, str], prefer: str = None) -> Dict[str, A
     """Return a guessed payload for known env vars. Used for integration parity with bash script."""
     if prefer and prefer.lower() in ('qdrant', 'qdrantapi', 'qdrantApi'):
         return build_payload('qdrant', 'qdrantApi', {'url': env.get('QDRANT_URL', 'http://qdrant:6333'), 'apiKey': env.get('QDRANT_API_KEY', '')})
-    if prefer and prefer.lower() in ('s3', 'aws', 'awsS3', 'minio'):
-        return build_payload('s3', 'awsS3', {
-            'accessKeyId': env.get('MINIO_ROOT_USER', env.get('AWS_ACCESS_KEY_ID', '')),
-            'secretAccessKey': env.get('MINIO_ROOT_PASSWORD', env.get('AWS_SECRET_ACCESS_KEY', '')),
-            'endpoint': env.get('MINIO_ENDPOINT', env.get('MINIO_URL', 'http://minio:9000')),
-            'region': env.get('AWS_DEFAULT_REGION', 'us-east-1')
-        })
+    
     if prefer and prefer.lower() in ('redis',):
         return build_payload('redis', 'redis', {'url': env.get('REDIS_URL', 'redis://redis:6379'), 'password': env.get('REDIS_PASSWORD', '')})
     if prefer and prefer.lower() in ('graphiti', 'graphitiapi'):

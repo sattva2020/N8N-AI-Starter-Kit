@@ -106,7 +106,7 @@ analyze_environment() {
             echo "  ✗ Ollama: не настроен"
         fi
         
-            # MinIO is optional; presence in .env is not required for default deployment
+            
     else
         log_warning ".env файл не найден"
     fi
