@@ -153,6 +153,8 @@ docker-compose --profile cpu up -d
 
 - Автоснабжение credential: `start.sh` может вызывать `scripts/create_n8n_credential.sh` если установлена `N8N_AUTO_CREATE_CREDENTIALS=true`. Скрипт поддерживает одиночное создание и bulk‑файлы (JSON/CSV). Рекомендуется использовать JSON для bulk‑импорта — это надёжнее при вложенных данных. Документация: `docs/credentials.md` и `docs/credentials_bulk.md`.
 
+  Примечание: см. также раздел "После установки" в `docs/credentials.md` — краткая инструкция по получению admin token и применению bulk‑файла.
+
   Пример быстрого dry-run (локально):
 
   ```bash

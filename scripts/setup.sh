@@ -790,48 +790,28 @@ NEOEOF
     print_warning "Проблемы при проверке/создании docker volume traefik_letsencrypt — проверьте вручную"
   fi
 
-  # --- Опциональный шаг: автоматическое создание credential в n8n ---
-  # Если существует исполняемый скрипт для создания credential, предлагаем dry-run и опцию применения
+  # --- Автосоздание credential: отложено до после установки ---
+  # Для корректной работы автоматического создания credential n8n должен быть запущен
+  # и у вас должен быть действующий admin token (N8N_ADMIN_TOKEN). При первом развёртывании
+  # n8n UI ещё может быть недоступен, поэтому не запрашиваем токен здесь.
+  # Вместо этого выводим простые инструкции, которые следует выполнить после старта n8n.
   if [ -x "${ROOT_DIR}/scripts/create_n8n_credential.sh" ]; then
-    # В интерактивном режиме спросим пользователя, в неинтерактивном просто пропустим
-    if [ "${SETUP_MODE:-interactive}" = "interactive" ]; then
-      echo
-      read -r -p "Хотите попытаться автоматически создать доступные credential в n8n сейчас? (потребуется N8N_ADMIN_TOKEN) (y/N): " CREATE_CREDS
-      if [[ "$CREATE_CREDS" =~ ^[Yy]$ ]]; then
-        # Попробуем получить токен из .env, иначе запросим у пользователя
-        ADMIN_TOKEN=""
-        if grep -q '^N8N_ADMIN_TOKEN=' .env 2>/dev/null; then
-          ADMIN_TOKEN=$(grep '^N8N_ADMIN_TOKEN=' .env 2>/dev/null | tail -n1 | cut -d'=' -f2-)
-        fi
-
-        read -r -p "Введите N8N_ADMIN_TOKEN (Enter чтобы использовать значение из .env, если есть): " ADMIN_INPUT
-        if [ -n "$ADMIN_INPUT" ]; then
-          ADMIN_TOKEN="$ADMIN_INPUT"
-        fi
-
-        if [ -z "$ADMIN_TOKEN" ]; then
-          echo "N8N_ADMIN_TOKEN не задан. Пропускаем автосоздание credential. Вы можете запустить скрипт вручную позже." 
-        else
-          echo
-          echo "=== Dry-run создания credential (проверка payload'ов, без POST) ==="
-          "${ROOT_DIR}/scripts/create_n8n_credential.sh" --token "$ADMIN_TOKEN" --bulk-file "${ROOT_DIR}/data/credentials-bulk.json" --dry-run --n8n-url "http://localhost:5678" || echo "Dry-run завершился с ошибкой (см. вывод)."
-
-          echo
-          read -r -p "Выполнить реальные запросы для создания credential? Это изменит состояние n8n (y/N): " APPLY_REAL
-          if [[ "$APPLY_REAL" =~ ^[Yy]$ ]]; then
-            echo "Выполняю создание credential..."
-            "${ROOT_DIR}/scripts/create_n8n_credential.sh" --token "$ADMIN_TOKEN" --bulk-file "${ROOT_DIR}/data/credentials-bulk.json" --n8n-url "http://localhost:5678"
-            echo "Создание credential завершено (см. вывод выше)."
-          else
-            echo "Реальное создание credential пропущено по подтверждению пользователя."
-          fi
-        fi
-      else
-        echo "Автоматическое создание credential пропущено. В конце установки будут показаны инструкции." 
-      fi
-    fi
+    echo
+    print_info "Автоматическое создание credential отложено до запуска n8n."
+    echo
+    echo "1) Запустите n8n (например: ${BOLD}$DC_CMD up -d${NC} или ./start.sh) и дождитесь, когда UI станет доступен."
+    echo "2) В n8n UI создайте персональный/admin token (или получите его через настройки пользователей) и сохраните его безопасно."
+    echo "3) Выполните dry-run для проверки payload'ов (не изменяет состояние n8n):"
+    echo "   ${BOLD}./scripts/create_n8n_credential.sh --dry-run --token \"<YOUR_N8N_ADMIN_TOKEN>\" --bulk-file config/samples/credentials-bulk.json --n8n-url http://localhost:5678${NC}"
+    echo "4) Если dry-run прошёл успешно, примените создание credential (выполнит реальные POST-запросы):"
+    echo "   ${BOLD}./scripts/create_n8n_credential.sh --token \"<YOUR_N8N_ADMIN_TOKEN>\" --bulk-file config/samples/credentials-bulk.json --n8n-url http://localhost:5678${NC}"
+    echo
+    echo "Альтернативно в CI или скриптах можно экспортировать токен и запускать без интерактивности, например:" 
+    echo "   ${BOLD}export N8N_ADMIN_TOKEN=\"<YOUR_N8N_ADMIN_TOKEN>\" && ./scripts/create_n8n_credential.sh --dry-run --bulk-file config/samples/credentials-bulk.json --n8n-url http://localhost:5678${NC}"
+    echo
+    print_info "Не храните реальные секреты или админ-токены в системе контроля версий; используйте секреты среды или менеджер секретов."
   else
-    print_info "Скрипт create_n8n_credential.sh не найден или не исполняем — автосоздание credential пропущено"
+    print_info "Скрипт create_n8n_credential.sh не найден или не исполняем — инструкции по автосозданию credential будут недоступны"
   fi
 
   # Опционально клонируем репозиторий Zie619/n8n-workflows для последующего импорта
@@ -2049,6 +2029,8 @@ ensure_qdrant_snapshots_volume() {
 # Запуск сервисов
 print_info "Теперь вы можете запустить N8N AI Starter Kit с помощью команды:"
 print_info "${BOLD}$DC_CMD up -d${NC} или используйте ./start.sh"
+print_info "Совет: после запуска см. docs/credentials.md -> 'После установки' для инструкции по получению admin token и применению bulk‑файла (dry-run → apply)."
+print_info "Пример dry-run: ${BOLD}./scripts/create_n8n_credential.sh --dry-run --token \"<YOUR_N8N_ADMIN_TOKEN>\" --bulk-file config/samples/credentials-bulk.json${NC}"
 
 # Предупредительная проверка: проверим обязательные env и подготовим том qdrant_snapshots
 print_info "Выполняем предварительные проверки: validate_required_envs() и ensure_qdrant_snapshots_volume()"
