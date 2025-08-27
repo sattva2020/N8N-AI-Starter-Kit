@@ -1866,21 +1866,10 @@ EOF
   echo "# ---- NEO4J (Graphiti) ----" >> .env
   echo "NEO4J_URI=${NEO4J_URI:-bolt://neo4j-graphiti:7687}" >> .env
   echo "NEO4J_USER=${NEO4J_USER:-neo4j}" >> .env
-  # Interactive prompt: allow user to set Neo4j password or generate a secure one
-  if [ "${SETUP_MODE}" = "interactive" ]; then
-    read -p "Введите пароль для Neo4j (оставьте пустым для автогенерации): " neo4j_pwd_input
-    if [ -z "${neo4j_pwd_input}" ]; then
-      neo4j_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
-      echo "NEO4J_PASSWORD=${neo4j_pwd}" >> .env
-      print_info "Сгенерирован пароль для Neo4j: ${neo4j_pwd}"
-    else
-      echo "NEO4J_PASSWORD=${neo4j_pwd_input}" >> .env
-    fi
-  else
-    # Non-interactive: generate a secure password
-    neo4j_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
-    echo "NEO4J_PASSWORD=${neo4j_pwd}" >> .env
-  fi
+  # Generate Neo4j password automatically (no interactive prompt)
+  neo4j_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+  echo "NEO4J_PASSWORD=${neo4j_pwd}" >> .env
+  print_info "Сгенерирован пароль для Neo4j: ${neo4j_pwd}"
   echo "NEO4J_HOST=${NEO4J_HOST:-neo4j-graphiti}" >> .env
   echo "NEO4J_PORT=${NEO4J_PORT:-7687}" >> .env
   echo "NEO4J_BOLT_PORT=${NEO4J_BOLT_PORT:-7687}" >> .env
@@ -2107,3 +2096,65 @@ clone_official_workflows() {
 # (leftover markers, clock skew). We now rely on an explicit canonical
 # `env.schema` (preferred) / `env.schema.md` (legacy) / `template.env` (fallback) and completeness checks performed by start.sh. Do not create
 # transient marker files here.
+
+# ----------------------
+# Auto-import credentials
+# ----------------------
+auto_import_credentials() {
+  # Only run if explicitly requested
+  if [ "${N8N_AUTO_CREATE_CREDENTIALS:-false}" != "true" ]; then
+    return 0
+  fi
+
+  if [ ! -x "${ROOT_DIR}/scripts/create_n8n_credential.sh" ]; then
+    print_warning "Auto-import requested but create_n8n_credential.sh not found or not executable. Skipping."
+    return 0
+  fi
+
+  N8N_URL=${N8N_URL:-http://localhost:5678}
+  MAX=30
+  i=0
+  print_info "Waiting for n8n to become ready at ${N8N_URL} (max ${MAX} attempts)..."
+  while [ $i -lt $MAX ]; do
+    if curl -sS --max-time 3 "${N8N_URL%/}/health" >/dev/null 2>&1 || curl -sS --max-time 3 "${N8N_URL%/}/" >/dev/null 2>&1; then
+      print_success "n8n appears to be reachable at ${N8N_URL}"
+      break
+    fi
+    sleep 2
+    i=$((i+1))
+  done
+
+  if [ $i -ge $MAX ]; then
+    print_warning "n8n did not become reachable within the timeout; skipping auto-import. You can run create_n8n_credential.sh manually (see docs)."
+    return 0
+  fi
+
+  # Try read token from .env
+  if [ -f .env ] && grep -q '^N8N_ADMIN_TOKEN=' .env; then
+    export N8N_ADMIN_TOKEN=$(grep '^N8N_ADMIN_TOKEN=' .env | tail -n1 | cut -d'=' -f2-)
+  fi
+
+  if [ -z "${N8N_ADMIN_TOKEN:-}" ]; then
+    print_warning "Auto-import requires N8N_ADMIN_TOKEN in environment or .env. Skipping."
+    return 0
+  fi
+
+  print_info "Running credential bulk-import (dry-run first)..."
+  set +e
+  ./scripts/create_n8n_credential.sh --dry-run --token "${N8N_ADMIN_TOKEN}" --bulk-file config/samples/credentials-bulk.json --n8n-url "${N8N_URL}"
+  rv=$?
+  if [ $rv -ne 0 ]; then
+    print_warning "Dry-run of credential import failed (code $rv). Inspect output and run with --force when ready."
+    set -e
+    return 0
+  fi
+
+  print_info "Dry-run OK — applying credentials now..."
+  ./scripts/create_n8n_credential.sh --token "${N8N_ADMIN_TOKEN}" --bulk-file config/samples/credentials-bulk.json --n8n-url "${N8N_URL}"
+  set -e
+}
+
+# Launch auto-import in background if enabled (non-blocking)
+if [ "${N8N_AUTO_CREATE_CREDENTIALS:-false}" = "true" ]; then
+  (auto_import_credentials) &
+fi

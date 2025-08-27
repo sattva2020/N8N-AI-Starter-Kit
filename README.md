@@ -56,6 +56,7 @@ environment generator to create LightRAG secrets (see `env.schema` and
 `LIGHTRAG_API_KEY` or `TOKEN_SECRET` in your `.env` before exposing the service
 via Traefik to avoid accidental public access.
 Также: генератор переменных окружения (`scripts/setup.sh`) теперь при создании/обновлении `.env` автоматически генерирует и сохраняет `N8N_ADMIN_TOKEN`, при этом сохраняет уже существующие значения переменных — подробности в `env.schema` и `scripts/setup.sh`.
+Теперь скрипт также автоматически генерирует и сохраняет пароль для Neo4j (`NEO4J_PASSWORD`) при создании/обновлении `.env`, чтобы избежать интерактивных запросов во время установки.
 and avoids the proxy serving a default self-signed certificate. See
 `compose/optional-services.yml`, `env.schema` and `scripts/setup.sh` for details.
 
