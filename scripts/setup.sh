@@ -790,6 +790,50 @@ NEOEOF
     print_warning "Проблемы при проверке/создании docker volume traefik_letsencrypt — проверьте вручную"
   fi
 
+  # --- Опциональный шаг: автоматическое создание credential в n8n ---
+  # Если существует исполняемый скрипт для создания credential, предлагаем dry-run и опцию применения
+  if [ -x "${ROOT_DIR}/scripts/create_n8n_credential.sh" ]; then
+    # В интерактивном режиме спросим пользователя, в неинтерактивном просто пропустим
+    if [ "${SETUP_MODE:-interactive}" = "interactive" ]; then
+      echo
+      read -r -p "Хотите попытаться автоматически создать доступные credential в n8n сейчас? (потребуется N8N_ADMIN_TOKEN) (y/N): " CREATE_CREDS
+      if [[ "$CREATE_CREDS" =~ ^[Yy]$ ]]; then
+        # Попробуем получить токен из .env, иначе запросим у пользователя
+        ADMIN_TOKEN=""
+        if grep -q '^N8N_ADMIN_TOKEN=' .env 2>/dev/null; then
+          ADMIN_TOKEN=$(grep '^N8N_ADMIN_TOKEN=' .env 2>/dev/null | tail -n1 | cut -d'=' -f2-)
+        fi
+
+        read -r -p "Введите N8N_ADMIN_TOKEN (Enter чтобы использовать значение из .env, если есть): " ADMIN_INPUT
+        if [ -n "$ADMIN_INPUT" ]; then
+          ADMIN_TOKEN="$ADMIN_INPUT"
+        fi
+
+        if [ -z "$ADMIN_TOKEN" ]; then
+          echo "N8N_ADMIN_TOKEN не задан. Пропускаем автосоздание credential. Вы можете запустить скрипт вручную позже." 
+        else
+          echo
+          echo "=== Dry-run создания credential (проверка payload'ов, без POST) ==="
+          "${ROOT_DIR}/scripts/create_n8n_credential.sh" --token "$ADMIN_TOKEN" --bulk-file "${ROOT_DIR}/data/credentials-bulk.json" --dry-run --n8n-url "http://localhost:5678" || echo "Dry-run завершился с ошибкой (см. вывод)."
+
+          echo
+          read -r -p "Выполнить реальные запросы для создания credential? Это изменит состояние n8n (y/N): " APPLY_REAL
+          if [[ "$APPLY_REAL" =~ ^[Yy]$ ]]; then
+            echo "Выполняю создание credential..."
+            "${ROOT_DIR}/scripts/create_n8n_credential.sh" --token "$ADMIN_TOKEN" --bulk-file "${ROOT_DIR}/data/credentials-bulk.json" --n8n-url "http://localhost:5678"
+            echo "Создание credential завершено (см. вывод выше)."
+          else
+            echo "Реальное создание credential пропущено по подтверждению пользователя."
+          fi
+        fi
+      else
+        echo "Автоматическое создание credential пропущено. В конце установки будут показаны инструкции." 
+      fi
+    fi
+  else
+    print_info "Скрипт create_n8n_credential.sh не найден или не исполняем — автосоздание credential пропущено"
+  fi
+
   # Опционально клонируем репозиторий Zie619/n8n-workflows для последующего импорта
   # Клонируем только если явно включён автo-импорт (например, во время развёртывания)
   if [ "${N8N_AUTO_IMPORT:-false}" = "true" ]; then
@@ -1322,7 +1366,8 @@ MODEL_NAME=${MODEL_NAME:-}
 # ---- NEO4J ----
 NEO4J_URI=bolt://neo4j-graphiti:7687
 NEO4J_USER=neo4j
-NEO4J_PASSWORD=change_this_secure_password_123
+  # Генерируем безопасный пароль для Neo4j если не передан извне
+  NEO4J_PASSWORD=${NEO4J_PASSWORD:-$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)}
 NEO4J_HOST=neo4j-graphiti
 NEO4J_PORT=7687
 NEO4J_BOLT_PORT=7687

@@ -152,6 +152,12 @@ docker-compose --profile cpu up -d
 Автоматизация credential и workflow
 
 - Автоснабжение credential: `start.sh` может вызывать `scripts/create_n8n_credential.sh` если установлена `N8N_AUTO_CREATE_CREDENTIALS=true`. Скрипт поддерживает одиночное создание и bulk‑файлы (JSON/CSV). Рекомендуется использовать JSON для bulk‑импорта — это надёжнее при вложенных данных. Документация: `docs/credentials.md` и `docs/credentials_bulk.md`.
+
+  Пример быстрого dry-run (локально):
+
+  ```bash
+  ./scripts/create_n8n_credential.sh --env-file .env --bulk-file config/samples/credentials-bulk.json --dry-run --n8n-url http://localhost:5678
+  ```
 - Импорт workflow: есть утилиты в `n8n/workflows/management/` и сервис‑импортёр `services/n8n-importer/` для массового импорта и управления workflow.
 
 Инструменты разработчика (profile: developer)
