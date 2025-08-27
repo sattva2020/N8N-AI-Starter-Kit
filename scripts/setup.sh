@@ -943,6 +943,37 @@ ensure_profile_defaults() {
   return 0
 }
 
+# Ensure a Neo4j password exists in .env (generate if missing or placeholder)
+generate_neo4j_password_if_missing() {
+  # requires openssl
+  if ! command -v openssl >/dev/null 2>&1; then
+    print_warning "openssl не найден — пропуск генерации Neo4j пароля"
+    return 0
+  fi
+
+  local current_val=""
+  if [ -f .env ]; then
+    current_val=$(grep -E '^NEO4J_PASSWORD=' .env | tail -n1 | cut -d'=' -f2-)
+  fi
+
+  if [ -z "$current_val" ] || [ "$current_val" = "change_this_secure_password_123" ]; then
+    newpwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+    if [ -f .env ]; then
+      if grep -q '^NEO4J_PASSWORD=' .env 2>/dev/null; then
+        sed -i "s/^NEO4J_PASSWORD=.*/NEO4J_PASSWORD=${newpwd}/" .env 2>/dev/null || {
+          awk -v n="$newpwd" 'BEGIN{printed=0} /^NEO4J_PASSWORD=/{ if(!printed){print "NEO4J_PASSWORD="n; printed=1; next}} {print} END{ if(!printed){print "NEO4J_PASSWORD="n}}' .env > .env.tmp && mv .env.tmp .env
+        }
+      else
+        echo "NEO4J_PASSWORD=${newpwd}" >> .env
+      fi
+    fi
+    export NEO4J_PASSWORD="${newpwd}"
+    print_info "NEO4J пароль сгенерирован и записан в .env"
+  else
+    export NEO4J_PASSWORD="$current_val"
+  fi
+}
+
 # Проверяет и при необходимости создаёт внешний том traefik_letsencrypt
 ensure_traefik_volume_exists() {
   local vol_name="traefik_letsencrypt"
