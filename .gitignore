@@ -24,7 +24,8 @@ storage-master
 
 # Данные контейнеров (только локальные)
 volumes/
-!/data/.gitkeep
+# allow specific sample credentials file to be tracked (keep general data/ ignored)
+!/data/credentials-bulk.json
 
 # Тестовые файлы
 tests/
