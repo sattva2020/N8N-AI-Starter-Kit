@@ -124,7 +124,7 @@ check_service_ports() {
         "11434:Ollama"
         "6333:Qdrant"
         "5432:PostgreSQL"
-        "9000:MinIO"
+    # MinIO port intentionally omitted from required port list (optional service)
         "8080:Traefik"
         "8001:Graphiti"
     )
@@ -194,7 +194,7 @@ main() {
         "n8n-ai-starter-kit-postgres-1" 
         "n8n-ai-starter-kit-ollama-1"
         "n8n-ai-starter-kit-qdrant-1"
-        "n8n-ai-starter-kit-minio-1"
+    # MinIO removed from default project containers list
         "n8n-ai-starter-kit-traefik-1"
         "n8n-ai-starter-kit-graphiti-1"
         "n8n-ai-starter-kit-zep-1"

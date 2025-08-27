@@ -126,8 +126,8 @@ fix_services_step_by_step() {
     docker compose rm -f n8n x-service-n8n ollama 2>/dev/null || true
     
     # Запуск базовых сервисов
-    log "Запуск базовых сервисов (traefik, postgres, minio)..."
-    docker compose up -d traefik postgres minio
+    log "Запуск базовых сервисов (traefik, postgres)..."
+    docker compose up -d traefik postgres
     sleep 10
     
     # Проверить базовые сервисы

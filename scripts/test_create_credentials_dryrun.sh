@@ -22,7 +22,7 @@ echo "Running dry-run bulk sample (JSON inline)..."
 cat > /tmp/credentials_sample.json <<JSON
 [
   {"name":"qdrant-test-bulk","type":"qdrantApi","data":{"url":"http://qdrant:6333","apiKey":""}},
-  {"name":"minio-test","type":"awsS3","data":{"accessKeyId":"miniouser","secretAccessKey":"miniosecret","endpoint":"http://minio:9000","region":"us-east-1"}}
+  {"name":"redis-test","type":"redis","data":{"url":"redis://redis:6379","password":""}}
 ]
 JSON
 

@@ -106,11 +106,7 @@ analyze_environment() {
             echo "  ✗ Ollama: не настроен"
         fi
         
-        if grep -q "MINIO" .env; then
-            log_warning "MinIO: найдены настройки (должен быть удалён)"
-        else
-            echo "  ✓ MinIO: настройки отсутствуют (удалён)"
-        fi
+            # MinIO is optional; presence in .env is not required for default deployment
     else
         log_warning ".env файл не найден"
     fi

@@ -76,6 +76,11 @@ services:
     # ... other settings ...
 ```
 
+Note: MinIO (S3) is treated as an optional developer service. It has been
+removed from the main credential sample and from some mandatory script checks.
+If you need S3 storage, enable MinIO in `compose/optional-services.yml` or
+provide an external S3-compatible endpoint via environment variables.
+
 ### Примечание по инфраструктуре
 
 Внимание: недавно в `docker-compose.yml` было изменено поведение healthcheck для
