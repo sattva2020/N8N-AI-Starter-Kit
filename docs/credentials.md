@@ -8,6 +8,87 @@
 - Требуется: admin token n8n (через `N8N_ADMIN_TOKEN` в `.env` или флаг `--token`)
 - Поддерживает: одиночное создание, массовое создание (`--bulk-file`), `--dry-run`, `--force`
 
+## Создание токенов для API n8n
+
+В n8n есть два способа авторизации для автоматизации:
+
+- Personal Access Token (PAT) — используется как Bearer-токен для приватного REST API (`/rest/...`).
+- Public API Key — используется в заголовке `X-N8N-API-KEY` для публичного API (`/api/v1/...`, требуется включить Public API).
+
+### Как создать N8N_ADMIN_TOKEN (PAT, Bearer для /rest)
+
+1) Войдите в n8n под администратором.
+2) Откройте: Settings → Security → Personal access tokens.
+3) Нажмите New token, задайте имя (например, `automation`), выберите Full access, создайте и скопируйте токен (показывается один раз).
+4) Сохраните токен безопасно. Для удобства можно добавить в `.env`:
+
+```
+N8N_ADMIN_TOKEN=<ВАШ_PAT>
+```
+
+5) Проверка доступа:
+
+```bash
+curl -sS -H "Authorization: Bearer <ВАШ_PAT>" \
+	https://n8n.<ваш-домен>/rest/credentials | jq '.[].name'
+```
+
+6) Использование со скриптом:
+
+```bash
+./scripts/create_n8n_credential.sh \
+	--token "<ВАШ_PAT>" \
+	--name "Qdrant API" \
+	--type qdrantApi \
+	--n8n-url https://n8n.<ваш-домен>
+```
+
+Примечания:
+- PAT стабилен для автоматизаций. JWT из переменной `N8N_ADMIN_TOKEN`, выданный системой при первом запуске, может иметь срок действия — для CI лучше использовать PAT.
+
+### Как создать N8N_API_KEY (Public API, X-N8N-API-KEY для /api/v1)
+
+1) Включите Public API в конфигурации n8n (если ещё не включён):
+
+```
+N8N_PUBLIC_API_DISABLED=false
+```
+
+Перезапустите сервис n8n:
+
+```bash
+docker compose up -d n8n
+```
+
+2) В UI n8n: Settings → API keys → Create key → скопируйте значение (это и есть `N8N_API_KEY`).
+
+3) Сохраните ключ безопасно. Можно добавить в `.env`:
+
+```
+N8N_API_KEY=<ВАШ_API_KEY>
+```
+
+4) Проверка доступа к Public API:
+
+```bash
+curl -sS -H "X-N8N-API-KEY: <ВАШ_API_KEY>" \
+	https://n8n.<ваш-домен>/api/v1/credentials | jq '.[].name'
+```
+
+5) Использование со скриптом (поддерживается `--api-key` и `api_key` в bulk):
+
+```bash
+./scripts/create_n8n_credential.sh \
+	--api-key "<ВАШ_API_KEY>" \
+	--name "Qdrant API" \
+	--type qdrantApi \
+	--n8n-url https://n8n.<ваш-домен>
+```
+
+Примечания:
+- Public API должен быть включён, иначе получите 401 Unauthorized.
+- Public API использует эндпоинты `/api/v1/...`; приватный REST — `/rest/...`.
+
 ## Пример использования
 
 1) Одиночное создание (пример Qdrant):
