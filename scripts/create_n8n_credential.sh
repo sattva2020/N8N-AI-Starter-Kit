@@ -196,9 +196,11 @@ PY
     TYPE=$(echo "$entry" | jq -r '.type')
     # allow data to be object or string
     DATA=$(echo "$entry" | jq -c '.data')
-    # Optionally expand placeholders in data
-    if [[ "$EXPAND_ENV" == "true" ]] || echo "$DATA" | grep -q '\${'; then
-      DATA=$(printf '%s' "$DATA" | expand_json_placeholders)
+    # Optionally expand placeholders in data (skip if null/empty)
+    if [[ -n "$DATA" && "$DATA" != "null" ]]; then
+      if [[ "$EXPAND_ENV" == "true" ]] || echo "$DATA" | grep -q '\${'; then
+        DATA=$(printf '%s' "$DATA" | expand_json_placeholders)
+      fi
     fi
     ENTRY_TOKEN=$(echo "$entry" | jq -r '.token // empty')
     ENTRY_APIKEY=$(echo "$entry" | jq -r '.api_key // empty')
@@ -350,7 +352,7 @@ validate_against_schema() {
 
 # Single credential creation path
 # Expand placeholders for single payload if requested or placeholders are present
-if [[ -n "$DATA" ]]; then
+if [[ -n "$DATA" && "$DATA" != "null" ]]; then
   if [[ "$EXPAND_ENV" == "true" ]] || echo "$DATA" | grep -q '\${'; then
     DATA=$(printf '%s' "$DATA" | expand_json_placeholders)
   fi

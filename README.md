@@ -206,6 +206,8 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
     --n8n-url https://n8n.your-domain.com
 ```
 
+Примечание: если при импорте увидите ошибку JSONDecodeError в python (во время `--expand-env`), убедитесь, что блок `data` в JSON не пустой/`null`. В актуальной версии скрипта добавлена защита: пустые значения пропускаются при подстановке.
+
 ## � Документация
 
 | Раздел | Описание |
