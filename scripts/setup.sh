@@ -692,6 +692,12 @@ create_env_from_template() {
   # LightRAG secrets
   lightrag_api_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-32)
   lightrag_token_secret=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-40)
+  
+  # Analytics and monitoring secrets
+  clickhouse_password=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+  superset_secret_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+  grafana_admin_password=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+  n8n_api_key_monitoring=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
   pgadmin_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
   traefik_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
   traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1)
@@ -1307,6 +1313,12 @@ if [ "$GENERATE_ONLY" = true ]; then
     # Generate LightRAG secrets for --generate-only mode
     lightrag_api_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-32)
     lightrag_token_secret=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-40)
+    
+    # Generate analytics and monitoring secrets
+    clickhouse_password=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+    superset_secret_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
+    grafana_admin_password=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+    n8n_api_key_monitoring=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
 
   # Write full .env based on env.schema (preferred) or env.schema.md (legacy) with generated secrets and sensible placeholders
   # Normalize DOMAIN_NAME if provided
@@ -1363,6 +1375,13 @@ PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-example.com}}
 ACME_EMAIL=${ACME_EMAIL:-admin@${DOMAIN_NAME:-example.com}}
 TRAEFIK_USERNAME=admin
 TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
+
+# ---- MONITORING & ANALYTICS ----
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=${grafana_admin_password}
+CLICKHOUSE_PASSWORD=${clickhouse_password}
+SUPERSET_SECRET_KEY=${superset_secret_key}
+N8N_API_KEY=${n8n_api_key_monitoring}
 
 # ---- GRAPHITI / OPENAI ----
 OPENAI_API_KEY=${OPENAI_API_KEY:-}

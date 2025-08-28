@@ -16,7 +16,7 @@ http:
   middlewares:
     security-headers:
       headers:
-        contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' wss: ws:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';"
+        contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' wss: ws: https:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; worker-src 'self' blob:;"
         frameDeny: true
         contentTypeNosniff: true
         browserXssFilter: true
@@ -39,7 +39,9 @@ http:
           - "Content-Type"
           - "Authorization"
           - "X-Requested-With"
-        accessControlAllowOriginList: []
+        accessControlAllowOriginList:
+          - "https://*.localhost"
+          - "https://*.local"
         accessControlAllowCredentials: true
         accessControlMaxAge: 86400
 
@@ -61,6 +63,17 @@ http:
 
     gzip-compression:
       compress: {}
+
+  routers:
+    # Global HTTPS redirect for all HTTP requests
+    https-redirect-global:
+      entryPoints:
+        - "web"
+      rule: "HostRegexp(`{host:.+}`)"
+      middlewares:
+        - "https-redirect"
+      service: "api@internal"
+      priority: 1
 
 # routers и services — УДАЛИТЬ!
 
