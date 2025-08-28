@@ -1,3 +1,9 @@
+### chore(traefik): switch to ACME HTTP-01 and add HTTP router for n8n
+
+- ACME changed from TLS-ALPN-01 to HTTP-01 with entrypoint `web`.
+- Added HTTP router for `n8n` with `https-redirect@file` middleware.
+- Improves reliability of certificate issuance and enforces HTTP→HTTPS redirect.
+
 # Changelog
 
 ## [Unreleased]
