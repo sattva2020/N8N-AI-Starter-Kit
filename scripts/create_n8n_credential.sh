@@ -172,6 +172,8 @@ normalize_type_and_data() {
     if $t=="postgres" then
       .
       | to_num_port
+      # Ensure SSH is explicitly disabled to select the non-SSH schema branch
+      | (if has("sshTunnel") then . else . + {sshTunnel:"none"} end)
       | if has("ssl") then
           (if (.ssl|type)=="boolean" then .ssl = (if .ssl then "require" else "disable" end) else . end)
         else . + {ssl:"disable"} end
