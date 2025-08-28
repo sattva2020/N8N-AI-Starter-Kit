@@ -27,6 +27,7 @@ NAME=""
 TYPE=""
 DATA=""
 ENV_FILE=".env"
+API_KEY=""
 FORCE=false
 DRY_RUN=false
 BULK_FILE=""
@@ -49,6 +50,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --n8n-url) N8N_URL="$2"; shift 2;;
     --token) TOKEN="$2"; shift 2;;
+  --api-key) API_KEY="$2"; shift 2;;
     --env-file) ENV_FILE="$2"; shift 2;;
     --force) FORCE=true; shift 1;;
     --dry-run) DRY_RUN=true; shift 1;;
@@ -68,7 +70,22 @@ fi
 
 # Allow reading token and n8n url from env if not provided via CLI
 : ${N8N_URL:=$N8N_URL}
+# Prefer explicit TOKEN, else env vars; also support API key via env
 : ${TOKEN:=${N8N_ADMIN_TOKEN:-${N8N_TOKEN:-}}}
+: ${API_KEY:=${N8N_API_KEY:-${N8N_PUBLIC_API_KEY:-}}}
+
+# Build auth header depending on provided credentials
+auth_header() {
+  # args: token api_key
+  local _t="$1" _k="$2"
+  if [[ -n "$_t" ]]; then
+    printf '%s' "Authorization: Bearer $_t"
+  elif [[ -n "$_k" ]]; then
+    printf '%s' "X-N8N-API-KEY: $_k"
+  else
+    printf '%s' ""
+  fi
+}
 
 # If a bulk file is provided, handle bulk processing first (safer, avoids accidental single POST)
 if [[ -n "${BULK_FILE:-}" ]]; then
@@ -117,9 +134,11 @@ PY
     # allow data to be object or string
     DATA=$(echo "$entry" | jq -c '.data')
     ENTRY_TOKEN=$(echo "$entry" | jq -r '.token // empty')
+    ENTRY_APIKEY=$(echo "$entry" | jq -r '.api_key // empty')
     ENTRY_N8N=$(echo "$entry" | jq -r '.n8n_url // empty')
 
     CUR_TOKEN=${ENTRY_TOKEN:-$TOKEN}
+    CUR_APIKEY=${ENTRY_APIKEY:-$API_KEY}
     CUR_N8N=${ENTRY_N8N:-$N8N_URL}
 
     API_URL_RENDER="${CUR_N8N%/}/rest/credentials"
@@ -129,8 +148,9 @@ PY
       echo "DRY-RUN: payload for $NAME:" >&2
       echo "$payload" | jq .
     else
+      AUTH_H=$(auth_header "$CUR_TOKEN" "$CUR_APIKEY")
       resp=$(curl -sS -w "HTTPSTATUS:%{http_code}" -X POST "$API_URL_RENDER" \
-        -H "Authorization: Bearer $CUR_TOKEN" \
+        -H "$AUTH_H" \
         -H "Content-Type: application/json" \
         -d "$payload") || true
       http_status=$(echo "$resp" | sed -n 's/.*HTTPSTATUS:\([0-9][0-9][0-9]\)$/\1/p')
@@ -193,7 +213,7 @@ if [[ -z "$DATA" ]]; then
   fi
 fi
 
-if [[ -z "$TOKEN" || -z "$NAME" || -z "$TYPE" || -z "$DATA" ]]; then
+if [[ ( -z "$TOKEN" && -z "$API_KEY" ) || -z "$NAME" || -z "$TYPE" || -z "$DATA" ]]; then
   echo "Missing required args (token/name/type/data). You can provide --env-file to load defaults from a .env file." >&2
   print_usage
   exit 2
@@ -207,7 +227,9 @@ validate_against_schema() {
   # Fetch schema
   local schema_url="${_n8n%/}/rest/credentials/schema/$_type"
   echo "Checking credential schema for type '$_type' at $schema_url" >&2
-  schema_resp=$(curl -sS -w "HTTPSTATUS:%{http_code}" -X GET "$schema_url" -H "Authorization: Bearer $_token" -H "Accept: application/json") || true
+  local _auth
+  _auth=$(auth_header "$_token" "$API_KEY")
+  schema_resp=$(curl -sS -w "HTTPSTATUS:%{http_code}" -X GET "$schema_url" -H "$_auth" -H "Accept: application/json") || true
   schema_status=$(echo "$schema_resp" | sed -n 's/.*HTTPSTATUS:\([0-9][0-9][0-9]\)$/\1/p')
   schema_body=$(echo "$schema_resp" | sed 's/\(.*\)HTTPSTATUS:[0-9][0-9][0-9]$/\1/')
   if [[ "$schema_status" != "200" ]]; then
@@ -265,7 +287,7 @@ if [[ "$DRY_RUN" == "true" ]]; then
 fi
 
 resp=$(curl -sS -w "HTTPSTATUS:%{http_code}" -X POST "$API_URL" \
-  -H "Authorization: Bearer $TOKEN" \
+  -H "$(auth_header "$TOKEN" "$API_KEY")" \
   -H "Content-Type: application/json" \
   -d "$payload") || true
 

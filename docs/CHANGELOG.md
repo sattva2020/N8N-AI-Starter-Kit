@@ -10,6 +10,7 @@
 
 ### Added
 - Added credentials for Ollama, ClickHouse, Elasticsearch, and Prometheus to the bulk import file (`data/credentials-bulk.json`).
+- `scripts/create_n8n_credential.sh`: added support for Public API auth via `X-N8N-API-KEY` and bulk `api_key` field; keeps Bearer PAT as default.
 
 ### Fixed
 - Fixed a bug in `scripts/create_n8n_credential.sh` where bulk credential creation with `--bulk-file` was failing due to incorrect argument validation order.
