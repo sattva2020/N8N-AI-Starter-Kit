@@ -172,7 +172,9 @@ normalize_type_and_data() {
     if $t=="postgres" then
       .
       | to_num_port
-      | if has("ssl") then . else . + {ssl:false} end
+      | if has("ssl") then
+          (if (.ssl|type)=="boolean" then .ssl = (if .ssl then "require" else "disable" end) else . end)
+        else . + {ssl:"disable"} end
     elif $t=="redis" then
       (if has("url") then
         .host = (.url | sub("^redis:\/\/"; "") | split(":")[0]) |

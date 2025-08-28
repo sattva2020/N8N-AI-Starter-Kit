@@ -184,6 +184,7 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 Приведение типов и схем (авто):
 - Алиасы типов автоматически маппятся на нативные типы n8n: `qdrant` → `qdrantApi`, `bolt` → `neo4j`, `grafana` → `grafanaApi`.
 - Postgres: порт приводится к числу, если `ssl` не задан — добавляется `ssl:false` для соответствия схеме.
+ - Postgres: порт приводится к числу; `ssl` ожидается как одно из `disable|allow|require` — по умолчанию выставляется `ssl: "disable"`, булевы значения приводятся к строковым (`true`→`require`, `false`→`disable`).
 - Redis: поле `url` вида `redis://host:6379` разбирается на `host` и `port` (как ожидает схема n8n).
 - Neo4j: порт приводится к числу.
 
