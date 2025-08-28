@@ -206,12 +206,14 @@ PY
     TYPE=$(echo "$entry" | jq -r '.type')
     # allow data to be object or string
     DATA=$(echo "$entry" | jq -c '.data')
-    # Optionally expand placeholders in data (skip if null/empty)
+  # Optionally expand placeholders in data (skip if null/empty)
     if [[ -n "$DATA" && "$DATA" != "null" ]]; then
       if [[ "$EXPAND_ENV" == "true" ]] || echo "$DATA" | grep -q '\${'; then
         DATA=$(printf '%s' "$DATA" | expand_json_placeholders)
       fi
     fi
+  # Normalize line endings (strip Windows CR)
+  DATA=$(printf '%s' "$DATA" | tr -d '\r')
     # Validate and compact JSON to avoid jq --argjson errors
     if ! jq -e . >/dev/null 2>&1 <<<"$DATA"; then
       echo "  FAIL: invalid JSON in 'data' for $NAME (skipping entry)" >&2
@@ -374,6 +376,8 @@ if [[ -n "$DATA" && "$DATA" != "null" ]]; then
   if [[ "$EXPAND_ENV" == "true" ]] || echo "$DATA" | grep -q '\${'; then
     DATA=$(printf '%s' "$DATA" | expand_json_placeholders)
   fi
+  # Normalize line endings
+  DATA=$(printf '%s' "$DATA" | tr -d '\r')
   # Validate and compact JSON for single mode
   if ! jq -e . >/dev/null 2>&1 <<<"$DATA"; then
     echo "Invalid JSON provided in --data after expansion. Aborting." >&2
