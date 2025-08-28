@@ -246,7 +246,15 @@ PY
   # Optionally expand placeholders in data (skip if null/empty)
     if [[ -n "$DATA" && "$DATA" != "null" ]]; then
       if [[ "$EXPAND_ENV" == "true" ]] || echo "$DATA" | grep -q '\${'; then
-        DATA=$(printf '%s' "$DATA" | expand_json_placeholders)
+        # Try to expand; if expansion fails or produces invalid JSON, fallback to original
+        _expanded=$(printf '%s' "$DATA" | expand_json_placeholders) || _exp_rc=$?
+        _exp_rc=${_exp_rc:-0}
+        if [[ $_exp_rc -eq 0 ]] && jq -e . >/dev/null 2>&1 <<<"$_expanded"; then
+          DATA="$_expanded"
+        else
+          echo "  warn: failed to expand placeholders (rc=${_exp_rc:-?}); using original data for $NAME" >&2
+        fi
+        unset _expanded _exp_rc
       fi
     fi
   # Normalize line endings (strip Windows CR)
@@ -423,7 +431,14 @@ validate_against_schema() {
 # Expand placeholders for single payload if requested or placeholders are present
 if [[ -n "$DATA" && "$DATA" != "null" ]]; then
   if [[ "$EXPAND_ENV" == "true" ]] || echo "$DATA" | grep -q '\${'; then
-    DATA=$(printf '%s' "$DATA" | expand_json_placeholders)
+    _expanded=$(printf '%s' "$DATA" | expand_json_placeholders) || _exp_rc=$?
+    _exp_rc=${_exp_rc:-0}
+    if [[ $_exp_rc -eq 0 ]] && jq -e . >/dev/null 2>&1 <<<"$_expanded"; then
+      DATA="$_expanded"
+    else
+      echo "warn: failed to expand placeholders (rc=${_exp_rc:-?}); using original data" >&2
+    fi
+    unset _expanded _exp_rc
   fi
   # Normalize line endings
   DATA=$(printf '%s' "$DATA" | tr -d '\r')
