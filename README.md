@@ -186,6 +186,25 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 - Postgres: порт приводится к числу, если `ssl` не задан — добавляется `ssl:false` для соответствия схеме.
  - Postgres: порт приводится к числу; `ssl` ожидается как одно из `disable|allow|require` — по умолчанию выставляется `ssl: "disable"`, булевы значения приводятся к строковым (`true`→`require`, `false`→`disable`).
  - Postgres: дополнительно выставляется `sshTunnel: "none"` по умолчанию, чтобы схема не требовала SSH-поля, если туннель не используется.
+
+### Пример bulk-импорта (Postgres + Redis)
+
+Готовый файл с плейсхолдерами есть в `config/samples/credentials-postgres-redis.sample.json`. Он совместим с `--expand-env` и переменными из `.env`.
+
+Запуск:
+
+```bash
+./scripts/create_n8n_credential.sh \
+    --api-key "$N8N_API_KEY" \
+    --bulk-file config/samples/credentials-postgres-redis.sample.json \
+    --n8n-url https://n8n.sattva-ai.top \
+    --expand-env \
+    --env-file .env
+```
+
+Скрипт автоматически:
+- развернёт плейсхолдеры из `.env`;
+- приведёт типы/схемы (Postgres: ssl → enum, `sshTunnel: none`; Redis: url → host/port) перед отправкой в n8n.
 - Redis: поле `url` вида `redis://host:6379` разбирается на `host` и `port` (как ожидает схема n8n).
 - Neo4j: порт приводится к числу.
 
