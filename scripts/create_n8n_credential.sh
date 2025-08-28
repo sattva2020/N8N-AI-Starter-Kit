@@ -212,6 +212,14 @@ PY
         DATA=$(printf '%s' "$DATA" | expand_json_placeholders)
       fi
     fi
+    # Validate and compact JSON to avoid jq --argjson errors
+    if ! jq -e . >/dev/null 2>&1 <<<"$DATA"; then
+      echo "  FAIL: invalid JSON in 'data' for $NAME (skipping entry)" >&2
+      echo "$DATA" >&2
+      continue
+    else
+      DATA=$(jq -c . <<<"$DATA")
+    fi
     ENTRY_TOKEN=$(echo "$entry" | jq -r '.token // empty')
     ENTRY_APIKEY=$(echo "$entry" | jq -r '.api_key // empty')
     ENTRY_N8N=$(echo "$entry" | jq -r '.n8n_url // empty')
@@ -365,6 +373,14 @@ validate_against_schema() {
 if [[ -n "$DATA" && "$DATA" != "null" ]]; then
   if [[ "$EXPAND_ENV" == "true" ]] || echo "$DATA" | grep -q '\${'; then
     DATA=$(printf '%s' "$DATA" | expand_json_placeholders)
+  fi
+  # Validate and compact JSON for single mode
+  if ! jq -e . >/dev/null 2>&1 <<<"$DATA"; then
+    echo "Invalid JSON provided in --data after expansion. Aborting." >&2
+    echo "$DATA" >&2
+    exit 2
+  else
+    DATA=$(jq -c . <<<"$DATA")
   fi
 fi
 
