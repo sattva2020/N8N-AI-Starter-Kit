@@ -125,7 +125,17 @@ def walk(v):
   return v
 
 src = sys.stdin.read()
-obj = json.loads(src)
+# If input is empty or 'null', return as-is
+if not src.strip() or src.strip() == 'null':
+  sys.stdout.write(src)
+  sys.exit(0)
+
+# Try to parse JSON; if fails, return original (no expansion)
+try:
+  obj = json.loads(src)
+except Exception:
+  sys.stdout.write(src)
+  sys.exit(0)
 obj = walk(obj)
 json.dump(obj, sys.stdout)
 PY
