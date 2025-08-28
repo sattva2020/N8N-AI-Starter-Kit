@@ -177,6 +177,7 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
     - Публичный API-ключ для Public API: передайте `--api-key` или `N8N_API_KEY` (требуется `N8N_PUBLIC_API_DISABLED=false`).
 - Для массового импорта используйте файл `config/samples/credentials-bulk.json`.
 - Если в JSON встречаются плейсхолдеры вида `${VAR}` или `${VAR:-default}`, добавьте флаг `--expand-env` и (опционально) `--env-file .env` — значения будут подставлены из окружения.
+ - Требуется `python3` для работы `--expand-env` и разбора CSV в bulk-режиме (при отсутствии — используйте JSON).
 
 Примеры:
 

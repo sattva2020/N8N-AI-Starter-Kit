@@ -42,6 +42,7 @@ FORCE=false
 DRY_RUN=false
 BULK_FILE=""
 EXPAND_ENV=false
+PY_BIN=""
 
 # Try to load environment from .env if present (will be optional)
 load_env_file() {
@@ -85,9 +86,22 @@ fi
 # Prefer explicit TOKEN, else env vars; also support API key via env
 : ${TOKEN:=${N8N_ADMIN_TOKEN:-${N8N_TOKEN:-}}}
 : ${API_KEY:=${N8N_API_KEY:-${N8N_PUBLIC_API_KEY:-}}}
+
+# Detect Python interpreter (needed for CSV bulk and --expand-env)
+if command -v python3 >/dev/null 2>&1; then
+  PY_BIN="python3"
+elif command -v python >/dev/null 2>&1; then
+  PY_BIN="python"
+else
+  PY_BIN=""
+fi
 # Expand ${VAR} and ${VAR:-default} placeholders within a JSON document read from stdin.
 expand_json_placeholders() {
-  python - <<'PY'
+  if [[ -z "$PY_BIN" ]]; then
+    echo "--expand-env requires python3. Please install python3 or remove --expand-env." >&2
+    return 9
+  fi
+  "$PY_BIN" - <<'PY'
 import json, os, re, sys
 
 def expand_string(s: str) -> str:
@@ -151,7 +165,12 @@ if [[ -n "${BULK_FILE:-}" ]]; then
     fi
   else
     # Try CSV parsing via python to handle quoting
-    python - <<PY > "$tmp_json"
+    if [[ -z "$PY_BIN" ]]; then
+      echo "CSV bulk requires python3. Please install python3 or provide JSON bulk file." >&2
+      rm -f "$tmp_json"
+      exit 5
+    fi
+    "$PY_BIN" - <<PY > "$tmp_json"
 import csv, json, sys
 f=sys.argv[1]
 rows=[]
