@@ -171,6 +171,40 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 ./scripts/setup.sh --generate-only
 ```
 
+### Импорт credential в n8n (авто)
+- Поддерживаются два типа аутентификации:
+    - Bearer-токен администратора (Personal Access Token) для REST: передайте `--token` или переменную `N8N_ADMIN_TOKEN`.
+    - Публичный API-ключ для Public API: передайте `--api-key` или `N8N_API_KEY` (требуется `N8N_PUBLIC_API_DISABLED=false`).
+- Для массового импорта используйте файл `config/samples/credentials-bulk.json`.
+- Если в JSON встречаются плейсхолдеры вида `${VAR}` или `${VAR:-default}`, добавьте флаг `--expand-env` и (опционально) `--env-file .env` — значения будут подставлены из окружения.
+
+Примеры:
+
+```bash
+# DRY-RUN массового импорта через Public API-ключ (ничего не создаёт)
+./scripts/create_n8n_credential.sh \
+    --dry-run \
+    --api-key "$N8N_API_KEY" \
+    --bulk-file config/samples/credentials-bulk.json \
+    --n8n-url https://n8n.your-domain.com
+
+# Реальный импорт с подстановкой значений из .env
+./scripts/create_n8n_credential.sh \
+    --api-key "$N8N_API_KEY" \
+    --bulk-file config/samples/credentials-bulk.json \
+    --env-file .env \
+    --expand-env \
+    --n8n-url https://n8n.your-domain.com
+
+# Создание одной учётки Postgres через админский PAT
+./scripts/create_n8n_credential.sh \
+    --token "$N8N_ADMIN_TOKEN" \
+    --name "Postgres DB" \
+    --type postgres \
+    --data '{"host":"postgres","port":5432,"database":"n8n","user":"n8n","password":"'$POSTGRES_PASSWORD'"}' \
+    --n8n-url https://n8n.your-domain.com
+```
+
 ## � Документация
 
 | Раздел | Описание |

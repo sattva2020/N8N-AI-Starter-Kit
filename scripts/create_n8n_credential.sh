@@ -11,13 +11,23 @@ set -euo pipefail
 
 print_usage(){
   cat <<EOF
-Usage: $0 --token TOKEN --name NAME --type TYPE --data JSON [--n8n-url URL]
+Usage: $0 [--token TOKEN | --api-key KEY] --name NAME --type TYPE --data JSON [--n8n-url URL] [--expand-env]
 
 Example (Qdrant):
   $0 --token "TOKEN" --name "QdrantApi account" --type qdrantApi \
     --data '{"apiKey":"","url":"http://qdrant:6333"}' --n8n-url http://localhost:5678
 
-The script will POST to: <N8N_URL>/rest/credentials
+Bulk mode (JSON/CSV):
+  $0 --api-key "KEY" --bulk-file config/samples/credentials-bulk.json \
+    --n8n-url https://n8n.example.com --expand-env --env-file .env
+
+Flags:
+  --expand-env   Expand 
+                 \
+                 ${VAR:-default} placeholders found in provided --data or bulk JSON using
+                 current environment (and --env-file if present).
+
+The script will POST to: <N8N_URL>/rest/credentials (Bearer token) or /api/v1/credentials (Public API key)
 EOF
 }
 
@@ -31,6 +41,7 @@ API_KEY=""
 FORCE=false
 DRY_RUN=false
 BULK_FILE=""
+EXPAND_ENV=false
 
 # Try to load environment from .env if present (will be optional)
 load_env_file() {
@@ -54,6 +65,7 @@ while [[ $# -gt 0 ]]; do
     --env-file) ENV_FILE="$2"; shift 2;;
     --force) FORCE=true; shift 1;;
     --dry-run) DRY_RUN=true; shift 1;;
+  --expand-env) EXPAND_ENV=true; shift 1;;
     --bulk-file) BULK_FILE="$2"; shift 2;;
     --name) NAME="$2"; shift 2;;
     --type) TYPE="$2"; shift 2;;
@@ -73,6 +85,38 @@ fi
 # Prefer explicit TOKEN, else env vars; also support API key via env
 : ${TOKEN:=${N8N_ADMIN_TOKEN:-${N8N_TOKEN:-}}}
 : ${API_KEY:=${N8N_API_KEY:-${N8N_PUBLIC_API_KEY:-}}}
+# Expand ${VAR} and ${VAR:-default} placeholders within a JSON document read from stdin.
+expand_json_placeholders() {
+  python - <<'PY'
+import json, os, re, sys
+
+def expand_string(s: str) -> str:
+  # Replace ${VAR} and ${VAR:-default}
+  pattern = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)(?::-(.*?))?\}")
+
+  def repl(m):
+    name = m.group(1)
+    default = m.group(2)
+    return os.environ.get(name, default if default is not None else "")
+
+  return pattern.sub(repl, s)
+
+def walk(v):
+  if isinstance(v, dict):
+    return {k: walk(vv) for k, vv in v.items()}
+  if isinstance(v, list):
+    return [walk(x) for x in v]
+  if isinstance(v, str):
+    return expand_string(v)
+  return v
+
+src = sys.stdin.read()
+obj = json.loads(src)
+obj = walk(obj)
+json.dump(obj, sys.stdout)
+PY
+}
+
 
 # Build auth header depending on provided credentials
 auth_header() {
@@ -133,6 +177,10 @@ PY
     TYPE=$(echo "$entry" | jq -r '.type')
     # allow data to be object or string
     DATA=$(echo "$entry" | jq -c '.data')
+    # Optionally expand placeholders in data
+    if [[ "$EXPAND_ENV" == "true" ]] || echo "$DATA" | grep -q '\${'; then
+      DATA=$(printf '%s' "$DATA" | expand_json_placeholders)
+    fi
     ENTRY_TOKEN=$(echo "$entry" | jq -r '.token // empty')
     ENTRY_APIKEY=$(echo "$entry" | jq -r '.api_key // empty')
     ENTRY_N8N=$(echo "$entry" | jq -r '.n8n_url // empty')
@@ -282,6 +330,13 @@ validate_against_schema() {
 }
 
 # Single credential creation path
+# Expand placeholders for single payload if requested or placeholders are present
+if [[ -n "$DATA" ]]; then
+  if [[ "$EXPAND_ENV" == "true" ]] || echo "$DATA" | grep -q '\${'; then
+    DATA=$(printf '%s' "$DATA" | expand_json_placeholders)
+  fi
+fi
+
 payload=$(jq -n --arg name "$NAME" --arg type "$TYPE" --argjson data "$DATA" '{name: $name, type: $type, nodesAccess: [], data: $data}')
 
 echo "Creating credential '$NAME' (type=$TYPE) at $API_URL"
