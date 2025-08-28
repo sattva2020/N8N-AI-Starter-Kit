@@ -141,7 +141,12 @@ PY
     CUR_APIKEY=${ENTRY_APIKEY:-$API_KEY}
     CUR_N8N=${ENTRY_N8N:-$N8N_URL}
 
-    API_URL_RENDER="${CUR_N8N%/}/rest/credentials"
+    # Choose endpoint depending on auth
+    if [[ -n "$CUR_APIKEY" ]]; then
+      API_URL_RENDER="${CUR_N8N%/}/api/v1/credentials"
+    else
+      API_URL_RENDER="${CUR_N8N%/}/rest/credentials"
+    fi
     payload=$(jq -n --arg name "$NAME" --arg type "$TYPE" --argjson data "$DATA" '{name: $name, type: $type, nodesAccess: [], data: $data}')
     echo "Creating credential: $NAME (type=$TYPE) -> $API_URL_RENDER"
     if [[ "$DRY_RUN" == "true" ]]; then
@@ -220,11 +225,18 @@ if [[ ( -z "$TOKEN" && -z "$API_KEY" ) || -z "$NAME" || -z "$TYPE" || -z "$DATA"
 fi
 
 API_URL="${N8N_URL%/}/rest/credentials"
+if [[ -n "$API_KEY" ]]; then
+  API_URL="${N8N_URL%/}/api/v1/credentials"
+fi
 
 validate_against_schema() {
   # args: type data n8n_url token
   local _type="$1" _data="$2" _n8n="$3" _token="$4"
-  # Fetch schema
+  # Fetch schema (REST only). Public API обычно не предоставляет этот endpoint.
+  if [[ -n "$API_KEY" ]]; then
+    echo "Skipping schema validation for Public API mode" >&2
+    return 0
+  fi
   local schema_url="${_n8n%/}/rest/credentials/schema/$_type"
   echo "Checking credential schema for type '$_type' at $schema_url" >&2
   local _auth
