@@ -229,7 +229,7 @@ validate_against_schema() {
       continue
     fi
     # check presence
-    if ! echo "$2" | jq -e "has(\"$field\") and (.[\"$field\"] != null and .[\"$field\"] != \"")" >/dev/null 2>&1; then
+  if ! echo "$2" | jq -e "has(\"$field\") and (.[\"$field\"] != null and .[\"$field\"] != \"\")" >/dev/null 2>&1; then
       echo "Required field '$field' missing or empty in credential data for type '$_type'" >&2
       missing=1
     fi
