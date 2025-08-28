@@ -726,8 +726,10 @@ N8N_SECURE_COOKIE=false
   WEBHOOK_URL=http://n8n.${DOMAIN_NAME:-example.com}/
 N8N_API_KEY=${n8n_api_key}
 N8N_API_AUTH_ACTIVE=true
+N8N_PUBLIC_API_DISABLED=${N8N_PUBLIC_API_DISABLED:-false}
 N8N_ADMIN_TOKEN=${n8n_admin_token}
 N8N_ADMIN_TOKEN=${N8N_ADMIN_TOKEN:-${n8n_admin_token}}
+N8N_PUBLIC_API_DISABLED=${N8N_PUBLIC_API_DISABLED:-false}
 
 # PGADMIN
 PGADMIN_DEFAULT_EMAIL=admin@example.com
@@ -935,6 +937,7 @@ ensure_profile_defaults() {
     "DB_POSTGRESDB_USER=n8n"
     "ACME_EMAIL=admin@${domain_name}"
     "PGADMIN_DEFAULT_EMAIL=admin@${domain_name}"
+  "N8N_PUBLIC_API_DISABLED=false"
   )
 
   for kv in "${defaults[@]}"; do
@@ -1896,6 +1899,7 @@ N8N_USER_MANAGEMENT_JWT_SECRET=${n8n_jwt_secret}
 PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
 TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
 OPENAI_API_KEY=${openai_api_key:-}
+N8N_PUBLIC_API_DISABLED=${N8N_PUBLIC_API_DISABLED:-false}
 
 # ---- LIGHTRAG / RAG SERVICE ----
 LIGHRAG_DOMAIN=lightrag.${domain_name}
