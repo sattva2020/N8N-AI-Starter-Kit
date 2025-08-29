@@ -152,9 +152,9 @@ fallback_replace_defaults() {
       else f end;
     def repl:
       if type=="string" then
-        if test("^\\\\$\\\\{[A-Za-z_][A-Za-z0-9_]*:-[^}]+\\\\}$") then
-          capture("^\\\\$\\\\{[A-Za-z_][A-Za-z0-9_]*:-(?<def>[^}]+)\\\\}$").def
-        elif test("^\\\\$\\\\{[A-Za-z_][A-Za-z0-9_]*\\\\}$") then
+        if test("^\\$\\{[A-Za-z_][A-Za-z0-9_]*:-[^}]+\\}$") then
+          capture("^\\$\\{[A-Za-z_][A-Za-z0-9_]*:-(?<def>[^}]+)\\}$").def
+        elif test("^\\$\\{[A-Za-z_][A-Za-z0-9_]*\\}$") then
           ""
         else . end
       else . end;
