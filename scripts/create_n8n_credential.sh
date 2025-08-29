@@ -197,6 +197,13 @@ normalize_type_and_data() {
       | if has("ssl") then
           (if (.ssl|type)=="boolean" then .ssl = (if .ssl then "require" else "disable" end) else . end)
         else . + {ssl:"disable"} end
+    elif $t=="qdrantApi" then
+      .
+      # Map common url fields to qdrantUrl expected by n8n
+      | (if (has("qdrantUrl") | not) and has("url") then . + {qdrantUrl: .url} else . end)
+      | (if (has("qdrantUrl") | not) and has("qdrant_url") then . + {qdrantUrl: .qdrant_url} else . end)
+      | (if (has("qdrantUrl") | not) and has("baseUrl") then . + {qdrantUrl: .baseUrl} else . end)
+      | del(.url, .qdrant_url, .baseUrl)
     elif $t=="redis" then
       (if has("url") then
         .host = (.url | sub("^redis:\/\/"; "") | split(":")[0]) |
@@ -351,7 +358,7 @@ if [[ -z "$DATA" ]]; then
   if [[ "$TYPE" =~ ^(qdrantApi|qdrantapi|qdrant)$ ]]; then
     QDR_URL=${QDRANT_URL:-http://qdrant:6333}
     QDR_KEY=${QDRANT_API_KEY:-}
-    DATA=$(jq -n --arg url "$QDR_URL" --arg apiKey "$QDR_KEY" '{apiKey: $apiKey, url: $url}')
+  DATA=$(jq -n --arg qdrantUrl "$QDR_URL" --arg apiKey "$QDR_KEY" '{apiKey: $apiKey, qdrantUrl: $qdrantUrl}')
   fi
 
   
