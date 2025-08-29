@@ -780,6 +780,18 @@ NEO4J_BOLT_PORT=${NEO4J_BOLT_PORT:-7687}
 NEO4J_HTTP_PORT=${NEO4J_HTTP_PORT:-7474}
 NEOEOF
 
+  # Ensure Grafana access variables exist (used by credentials and docs)
+  {
+    echo "";
+    echo "# ---- GRAFANA (Monitoring) ----";
+    echo "GRAFANA_DOMAIN=${GRAFANA_DOMAIN:-grafana.${DOMAIN_NAME:-example.com}}";
+    echo "GRAFANA_URL=${GRAFANA_URL:-https://grafana.${DOMAIN_NAME:-example.com}}";
+    # Optional API key placeholder (empty by default; user may provision via Grafana UI)
+    if ! grep -q '^GRAFANA_API_KEY=' .env 2>/dev/null; then
+      echo "GRAFANA_API_KEY=${GRAFANA_API_KEY:-}";
+    fi
+  } >> .env
+
   print_success ".env создан напрямую"
 
   # Проверяем что файл создался правильно
@@ -924,6 +936,8 @@ ensure_profile_defaults() {
     "JUPYTER_DOMAIN=jupyter.${domain_name}"
     "QDRANT_DOMAIN=qdrant.${domain_name}"
     "GRAPHITI_DOMAIN=graphiti.${domain_name}"
+  "GRAFANA_DOMAIN=grafana.${domain_name}"
+  "GRAFANA_URL=https://grafana.${domain_name}"
     "OLLAMA_DOMAIN=ollama.${domain_name}"
     "N8N_DOMAIN=n8n.${domain_name}"
     "N8N_HOST=n8n.${domain_name}"
@@ -1440,6 +1454,18 @@ WORKFLOWS_MANAGER_API_KEY=
 
 EOF
 
+  # Ensure Grafana variables are present for monitoring and credential imports
+  {
+    echo "";
+    echo "# ---- GRAFANA (Monitoring) ----";
+    echo "GRAFANA_DOMAIN=${GRAFANA_DOMAIN:-grafana.${DOMAIN_NAME:-example.com}}";
+    echo "GRAFANA_URL=${GRAFANA_URL:-https://grafana.${DOMAIN_NAME:-example.com}}";
+    # Optional API key placeholder used by n8n Grafana credential samples
+    if ! grep -q '^GRAFANA_API_KEY=' .env 2>/dev/null; then
+      echo "GRAFANA_API_KEY=${GRAFANA_API_KEY:-}";
+    fi
+  } >> .env
+
   print_success ".env сгенерирован встроенным генератором (полный набор переменных)"
   echo "  PostgreSQL: ${postgres_pwd}"
   echo "  N8N Encryption Key: ${n8n_encryption_key}"
@@ -1909,6 +1935,17 @@ LIGHTRAG_API_KEY=${lightrag_api_key}
 TOKEN_SECRET=${lightrag_token_secret}
 ALLOW_ANONYMOUS_ACCESS=false
 EOF
+
+  # Ensure Grafana variables exist for monitoring and n8n credential imports
+  {
+    echo "";
+    echo "# ---- GRAFANA (Monitoring) ----";
+    echo "GRAFANA_DOMAIN=${GRAFANA_DOMAIN:-grafana.${domain_name}}";
+    echo "GRAFANA_URL=${GRAFANA_URL:-https://grafana.${domain_name}}";
+    if ! grep -q '^GRAFANA_API_KEY=' .env 2>/dev/null; then
+      echo "GRAFANA_API_KEY=${GRAFANA_API_KEY:-}";
+    fi
+  } >> .env
 
   # Ensure N8N admin token exists (for automation). Preserve existing if present.
   if ! grep -q '^N8N_ADMIN_TOKEN=' .env 2>/dev/null; then
