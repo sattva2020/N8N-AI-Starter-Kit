@@ -141,6 +141,26 @@ json.dump(obj, sys.stdout)
 PY
 }
 
+# Fallback: replace ${VAR:-default} -> default, and ${VAR} -> ""
+fallback_replace_defaults() {
+  jq -c '
+    def walk(f):
+      . as $in | if type == "object" then
+        reduce (keys[]) as $k ({}; . + { ($k): ($in[$k] | walk(f)) }) | f
+      elif type == "array" then
+        map(walk(f)) | f
+      else f end;
+    def repl:
+      if type=="string" then
+        if test("^\\\\$\\\\{[A-Za-z_][A-Za-z0-9_]*:-[^}]+\\\\}$") then
+          capture("^\\\\$\\\\{[A-Za-z_][A-Za-z0-9_]*:-(?<def>[^}]+)\\\\}$").def
+        elif test("^\\\\$\\\\{[A-Za-z_][A-Za-z0-9_]*\\\\}$") then
+          ""
+        else . end
+      else . end;
+    walk(repl)'
+}
+
 
 # Build auth header depending on provided credentials
 auth_header() {
@@ -246,15 +266,22 @@ PY
   # Optionally expand placeholders in data (skip if null/empty)
     if [[ -n "$DATA" && "$DATA" != "null" ]]; then
       if [[ "$EXPAND_ENV" == "true" ]] || echo "$DATA" | grep -q '\${'; then
-        # Try to expand; if expansion fails or produces invalid JSON, fallback to original
+        # Try Python-based expansion first
         _expanded=$(printf '%s' "$DATA" | expand_json_placeholders) || _exp_rc=$?
         _exp_rc=${_exp_rc:-0}
-        if [[ $_exp_rc -eq 0 ]] && jq -e . >/dev/null 2>&1 <<<"$_expanded"; then
+        if [[ $_exp_rc -eq 0 ]] && jq -e . >/dev/null 2>&1 <<<"$_expanded" && ! echo "$_expanded" | grep -q '\${'; then
           DATA="$_expanded"
         else
-          echo "  warn: failed to expand placeholders (rc=${_exp_rc:-?}); using original data for $NAME" >&2
+          # Fallback: replace ${VAR:-default} with defaults so normalization can proceed
+          _fallback=$(printf '%s' "$DATA" | fallback_replace_defaults) || true
+          if [[ -n "$_fallback" ]] && jq -e . >/dev/null 2>&1 <<<"$_fallback"; then
+            echo "  warn: failed to fully expand placeholders (rc=${_exp_rc:-?}); applied defaults for $NAME" >&2
+            DATA="$_fallback"
+          else
+            echo "  warn: failed to expand placeholders (rc=${_exp_rc:-?}); using original data for $NAME" >&2
+          fi
         fi
-        unset _expanded _exp_rc
+        unset _expanded _exp_rc _fallback
       fi
     fi
   # Normalize line endings (strip Windows CR)
@@ -433,12 +460,18 @@ if [[ -n "$DATA" && "$DATA" != "null" ]]; then
   if [[ "$EXPAND_ENV" == "true" ]] || echo "$DATA" | grep -q '\${'; then
     _expanded=$(printf '%s' "$DATA" | expand_json_placeholders) || _exp_rc=$?
     _exp_rc=${_exp_rc:-0}
-    if [[ $_exp_rc -eq 0 ]] && jq -e . >/dev/null 2>&1 <<<"$_expanded"; then
+    if [[ $_exp_rc -eq 0 ]] && jq -e . >/dev/null 2>&1 <<<"$_expanded" && ! echo "$_expanded" | grep -q '\${'; then
       DATA="$_expanded"
     else
-      echo "warn: failed to expand placeholders (rc=${_exp_rc:-?}); using original data" >&2
+      _fallback=$(printf '%s' "$DATA" | fallback_replace_defaults) || true
+      if [[ -n "$_fallback" ]] && jq -e . >/dev/null 2>&1 <<<"$_fallback"; then
+        echo "warn: failed to fully expand placeholders (rc=${_exp_rc:-?}); applied defaults" >&2
+        DATA="$_fallback"
+      else
+        echo "warn: failed to expand placeholders (rc=${_exp_rc:-?}); using original data" >&2
+      fi
     fi
-    unset _expanded _exp_rc
+    unset _expanded _exp_rc _fallback
   fi
   # Normalize line endings
   DATA=$(printf '%s' "$DATA" | tr -d '\r')
