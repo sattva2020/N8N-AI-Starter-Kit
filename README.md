@@ -187,6 +187,7 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 - Postgres: порт приводится к числу, если `ssl` не задан — добавляется `ssl:false` для соответствия схеме.
  - Postgres: порт приводится к числу; `ssl` ожидается как одно из `disable|allow|require` — по умолчанию выставляется `ssl: "disable"`, булевы значения приводятся к строковым (`true`→`require`, `false`→`disable`).
  - Postgres: дополнительно выставляется `sshTunnel: "none"` по умолчанию, чтобы схема не требовала SSH-поля, если туннель не используется.
+    - Postgres (через Public API): n8n ожидает `ssl` как boolean. Скрипт автоматически конвертирует `"disable"` → `false`, прочие не‑пустые варианты → `true`, и не добавляет `sshTunnel`.
 
 ### Пример bulk-импорта (Postgres + Redis)
 

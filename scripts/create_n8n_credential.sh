@@ -177,8 +177,8 @@ auth_header() {
 
 # Normalize credential type and data to match n8n schemas
 normalize_type_and_data() {
-  # args: type jsonData -> echoes two lines: NEW_TYPE on line 1, NEW_DATA on line 2
-  local _type="$1" _data="$2" _new_type _new_data
+  # args: type jsonData [is_public_api] -> echoes two lines: NEW_TYPE on line 1, NEW_DATA on line 2
+  local _type="$1" _data="$2" _is_pub="${3:-}" _new_type _new_data
   _new_type="$_type"
   case "$_type" in
     qdrant) _new_type="qdrantApi" ;;
@@ -187,16 +187,23 @@ normalize_type_and_data() {
   esac
 
   # Use jq to normalize known shapes
-  _new_data=$(jq -c --arg t "$_new_type" '
+  _new_data=$(jq -c --arg t "$_new_type" --arg ispub "$_is_pub" '
     def to_num_port: if .port? and ((.port|type)=="string") then .port |= (tonumber) else . end;
     if $t=="postgres" then
       .
       | to_num_port
-      # Ensure SSH is explicitly disabled to select the non-SSH schema branch
-      | (if has("sshTunnel") then . else . + {sshTunnel:"none"} end)
-      | if has("ssl") then
-          (if (.ssl|type)=="boolean" then .ssl = (if .ssl then "require" else "disable" end) else . end)
-        else . + {ssl:"disable"} end
+      | if ($ispub=="true") then
+          # Public API expects boolean ssl; avoid SSH-specific fields
+          (if has("ssl") then
+             (if (.ssl|type)=="string" then .ssl = (.ssl != "disable") else . end)
+           else . + {ssl:false} end)
+        else
+          # REST/legacy schema: string enum ssl and explicit sshTunnel branch
+          (if has("sshTunnel") then . else . + {sshTunnel:"none"} end)
+          | if has("ssl") then
+              (if (.ssl|type)=="boolean" then .ssl = (if .ssl then "require" else "disable" end) else . end)
+            else . + {ssl:"disable"} end
+        end
     elif $t=="qdrantApi" then
       .
       # Map common url fields to qdrantUrl expected by n8n
@@ -301,18 +308,7 @@ PY
     else
       DATA=$(jq -c . <<<"$DATA")
     fi
-    # Normalize type and data to match n8n schemas
-    if [[ -n "$DATA" && "$DATA" != "null" ]]; then
-      mapfile -t _norm <<< "$(normalize_type_and_data "$TYPE" "$DATA")"
-      if [[ ${#_norm[@]} -ge 2 ]]; then
-        if [[ "$TYPE" != "${_norm[0]}" ]]; then
-          echo "  note: mapped type '$TYPE' -> '${_norm[0]}'"
-        fi
-        TYPE="${_norm[0]}"
-        DATA="${_norm[1]}"
-      fi
-    fi
-
+    # Determine auth for this entry before normalization (affects shape for some types)
     ENTRY_TOKEN=$(echo "$entry" | jq -r '.token // empty')
     ENTRY_APIKEY=$(echo "$entry" | jq -r '.api_key // empty')
     ENTRY_N8N=$(echo "$entry" | jq -r '.n8n_url // empty')
@@ -326,6 +322,18 @@ PY
       API_URL_RENDER="${CUR_N8N%/}/api/v1/credentials"
     else
       API_URL_RENDER="${CUR_N8N%/}/rest/credentials"
+    fi
+
+    # Normalize type and data to match n8n schemas (respect Public API when applicable)
+    if [[ -n "$DATA" && "$DATA" != "null" ]]; then
+      mapfile -t _norm <<< "$(normalize_type_and_data "$TYPE" "$DATA" "$([[ -n "$CUR_APIKEY" ]] && echo true || echo false)")"
+      if [[ ${#_norm[@]} -ge 2 ]]; then
+        if [[ "$TYPE" != "${_norm[0]}" ]]; then
+          echo "  note: mapped type '$TYPE' -> '${_norm[0]}'"
+        fi
+        TYPE="${_norm[0]}"
+        DATA="${_norm[1]}"
+      fi
     fi
   payload=$(jq -n --arg name "$NAME" --arg type "$TYPE" --argjson data "$DATA" '{name: $name, type: $type, nodesAccess: [], data: $data}')
     echo "Creating credential: $NAME (type=$TYPE) -> $API_URL_RENDER"
@@ -491,7 +499,7 @@ if [[ -n "$DATA" && "$DATA" != "null" ]]; then
     DATA=$(jq -c . <<<"$DATA")
   fi
   # Normalize type & data
-  mapfile -t _norm <<< "$(normalize_type_and_data "$TYPE" "$DATA")"
+  mapfile -t _norm <<< "$(normalize_type_and_data "$TYPE" "$DATA" "$([[ -n "$API_KEY" ]] && echo true || echo false)")"
   if [[ ${#_norm[@]} -ge 2 ]]; then
     if [[ "$TYPE" != "${_norm[0]}" ]]; then
       echo "note: mapped type '$TYPE' -> '${_norm[0]}'" >&2
