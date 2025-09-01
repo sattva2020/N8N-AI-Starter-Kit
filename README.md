@@ -1,5 +1,7 @@
 # N8N AI Starter Kit
 
+<!-- test branch note: infra fixes made in test/v1.0-2025-09-01 -->
+
 [![CI/CD](https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml/badge.svg)](https://github.co## 📚 Документация
 
 | Раздел | Описание |

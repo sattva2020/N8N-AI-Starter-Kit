@@ -170,7 +170,7 @@ services:
       - frontend
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.qdrant.rule=Host(`${QDRANT_DOMAIN}`)"
+      - "traefik.http.routers.qdrant.rule=Host(`qdrant.${DOMAIN_NAME}`)"
       - "traefik.http.routers.qdrant.entrypoints=websecure"
       - "traefik.http.routers.qdrant.tls=true"
       - "traefik.http.routers.qdrant.tls.certresolver=myresolver"
