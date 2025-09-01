@@ -130,6 +130,59 @@ ssh -i "C:\Users\Admin\.ssh\id_rsa_n8n" -o StrictHostKeyChecking=no root@37.53.9
 
 Сохраните этот документ как `docs/PROD_TEST_PROTOCOL.md` и используйте как источник правды.
 
+## Как вносить правки и деплоить в тестовую ветку
+
+Краткая инструкция для разработчиков/операторов: как безопасно внести правки локально в VS Code, отправить их в тестовую ветку и применить на VDS.
+
+1) Локально (в Windows PowerShell / VS Code)
+
+```powershell
+# Переключиться на локальную ветку (если ещё не создана, создайте и переключитесь)
+git checkout -b test/v1.0-2025-09-01
+
+# Внести изменения в файлы (VS Code)
+git add <изменённые_файлы>
+git commit -m "fix(test): короткое описание изменений"
+git push -u origin test/v1.0-2025-09-01
+```
+
+Примечания:
+
+- Перед коммитом запускайте локальные pre-commit hooks (они выполняются автоматически при commit).
+- Пишите понятные сообщения и избегайте коммитить реальные секреты или `.env`.
+
+2) На удалённой машине (VDS)
+
+Подключитесь к VDS и выполните обновление репозитория и развёртывание из ветки `test/v1.0-2025-09-01`.
+
+`Пример (локально, PowerShell, используя plink/ssh):`
+
+```powershell
+echo y | plink.exe -i "C:\Users\Admin\Documents\ssh_private.ppk" root@37.53.91.144 "cd /opt/N8N-AI-Starter-Kit && git fetch origin && git checkout test/v1.0-2025-09-01 && git reset --hard origin/test/v1.0-2025-09-01 && docker compose --profile default up -d --remove-orphans && docker compose --profile default restart traefik"
+```
+
+На VDS можно выполнить эквивалентные команды вручную (bash):
+
+```bash
+cd /opt/N8N-AI-Starter-Kit
+git fetch origin
+git checkout test/v1.0-2025-09-01
+git reset --hard origin/test/v1.0-2025-09-01
+# Поднять/обновить сервисы (Traefik и остальные)
+docker compose --profile default up -d --remove-orphans
+docker compose --profile default restart traefik
+# Проверить, что Traefik зарегистрировал routers
+curl -sS http://127.0.0.1:8080/api/http/routers || true
+```
+
+3) Проверки после deploy
+
+- Убедиться, что Traefik runtime API возвращает список routers и services.
+- Проверить HTTPS/ACME и доступность сервисов: `curl -vk https://n8n.${DOMAIN_NAME}`.
+- Выполнить локальные smoke-checks (см. разделы выше).
+
+Если что-то пошло не так — соберите логи (`docker logs --tail 200 <container>`) и откатитесь к предыдущему рабочему коммиту или восстановите тома из бэкапа.
+
 Для выполнения теста: подключитесь к удалённому VDS, склонируйте ветку `test/v1.0-2025-09-01` и дайте права на скрипты. Для тестирования используйте основной домен `sattva-ai.top`.
 
 Примечание: `ACME_EMAIL` — адрес, используемый Traefik/ACME (Let's Encrypt) для управления сертификатами: `ruslan.griban@gmail.com`.
