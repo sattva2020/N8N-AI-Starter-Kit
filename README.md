@@ -3,6 +3,8 @@
 <!-- test branch note: infra fixes made in test/v1.0-2025-09-01 -->
 <!-- Note: Traefik dynamic config mount fixed in test branch -->
 
+> NOTE: Для временной отладки в тестовой ветке может быть включен DEBUG-лог Traefik (описано в PR/branch). Не оставляйте этот режим в production.
+
 [![CI/CD](https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml/badge.svg)](<https://github.co##> 📚 Документация
 
 | Раздел | Описание |

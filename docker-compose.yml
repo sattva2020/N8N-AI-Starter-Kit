@@ -66,9 +66,9 @@ services:
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
       - "--log.filePath=/var/log/traefik.log"
       - "--log.format=json"
-      - "--ping=true"
-      - "--log.level=INFO"
-      - "--accesslog=true"
+  - "--ping=true"
+  - "--log.level=DEBUG"
+  - "--accesslog=true"
 
   n8n:
     <<: *service-n8n
