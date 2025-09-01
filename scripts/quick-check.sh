@@ -20,7 +20,7 @@ docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | head -20
 # 2. Проверить основные сервисы
 echo -e "\n${BLUE}🔍 Статус основных сервисов:${NC}"
 
-services=("n8n" "postgres" "qdrant" "ollama" "minio" "traefik")
+services=("n8n" "postgres" "qdrant" "ollama" "traefik")
 
 for service in "${services[@]}"; do
     if docker ps | grep -q "$service"; then

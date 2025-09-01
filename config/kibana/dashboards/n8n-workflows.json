@@ -1,0 +1,130 @@
+{
+  "version": "8.11.0",
+  "objects": [
+    {
+      "id": "n8n-workflow-logs",
+      "type": "dashboard",
+      "attributes": {
+        "title": "N8N Workflow Execution Logs",
+        "description": "Detailed N8N workflow execution monitoring and analysis",
+        "panelsJSON": "[{\"version\":\"8.11.0\",\"gridData\":{\"x\":0,\"y\":0,\"w\":24,\"h\":15,\"i\":\"1\"},\"panelIndex\":\"1\",\"embeddableConfig\":{},\"panelRefName\":\"panel_1\"},{\"version\":\"8.11.0\",\"gridData\":{\"x\":24,\"y\":0,\"w\":24,\"h\":15,\"i\":\"2\"},\"panelIndex\":\"2\",\"embeddableConfig\":{},\"panelRefName\":\"panel_2\"},{\"version\":\"8.11.0\",\"gridData\":{\"x\":0,\"y\":15,\"w\":48,\"h\":20,\"i\":\"3\"},\"panelIndex\":\"3\",\"embeddableConfig\":{},\"panelRefName\":\"panel_3\"},{\"version\":\"8.11.0\",\"gridData\":{\"x\":0,\"y\":35,\"w\":16,\"h\":15,\"i\":\"4\"},\"panelIndex\":\"4\",\"embeddableConfig\":{},\"panelRefName\":\"panel_4\"},{\"version\":\"8.11.0\",\"gridData\":{\"x\":16,\"y\":35,\"w\":16,\"h\":15,\"i\":\"5\"},\"panelIndex\":\"5\",\"embeddableConfig\":{},\"panelRefName\":\"panel_5\"},{\"version\":\"8.11.0\",\"gridData\":{\"x\":32,\"y\":35,\"w\":16,\"h\":15,\"i\":\"6\"},\"panelIndex\":\"6\",\"embeddableConfig\":{},\"panelRefName\":\"panel_6\"}]",
+        "timeRestore": false,
+        "optionsJSON": "{\"useMargins\":true,\"syncColors\":false,\"hidePanelTitles\":false}",
+        "version": 1,
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"query\":{\"bool\":{\"must\":[{\"match\":{\"service\":\"n8n\"}}]}},\"filter\":[]}"
+        }
+      },
+      "references": [
+        {
+          "id": "workflow-execution-status",
+          "type": "visualization",
+          "name": "panel_1"
+        },
+        {
+          "id": "workflow-execution-timeline",
+          "type": "visualization",
+          "name": "panel_2"
+        },
+        {
+          "id": "workflow-execution-table",
+          "type": "search",
+          "name": "panel_3"
+        },
+        {
+          "id": "workflow-performance",
+          "type": "visualization",
+          "name": "panel_4"
+        },
+        {
+          "id": "top-workflows",
+          "type": "visualization",
+          "name": "panel_5"
+        },
+        {
+          "id": "workflow-errors",
+          "type": "visualization",
+          "name": "panel_6"
+        }
+      ]
+    },
+    {
+      "id": "workflow-execution-status",
+      "type": "visualization",
+      "attributes": {
+        "title": "Workflow Execution Status",
+        "description": "Success vs failure rate of workflow executions",
+        "visState": "{\"title\":\"Workflow Execution Status\",\"type\":\"pie\",\"aggs\":[{\"id\":\"1\",\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"segment\",\"params\":{\"field\":\"execution_status\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\"}}]}",
+        "uiStateJSON": "{}",
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"index\":\"n8n-logs-*\",\"query\":{\"bool\":{\"must\":[{\"match\":{\"log_type\":\"workflow_execution\"}}]}},\"filter\":[]}"
+        }
+      }
+    },
+    {
+      "id": "workflow-execution-timeline",
+      "type": "visualization",
+      "attributes": {
+        "title": "Workflow Executions Over Time",
+        "description": "Timeline of workflow executions",
+        "visState": "{\"title\":\"Workflow Executions Over Time\",\"type\":\"line\",\"aggs\":[{\"id\":\"1\",\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"min_doc_count\":1}},{\"id\":\"3\",\"type\":\"terms\",\"schema\":\"group\",\"params\":{\"field\":\"execution_status\",\"size\":5,\"order\":\"desc\",\"orderBy\":\"1\"}}]}",
+        "uiStateJSON": "{}",
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"index\":\"n8n-logs-*\",\"query\":{\"bool\":{\"must\":[{\"match\":{\"log_type\":\"workflow_execution\"}}]}},\"filter\":[]}"
+        }
+      }
+    },
+    {
+      "id": "workflow-execution-table",
+      "type": "search",
+      "attributes": {
+        "title": "Recent Workflow Executions",
+        "description": "Detailed table of recent workflow executions",
+        "columns": ["@timestamp", "workflow_name", "execution_status", "execution_time_ms", "execution_id"],
+        "sort": [["@timestamp", "desc"]],
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"index\":\"n8n-logs-*\",\"highlightAll\":true,\"version\":true,\"query\":{\"bool\":{\"must\":[{\"match\":{\"log_type\":\"workflow_execution\"}}]}},\"filter\":[]}"
+        }
+      }
+    },
+    {
+      "id": "workflow-performance",
+      "type": "visualization",
+      "attributes": {
+        "title": "Workflow Performance Distribution",
+        "description": "Distribution of workflow execution times",
+        "visState": "{\"title\":\"Workflow Performance Distribution\",\"type\":\"histogram\",\"aggs\":[{\"id\":\"1\",\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"segment\",\"params\":{\"field\":\"performance_flag\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\"}}]}",
+        "uiStateJSON": "{}",
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"index\":\"n8n-logs-*\",\"query\":{\"bool\":{\"must\":[{\"exists\":{\"field\":\"performance_flag\"}}]}},\"filter\":[]}"
+        }
+      }
+    },
+    {
+      "id": "top-workflows",
+      "type": "visualization",
+      "attributes": {
+        "title": "Most Active Workflows",
+        "description": "Top workflows by execution count",
+        "visState": "{\"title\":\"Most Active Workflows\",\"type\":\"horizontal_bar\",\"aggs\":[{\"id\":\"1\",\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"type\":\"terms\",\"schema\":\"segment\",\"params\":{\"field\":\"workflow_name\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\"}}]}",
+        "uiStateJSON": "{}",
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"index\":\"n8n-logs-*\",\"query\":{\"bool\":{\"must\":[{\"match\":{\"log_type\":\"workflow_execution\"}}]}},\"filter\":[]}"
+        }
+      }
+    },
+    {
+      "id": "workflow-errors",
+      "type": "visualization",
+      "attributes": {
+        "title": "Workflow Error Rate",
+        "description": "Error rate trends for workflows",
+        "visState": "{\"title\":\"Workflow Error Rate\",\"type\":\"area\",\"aggs\":[{\"id\":\"1\",\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"min_doc_count\":1}}]}",
+        "uiStateJSON": "{}",
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"index\":\"n8n-logs-*\",\"query\":{\"bool\":{\"must\":[{\"match\":{\"log_level\":\"ERROR\"}}]}},\"filter\":[]}"
+        }
+      }
+    }
+  ]
+}

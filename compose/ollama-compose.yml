@@ -5,21 +5,16 @@ services:
     image: ollama/ollama:latest
     container_name: ollama
     restart: unless-stopped
-    profiles: [default, cpu, gpu-nvidia]
+    profiles: [default, cpu, gpu-nvidia, developer]
     ports:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-      - ./config/ollama-models.txt:/config/ollama-models.txt:ro
+      - ../config:/config:ro
     environment:
       - OLLAMA_HOST=0.0.0.0:11434
       - OLLAMA_MODELS=/root/.ollama/models
-    healthcheck:
-      test: ["CMD", "/bin/ollama", "ps"]
-      interval: 30s
-      timeout: 15s
-      retries: 5
-      start_period: 60s
+    
     deploy:
       resources:
         limits:
@@ -41,23 +36,116 @@ services:
 
   # Сервис для предварительной загрузки моделей Ollama
   ollama-pull:
-    image: alpine/curl:latest
-    profiles: [default, cpu, gpu-nvidia]
+    image: alpine:3.18 # базовый образ; установим curl+jq в рантайме
+    profiles: [default, cpu, gpu-nvidia, developer]
     restart: "no"
     networks:
       - backend
-    environment:
-      - OLLAMA_HOST=ollama
+    volumes:
+      - ../config:/config:ro # Монтируем папку config (включая ollama-models.txt)
+      - ../logs/ollama:/var/log/ollama:rw # Монтируем поддиректорию logs/ollama в /var/log/ollama контейнера
     depends_on:
-      ollama:
-        condition: service_healthy
-    command: |
+      - ollama
+    command: >
       sh -c '
-        echo "Ожидание готовности Ollama..."
-        sleep 10
-        echo "Попытка загрузки базовых моделей..."
-        curl -X POST http://ollama:11434/api/pull -d "{\"name\":\"llama3.2\"}" || echo "Модель llama3.2 не загружена"
-        echo "Инициализация моделей завершена"
+        apk add --no-cache curl jq >/dev/null 2>&1 || true
+
+        # Robust logging: prefer /var/log/ollama if it is a writable directory, otherwise use /tmp
+        LOG_TMP=/tmp/ollama-pull-$$.log
+        if [ -d /var/log/ollama ] 2>/dev/null; then
+          LOG_PATH=/var/log/ollama/ollama-pull.log
+          touch "$$LOG_PATH" 2>/dev/null || true
+          if [ -w "$$LOG_PATH" ] || [ -w /var/log/ollama ]; then
+            exec > >(tee -a "$$LOG_PATH") 2>&1
+          else
+            exec >"$$LOG_TMP" 2>&1
+          fi
+        else
+          mkdir -p /var/log/ollama 2>/dev/null || true
+          if [ -d /var/log/ollama ] 2>/dev/null; then
+            LOG_PATH=/var/log/ollama/ollama-pull.log
+            touch "$$LOG_PATH" 2>/dev/null || true
+            if [ -w "$$LOG_PATH" ] || [ -w /var/log/ollama ]; then
+              exec > >(tee -a "$$LOG_PATH") 2>&1
+            else
+              exec >"$$LOG_TMP" 2>&1
+            fi
+          else
+            exec >"$$LOG_TMP" 2>&1
+          fi
+        fi
+
+        echo "Ожидание готовности Ollama (таймаут 5m)..."
+        # Ждем пока Ollama ответит на /api/ps (проверяем каждые 5 секунд, максимум 60 попыток = 5 минут)
+        ready=0
+        i=1
+        while [ "$$i" -le 60 ]; do
+          if curl -sS http://ollama:11434/api/ps >/dev/null 2>&1; then
+            ready=1
+            break
+          fi
+          echo "  Ollama не готов, повторная проверка через 5s... ($$i/60)"
+          sleep 5
+          i=$(expr $$i + 1)
+        done
+        if [ "$$ready" -ne 1 ]; then
+          echo "Ollama не стал готов в течение таймаута. Пропускаю загрузку моделей." >&2
+          exit 1
+        fi
+
+        echo "Чтение моделей из /config/ollama-models.txt..."
+        if [ ! -f /config/ollama-models.txt ]; then
+          echo "Файл /config/ollama-models.txt не найден. Пропускаем загрузку моделей."
+          exit 0
+        fi
+
+        # Читаем файл и загружаем каждую модель
+        while IFS= read -r model_name || [ -n "$$model_name" ]; do
+          # Пропускаем пустые строки и комментарии
+          if [ -z "$$model_name" ] || [ "$(echo "$$model_name" | cut -c1)" = "#" ]; then
+            continue
+          fi
+
+          echo "Загрузка модели: $$model_name"
+          # отправляем запрос на скачивание модели
+          if curl -sS -X POST http://ollama:11434/api/pull -H "Content-Type: application/json" -d "{\"name\":\"$$model_name\"}" --max-time 3600; then
+            echo "  POST /api/pull отправлен для $$model_name"
+          else
+            echo "  Ошибка при отправке /api/pull для $$model_name" >&2
+            continue
+          fi
+
+          # После успешного POST ждём появления модели в /v1/models (timeout 30m)
+          wait_ok=0
+          checks=0
+          max_checks=360  # 360 * 5s = 1800s = 30 минут
+          while [ "$$checks" -lt $$max_checks ]; do
+            # Prefer precise JSON parsing with jq, fallback to grep if jq missing
+            if command -v jq >/dev/null 2>&1; then
+              if curl -sS http://ollama:11434/v1/models | jq -r '.data[].id' | grep -F "$$model_name" >/dev/null 2>&1; then
+                echo "  Модель $$model_name зарегистрирована в Ollama"
+                wait_ok=1
+                break
+              fi
+            else
+              if curl -sS http://ollama:11434/v1/models | grep -F "$$model_name" >/dev/null 2>&1; then
+                echo "  Модель $$model_name зарегистрирована в Ollama"
+                wait_ok=1
+                break
+              fi
+            fi
+
+            echo "  Модель $$model_name ещё не зарегистрирована, проверка через 5s... ($$checks/$$max_checks)"
+            sleep 5
+            checks=$$(expr $$checks + 1)
+          done
+          if [ "$$wait_ok" -ne 1 ]; then
+            echo "  Таймаут ожидания регистрации модели $$model_name" >&2
+          fi
+          echo ""
+        done < /config/ollama-models.txt
+
+        echo "Инициализация моделей завершена."
       '
     labels:
       - "traefik.enable=false"

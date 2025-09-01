@@ -7,7 +7,7 @@ services:
     container_name: graphiti
     restart: unless-stopped
     ports:
-      - "8001:8000"
+      - "8003:8001"  # внешний 8003 -> внутренний 8001 для graphiti
     env_file:
       - ../.env
     environment:
@@ -20,8 +20,8 @@ services:
       - GRAPHITI_PORT=8000
       - PYTHONPATH=/app
     networks:
-      - zep-network
       - backend
+      - frontend
     depends_on:
       neo4j:
         condition: service_healthy
@@ -34,12 +34,7 @@ services:
       # - "traefik.http.routers.graphiti.entrypoints=websecure"
       # - "traefik.http.routers.graphiti.tls.certresolver=myresolver"
       - "traefik.http.services.graphiti.loadbalancer.server.port=8000"
-    healthcheck:
-      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs').read()"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 90s
+  # healthcheck removed; external monitoring (Prometheus/Grafana) is used
     deploy:
       resources:
         limits:
@@ -51,27 +46,31 @@ services:
     container_name: neo4j-graphiti
     restart: unless-stopped
     ports:
-      - "7474:7474"  # HTTP
-      - "7687:7687"  # Bolt
+      - "8474:7474"  # HTTP
+      - "8687:7687"  # Bolt
     volumes:
       - neo4j_data:/data
     environment:
-      - NEO4J_AUTH=neo4j/zepzepzep
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
       - NEO4J_dbms_memory_pagecache_size=512M
       - NEO4J_dbms_memory_heap_initial__size=512M
       - NEO4J_dbms_memory_heap_max__size=1G
       - NEO4J_apoc_export_file_enabled=true
       - NEO4J_apoc_import_file_enabled=true
       - NEO4J_apoc_import_file_use__neo4j__config=true
-    networks:
-      - zep-network
-      - database
     healthcheck:
-      test: ["CMD-SHELL", "wget --spider -q http://localhost:7474 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      # TCP check: look up the kernel socket table for port 7474 (hex 1D32).
+      # This avoids external binaries (curl/nc) and works in a minimal shell.
+      # It checks both IPv4 and IPv6 socket tables.
+      test: ["CMD-SHELL", "grep -q ':1D32 ' /proc/net/tcp || grep -q ':1D32 ' /proc/net/tcp6 || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 6
+      start_period: 20s
+    networks:
+      - backend
+      - database
+  # healthcheck removed; external monitoring (Prometheus/Grafana) is used
     deploy:
       resources:
         limits:
