@@ -1,0 +1,106 @@
+# Custom PostgreSQL queries for N8N monitoring
+
+pg_database:
+  query: "SELECT pg_database.datname, pg_database_size(pg_database.datname) as size FROM pg_database"
+  master: true
+  cache_seconds: 30
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Name of the database"
+    - size:
+        usage: "GAUGE"
+        description: "Disk space used by the database"
+
+pg_stat_user_tables:
+  query: "SELECT schemaname, tablename, n_tup_ins, n_tup_upd, n_tup_del, n_live_tup, n_dead_tup FROM pg_stat_user_tables"
+  master: true
+  cache_seconds: 30
+  metrics:
+    - schemaname:
+        usage: "LABEL"
+        description: "Name of the schema"
+    - tablename:
+        usage: "LABEL"
+        description: "Name of the table"
+    - n_tup_ins:
+        usage: "COUNTER"
+        description: "Number of tuples inserted"
+    - n_tup_upd:
+        usage: "COUNTER"
+        description: "Number of tuples updated"
+    - n_tup_del:
+        usage: "COUNTER"
+        description: "Number of tuples deleted"
+    - n_live_tup:
+        usage: "GAUGE"
+        description: "Number of live tuples"
+    - n_dead_tup:
+        usage: "GAUGE"
+        description: "Number of dead tuples"
+
+pg_stat_activity:
+  query: "SELECT state, count(*) as count FROM pg_stat_activity GROUP BY state"
+  master: true
+  cache_seconds: 30
+  metrics:
+    - state:
+        usage: "LABEL"
+        description: "Connection state"
+    - count:
+        usage: "GAUGE"
+        description: "Number of connections in this state"
+
+pg_locks:
+  query: "SELECT mode, count(*) as count FROM pg_locks GROUP BY mode"
+  master: true
+  cache_seconds: 30
+  metrics:
+    - mode:
+        usage: "LABEL"
+        description: "Lock mode"
+    - count:
+        usage: "GAUGE"
+        description: "Number of locks in this mode"
+
+# N8N specific queries
+n8n_workflow_executions:
+  query: |
+    SELECT 
+      COUNT(*) as total_executions,
+      COUNT(CASE WHEN finished = true AND status = 'success' THEN 1 END) as successful_executions,
+      COUNT(CASE WHEN finished = true AND status = 'error' THEN 1 END) as failed_executions,
+      COUNT(CASE WHEN finished = false THEN 1 END) as running_executions
+    FROM execution_entity 
+    WHERE "startedAt" > NOW() - INTERVAL '1 hour'
+  master: true
+  cache_seconds: 60
+  metrics:
+    - total_executions:
+        usage: "GAUGE"
+        description: "Total executions in last hour"
+    - successful_executions:
+        usage: "GAUGE"
+        description: "Successful executions in last hour"
+    - failed_executions:
+        usage: "GAUGE"
+        description: "Failed executions in last hour"
+    - running_executions:
+        usage: "GAUGE"
+        description: "Currently running executions"
+
+n8n_workflows:
+  query: |
+    SELECT 
+      COUNT(*) as total_workflows,
+      COUNT(CASE WHEN active = true THEN 1 END) as active_workflows
+    FROM workflow_entity
+  master: true
+  cache_seconds: 300
+  metrics:
+    - total_workflows:
+        usage: "GAUGE"
+        description: "Total number of workflows"
+    - active_workflows:
+        usage: "GAUGE"
+        description: "Number of active workflows"

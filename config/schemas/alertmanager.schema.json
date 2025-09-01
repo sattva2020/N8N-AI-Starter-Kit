@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Alertmanager configuration (minimal)",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "global": { "type": "object", "additionalProperties": true },
+    "templates": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "route": {
+      "type": "object",
+      "properties": {
+        "group_by": { "type": "array", "items": { "type": "string" } },
+        "group_wait": { "type": "string" },
+        "group_interval": { "type": "string" },
+        "repeat_interval": { "type": "string" },
+        "receiver": { "type": "string" },
+        "routes": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+      },
+      "required": ["receiver"]
+    },
+    "receivers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": { "name": { "type": "string" } },
+        "required": ["name"],
+        "additionalProperties": true
+      }
+    },
+    "inhibit_rules": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+  },
+  "required": ["route", "receivers"]
+}

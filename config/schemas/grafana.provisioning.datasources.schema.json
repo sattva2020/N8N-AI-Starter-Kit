@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Grafana provisioning: datasources.yaml (minimal)",
+  "type": "object",
+  "properties": {
+    "apiVersion": { "type": "integer", "enum": [1] },
+    "datasources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "access": { "type": "string" },
+          "url": { "type": "string" },
+          "isDefault": { "type": "boolean" },
+          "editable": { "type": "boolean" },
+          "jsonData": { "type": "object" },
+          "secureJsonData": { "type": "object" }
+        },
+        "required": ["name", "type"],
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": ["apiVersion", "datasources"],
+  "additionalProperties": true
+}

@@ -1,0 +1,80 @@
+name: Validate .env against env.schema
+
+on:
+  pull_request:
+    paths:
+      - 'env.schema'
+      - 'env.schema.md'
+      - '.env'
+      - '.github/workflows/validate-env.yml'
+
+jobs:
+  validate-env:
+    name: Validate .env (if present)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate .env against env.schema
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Prefer env.schema (plain) but accept legacy env.schema.md
+          if [ ! -f env.schema ] && [ ! -f env.schema.md ]; then
+            echo "✖ No schema file found (env.schema or env.schema.md) — failing validation"
+            exit 1
+          fi
+
+          if [ ! -f .env ]; then
+            echo ".env not present in the checked-out code — skipping validation (expected in most PRs)."
+            exit 0
+          fi
+
+          schema_file=env.schema
+          if [ ! -f "$schema_file" ]; then schema_file=env.schema.md; fi
+          echo "Extracting keys from $schema_file..."
+          mapfile -t keys < <(grep -E '^[A-Za-z0-9_]+=.*' "$schema_file" | sed -E 's/=.*$//' | sort -u)
+
+          missing_count=0
+          placeholder_count=0
+          missing_list=()
+          placeholder_list=()
+
+          for k in "${keys[@]}"; do
+            if ! grep -q -E "^${k}=" .env; then
+              missing_list+=("${k}")
+              missing_count=$((missing_count+1))
+            else
+              val=$(grep -E "^${k}=" .env | tail -n1 | cut -d'=' -f2-)
+              if [ -z "$val" ] || echo "$val" | grep -qE 'change_this|your_|your_openai_api_key_here|yourdomain|example.com'; then
+                placeholder_list+=("${k}")
+                placeholder_count=$((placeholder_count+1))
+              fi
+            fi
+          done
+
+          if [ $missing_count -ne 0 ] || [ $placeholder_count -ne 0 ]; then
+            echo "\nValidation failed — issues detected:\n"
+            if [ $missing_count -ne 0 ]; then
+              echo "Missing keys (${missing_count}):"
+              for i in "${missing_list[@]}"; do echo "  - $i"; done
+              echo ""
+            fi
+            if [ $placeholder_count -ne 0 ]; then
+              echo "Keys with placeholder/empty values (${placeholder_count}):"
+              for i in "${placeholder_list[@]}"; do echo "  - $i"; done
+              echo ""
+            fi
+            echo "Please either add a valid .env in the PR or update documentation if you intentionally removed/changed variables in $schema_file."
+            exit 1
+          fi
+
+          echo "✅ Validation passed: .env contains all keys from $schema_file and no obvious placeholders."
+
+      - name: "CI: check for env placeholders or empty values"
+        run: |
+          set -euo pipefail
+          # Use the repository script which inspects files staged/committed in the PR
+          bash scripts/check-env-placeholders.sh
