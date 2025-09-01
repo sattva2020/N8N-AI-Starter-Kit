@@ -1,80 +1,4 @@
 # Traefik Dynamic Configuration - SSL & Security
-
-tls:
-  options:
-    default:
-      minVersion: "VersionTLS12"
-      maxVersion: "VersionTLS13"
-      cipherSuites:
-        - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
-        - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
-        - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
-        - "TLS_RSA_WITH_AES_256_GCM_SHA384"
-        - "TLS_RSA_WITH_AES_128_GCM_SHA256"
-
-http:
-  middlewares:
-    security-headers:
-      headers:
-        contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' wss: ws: https:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; worker-src 'self' blob:;"
-        frameDeny: true
-        contentTypeNosniff: true
-        browserXssFilter: true
-        referrerPolicy: "strict-origin-when-cross-origin"
-        forceSTSHeader: true
-        stsSeconds: 31536000
-        stsIncludeSubdomains: true
-        stsPreload: true
-        permissionsPolicy: "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), speaker=(), ambient-light-sensor=(), accelerometer=(), battery=(), display-capture=(), document-domain=()"
-
-    api-cors:
-      headers:
-        accessControlAllowMethods:
-          - GET
-          - POST
-          - PUT
-          - DELETE
-          - OPTIONS
-        accessControlAllowHeaders:
-          - "Content-Type"
-          - "Authorization"
-          - "X-Requested-With"
-        accessControlAllowOriginList:
-          - "https://*.localhost"
-          - "https://*.local"
-        accessControlAllowCredentials: true
-        accessControlMaxAge: 86400
-
-    rate-limit:
-      rateLimit:
-        burst: 100
-        average: 50
-        period: "1m"
-
-    admin-auth:
-      basicAuth:
-        users:
-          - "admin:$apr1$1LF8GnRQ$qBinSa/CmAS/lLy4vz6DL1"  # admin:adminpass
-
-    https-redirect:
-      redirectScheme:
-        scheme: https
-        permanent: true
-
-    gzip-compression:
-      compress: {}
-
-  routers:
-    # Global HTTPS redirect for all HTTP requests
-    https-redirect-global:
-      entryPoints:
-        - "web"
-      rule: "HostRegexp(`{host:.+}`)"
-      middlewares:
-        - "https-redirect"
-      service: "api@internal"
-      priority: 1
-
 # Traefik Dynamic Configuration - SSL & Security
 
 tls:
@@ -93,7 +17,7 @@ http:
   middlewares:
     security-headers:
       headers:
-        contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' wss: ws: https:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; worker-src 'self' blob:;"
+        contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' wss: ws: https:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; worker-src 'self' blob;"
         frameDeny: true
         contentTypeNosniff: true
         browserXssFilter: true
@@ -122,38 +46,19 @@ http:
         accessControlAllowCredentials: true
         accessControlMaxAge: 86400
 
-    rate-limit:
-      rateLimit:
-        burst: 100
-        average: 50
-        period: "1m"
-
-    admin-auth:
-      basicAuth:
-        users:
-          - "admin:$apr1$1LF8GnRQ$qBinSa/CmAS/lLy4vz6DL1"  # admin:adminpass
-
-    https-redirect:
-      redirectScheme:
-        scheme: https
-        permanent: true
-
     gzip-compression:
       compress: {}
 
   routers:
-    # Global HTTPS redirect for all HTTP requests
+    # Global HTTPS redirect for all HTTP requests (uses https-redirect middleware defined in middlewares.yml)
     https-redirect-global:
       entryPoints:
         - "web"
       rule: "HostRegexp(`{host:.+}`)"
       middlewares:
-        - "https-redirect"
+        - "https-redirect@file"
       service: "api@internal"
       priority: 1
-
-# routers и services — УДАЛИТЬ!
-
 # ===============================================
 # CERTIFICATES CONFIGURATION
 # ===============================================
