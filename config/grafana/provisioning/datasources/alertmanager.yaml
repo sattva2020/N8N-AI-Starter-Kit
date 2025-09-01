@@ -1,0 +1,14 @@
+apiVersion: 1
+
+datasources:
+  - name: AlertManager
+    type: alertmanager
+    access: proxy
+    url: http://alertmanager:9093
+    isDefault: false
+    editable: true
+    jsonData:
+      severity_critical: "critical"
+      severity_high: "high"
+      severity_warning: "warning"
+      severity_info: "info"

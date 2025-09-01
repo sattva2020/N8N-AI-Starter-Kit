@@ -135,22 +135,17 @@ fi
 # 5. Проверка .env файла
 print_info "Проверка конфигурации .env..."
 if [ ! -f ".env" ]; then
-    if [ -f "template.env" ]; then
-        cp template.env .env
-        print_warning "Создан .env файл из template.env. Проверьте настройки!"
+    if [ -f "./scripts/setup.sh" ]; then
+        print_info "Файл .env отсутствует — запускаем ./scripts/setup.sh --generate-only"
+        chmod +x ./scripts/setup.sh
+        ./scripts/setup.sh --generate-only || {
+            print_error "Не удалось сгенерировать .env автоматически"
+            exit 1
+        }
+        print_success "Файл .env сгенерирован встроенным генератором"
     else
-        print_error ".env файл не найден и template.env отсутствует"
+        print_error ".env файл не найден и скрипт setup.sh отсутствует"
         exit 1
-    fi
-fi
-
-# Проверка на новые переменные в template.env
-if [ -f "template.env" ] && [ -f ".env" ]; then
-    NEW_VARS=$(comm -23 <(grep -o '^[A-Z_]*=' template.env | sort) <(grep -o '^[A-Z_]*=' .env | sort) || true)
-    if [ ! -z "$NEW_VARS" ]; then
-        print_warning "Обнаружены новые переменные в template.env:"
-        echo "$NEW_VARS"
-        print_warning "Рекомендуется обновить .env файл"
     fi
 fi
 
