@@ -138,6 +138,8 @@ LOCAL_SCRIPTS_EXCLUSION.md
 !LICENSE
 !docker-compose.yml
 .env.example
+# Локальный промт для анализа проекта — исключить из репозитория
+frontend_analysis_prompt.md
 *.md
 # env.schema.md was the old documented schema; `env.schema` is now the canonical schema and should be tracked.
 # Keep template.env ignored for compatibility; generated or template files are not tracked.
