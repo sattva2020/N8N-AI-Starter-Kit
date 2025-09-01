@@ -1,5 +1,0 @@
-services:
-  context7-mcp:
-    build: .
-    ports:
-      - "3000:3000"
