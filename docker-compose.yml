@@ -11,7 +11,7 @@ x-traefik-base: &traefik-base
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock:ro
     - traefik_letsencrypt:/letsencrypt
-    - ./config/traefik:/etc/traefik/dynamic
+    - ./config/traefik/dynamic:/etc/traefik/dynamic
   networks:
   - frontend
   - backend

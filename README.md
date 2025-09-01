@@ -1,8 +1,9 @@
 # N8N AI Starter Kit
 
 <!-- test branch note: infra fixes made in test/v1.0-2025-09-01 -->
+<!-- Note: Traefik dynamic config mount fixed in test branch -->
 
-[![CI/CD](https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml/badge.svg)](https://github.co## 📚 Документация
+[![CI/CD](https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml/badge.svg)](<https://github.co##> 📚 Документация
 
 | Раздел | Описание |
 |--------|----------|
@@ -18,16 +19,19 @@
 ### 🎯 Рекомендуемый порядок изучения
 
 **Для новичков:**
+
 1. **[Начало работы](./docs/01-getting-started.md)** - Установка и запуск
 2. **[Конфигурация](./docs/02-configuration.md)** - Базовые настройки
 3. **[AI-функции](./docs/04-guides/ai-features.md)** - Изучение возможностей AI
 
 **Для разработчиков:**
+
 1. **[Архитектура](./docs/03-architecture.md)** - Понимание системы
 2. **[Рабочие процессы](./docs/07-workflows-integration.md)** - Создание автоматизации
 3. **[Автоматизация развертывания](./docs/06-automation-scripts.md)** - Оптимизация процессов
 
 **Для DevOps-инженеров:**
+
 1. **[Мониторинг и логирование](./docs/05-monitoring-and-logging.md)** - Наблюдение системы
 2. **[Автоматизация развертывания](./docs/06-automation-scripts.md)** - Масштабирование
 3. **[Архитектура](./docs/03-architecture.md)** - Оптимизация инфраструктуры0/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml)
@@ -45,17 +49,20 @@ N8N AI Starter Kit — это готовое к развертыванию ре�
 ## ✨ Возможности
 
 ### 🤖 AI & Автоматизация
+
 - **n8n** — платформа визуального программирования рабочих процессов
 - **Ollama** — локальный запуск больших языковых моделей (LLM)
 - **Qdrant** — векторная база данных для семантического поиска
 - **Graphiti + Neo4j** — работа с графовыми данными и памятью AI-агентов
 
 ### 📊 Мониторинг & Аналитика
+
 - **Prometheus + Grafana** — сбор метрик и визуализация
 - **Elasticsearch + Kibana** — централизованное логирование
 - **Superset** — бизнес-аналитика и визуализация данных
 
 ### 🛠 Инфраструктура
+
 - **Traefik** — обратный прокси с автоматическими SSL-сертификатами (ACME HTTP-01, HTTP→HTTPS редирект)
 - **PostgreSQL** — основная база данных
 - **Docker Compose** — оркестрация микросервисов
@@ -64,6 +71,7 @@ N8N AI Starter Kit — это готовое к развертыванию ре�
 ## 🚀 Быстрый старт (3 минуты)
 
 ### 1. Подготовка
+
 ```bash
 # Клонируем репозиторий
 git clone https://github.com/sattva2020/N8N-AI-Starter-Kit.git
@@ -74,7 +82,9 @@ cp env.schema .env
 ```
 
 ### 2. Настройка
+
 Откройте `.env` и заполните **обязательные** поля:
+
 ```bash
 # Обязательно измените эти значения:
 DOMAIN_NAME=your-domain.com
@@ -84,6 +94,7 @@ ACME_EMAIL=your-email@example.com
 ```
 
 ### 3. Запуск
+
 ```bash
 # Интеллектуальный запуск (автоопределение профиля)
 ./start.sh
@@ -93,7 +104,9 @@ docker-compose --profile default up -d
 ```
 
 ### 4. Доступ
+
 После запуска откройте:
+
 - **n8n**: `https://n8n.your-domain.com`
 - **Grafana**: `https://grafana.your-domain.com`
 - **Traefik Dashboard**: `http://localhost:8080`
@@ -160,6 +173,7 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 ## 🔧 Конфигурация
 
 ### Переменные окружения
+
 Все настройки в файле `.env`. Основные разделы:
 
 - **Базовые**: `DOMAIN_NAME`, `COMPOSE_PROJECT_NAME`
@@ -169,6 +183,7 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 - **Мониторинг**: `GRAFANA_ADMIN_PASSWORD`, `PROMETHEUS_RETENTION`
 
 ### Автоматизация настройки
+
 ```bash
 # Интерактивная настройка
 ./scripts/setup.sh
@@ -178,22 +193,24 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 ```
 
 ### Импорт credential в n8n (авто)
+
 - Поддерживаются два типа аутентификации:
-    - Bearer-токен администратора (Personal Access Token) для REST: передайте `--token` или переменную `N8N_ADMIN_TOKEN`.
-    - Публичный API-ключ для Public API: передайте `--api-key` или `N8N_API_KEY` (требуется `N8N_PUBLIC_API_DISABLED=false`).
+  - Bearer-токен администратора (Personal Access Token) для REST: передайте `--token` или переменную `N8N_ADMIN_TOKEN`.
+  - Публичный API-ключ для Public API: передайте `--api-key` или `N8N_API_KEY` (требуется `N8N_PUBLIC_API_DISABLED=false`).
 - Для массового импорта используйте файл `config/samples/credentials-bulk.json`.
 - Если в JSON встречаются плейсхолдеры вида `${VAR}` или `${VAR:-default}`, добавьте флаг `--expand-env` и (опционально) `--env-file .env` — значения будут подставлены из окружения.
- - Требуется `python3` для работы `--expand-env` и разбора CSV в bulk-режиме (при отсутствии — используйте JSON).
- - Обработка `--expand-env` устойчива: при пустом/некорректном JSON подстановка пропускается (no-op), чтобы избежать падений.
- - На Windows CRLF могут ломать JSON: скрипт автоматически удаляет `\r` перед валидацией, чтобы исключить ошибки парсинга.
+- Требуется `python3` для работы `--expand-env` и разбора CSV в bulk-режиме (при отсутствии — используйте JSON).
+- Обработка `--expand-env` устойчива: при пустом/некорректном JSON подстановка пропускается (no-op), чтобы избежать падений.
+- На Windows CRLF могут ломать JSON: скрипт автоматически удаляет `\r` перед валидацией, чтобы исключить ошибки парсинга.
 
 Приведение типов и схем (авто):
+
 - Алиасы типов автоматически маппятся на нативные типы n8n: `qdrant` → `qdrantApi`, `bolt` → `neo4j`, `grafana` → `grafanaApi`.
 - Qdrant (`qdrantApi`): схема Public API ожидает поле `qdrantUrl`. Скрипт автоматически преобразует привычные поля `url`/`qdrant_url`/`baseUrl` → `qdrantUrl`.
 - Postgres: порт приводится к числу, если `ssl` не задан — добавляется `ssl:false` для соответствия схеме.
- - Postgres: порт приводится к числу; `ssl` ожидается как одно из `disable|allow|require` — по умолчанию выставляется `ssl: "disable"`, булевы значения приводятся к строковым (`true`→`require`, `false`→`disable`).
- - Postgres: дополнительно выставляется `sshTunnel: "none"` по умолчанию, чтобы схема не требовала SSH-поля, если туннель не используется.
-    - Postgres (через Public API): n8n ожидает `ssl` как boolean. Скрипт автоматически конвертирует `"disable"` → `false`, прочие не‑пустые варианты → `true`, и не добавляет `sshTunnel`.
+- Postgres: порт приводится к числу; `ssl` ожидается как одно из `disable|allow|require` — по умолчанию выставляется `ssl: "disable"`, булевы значения приводятся к строковым (`true`→`require`, `false`→`disable`).
+- Postgres: дополнительно выставляется `sshTunnel: "none"` по умолчанию, чтобы схема не требовала SSH-поля, если туннель не используется.
+  - Postgres (через Public API): n8n ожидает `ssl` как boolean. Скрипт автоматически конвертирует `"disable"` → `false`, прочие не‑пустые варианты → `true`, и не добавляет `sshTunnel`.
 
 ### Пример bulk-импорта (Postgres + Redis)
 
@@ -211,10 +228,12 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 ```
 
 Скрипт автоматически:
+
 - развернёт плейсхолдеры из `.env`;
 - приведёт типы/схемы (Postgres: ssl → enum, `sshTunnel: none`; Redis: url → host/port) перед отправкой в n8n.
 
 Примечание: если `--expand-env` недоступен (нет python3) или развёртывание плейсхолдеров не прошло, скрипт:
+
 - попробует подставить дефолтные значения в плейсхолдеры вида `${VAR:-default}` (jq‑fallback);
 - корректная обработка плейсхолдеров обеспечивается регулярными выражениями jq (исправлено экранирование `\${...}` в fallback);
 - если и это невозможно, продолжит с исходным JSON и выведет предупреждение.
@@ -250,6 +269,7 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 
 Примечание: если при импорте увидите ошибку JSONDecodeError в python (во время `--expand-env`), убедитесь, что блок `data` в JSON не пустой/`null`. В актуальной версии скрипта добавлена защита: пустые значения пропускаются при подстановке.
 Ещё: если появится `jq: invalid JSON text passed to --argjson`, значит `data` невалидный JSON — скрипт теперь валидирует и:
+
 - в bulk-режиме: пропустит такую запись с сообщением;
 - в одиночном режиме: завершится с ошибкой и покажет проблемное содержимое.
 
@@ -268,12 +288,14 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 ## 🎯 Примеры использования
 
 ### RAG-система с Ollama
+
 1. Создайте workflow в n8n
 2. Добавьте узел Ollama для генерации эмбеддингов
 3. Используйте Qdrant для семантического поиска
 4. Комбинируйте результаты для ответа
 
 ### Автоматизация с AI
+
 1. Настройте webhook в n8n
 2. Добавьте обработку текста через Ollama
 3. Сохраняйте результаты в PostgreSQL
@@ -282,12 +304,14 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 ## 🛠 Разработка и вклад
 
 ### Требования для разработки
+
 - Docker & Docker Compose
 - Git
 - Node.js (для некоторых скриптов)
 - Python 3.8+ (для тестов)
 
 ### Работа с кодом
+
 ```bash
 # Установка pre-commit хуков
 pip install pre-commit
@@ -301,6 +325,7 @@ pre-commit run --all-files
 ```
 
 ### Структура проекта
+
 ```
 ├── compose/           # Docker Compose файлы для разных стеков
 ├── config/            # Конфигурация сервисов (Grafana, Prometheus, etc.)
