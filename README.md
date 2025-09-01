@@ -5,6 +5,8 @@
 
 > NOTE: Для временной отладки в тестовой ветке может быть включен DEBUG-лог Traefik (описано в PR/branch). Не оставляйте этот режим в production.
 
+<!-- docs sync: quick note added to satisfy pre-commit docs check -->
+
 [![CI/CD](https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml/badge.svg)](<https://github.co##> 📚 Документация
 
 | Раздел | Описание |

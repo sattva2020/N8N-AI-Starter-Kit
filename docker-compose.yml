@@ -42,7 +42,8 @@ x-service-n8n: &service-n8n
     # test is provided as an array: [CMD-SHELL, <command string>]
     test:
       - "CMD-SHELL"
-      - "node -e \"const http=require('http');const p=process.env.N8N_PORT||5678;const path=process.env.N8N_HEALTH_PATH||'/';const req=http.request({method:'GET',host:'127.0.0.1',port:p,path:path},res=>{process.exit([200,301,302].includes(res.statusCode)?0:1)});req.on('error',()=>process.exit(1));req.end();\""
+      - >
+        node -e "const http=require('http');const p=process.env.N8N_PORT||5678;const path=process.env.N8N_HEALTH_PATH||'/';const req=http.request({method:'GET',host:'127.0.0.1',port:p,path:path},res=>{process.exit([200,301,302].includes(res.statusCode)?0:1)});req.on('error',()=>process.exit(1));req.end();"
     interval: 10s
     timeout: 5s
     retries: 5
@@ -66,9 +67,9 @@ services:
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
       - "--log.filePath=/var/log/traefik.log"
       - "--log.format=json"
-  - "--ping=true"
-  - "--log.level=DEBUG"
-  - "--accesslog=true"
+      - "--ping=true"
+      - "--log.level=DEBUG"
+      - "--accesslog=true"
 
   n8n:
     <<: *service-n8n
