@@ -1,27 +1,24 @@
+
 # Traefik dynamic configuration: middlewares used by docker labels
 # Do NOT store real passwords here in the repo. Replace placeholders or
 # configure via secrets/variables in production.
 
 http:
-  # Traefik dynamic configuration: middlewares used by docker labels
-  # Do NOT store real passwords here in the repo. Replace placeholders or
-  # configure via secrets/variables in production.
+  middlewares:
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
 
-  http:
-    middlewares:
-      https-redirect:
-        redirectScheme:
-          scheme: https
-          permanent: true
+    admin-auth:
+      basicAuth:
+        # Use htpasswd lines (generated offline). Replace below with actual file/secret.
+        users:
+          - "admin:$apr1$PLACEHOLDER$REPLACED"
 
-      admin-auth:
-        basicAuth:
-          # Use htpasswd lines (generated offline). Replace below with actual file/secret.
-          users:
-            - "admin:$apr1$PLACEHOLDER$REPLACED"
-
-      rate-limit:
+    rate-limit:
+      rateLimit:
+        average: 10
+        burst: 20
         rateLimit:
-          average: 10
-          burst: 20
 
