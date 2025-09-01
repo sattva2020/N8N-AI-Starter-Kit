@@ -247,10 +247,14 @@ services:
       - frontend
     labels:
       - "traefik.enable=true"
+      - "traefik.http.routers.lightrag-http.rule=Host(`${LIGHRAG_DOMAIN}`)"
+      - "traefik.http.routers.lightrag-http.entrypoints=web"
+      - "traefik.http.routers.lightrag-http.middlewares=https-redirect@file"
       - "traefik.http.routers.lightrag.rule=Host(`${LIGHRAG_DOMAIN}`)"
       - "traefik.http.routers.lightrag.entrypoints=websecure"
       - "traefik.http.routers.lightrag.tls=true"
       - "traefik.http.routers.lightrag.tls.certresolver=myresolver"
+      - "traefik.http.routers.lightrag.middlewares=security-headers@file,admin-auth@file,rate-limit@file"
       - "traefik.http.services.lightrag.loadbalancer.server.port=9621"
 
   n8n-importer:
