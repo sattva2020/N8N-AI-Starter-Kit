@@ -2,15 +2,17 @@
 
 Дата: 2025-09-01
 Проект: N8N AI Starter Kit
-Версия/ветка: test2
+Версия/ветка: test/copilot-instructions
 Ответственные: оператор/DevOps, QA, разработчик
 
-Для выполнения теста: подключитесь к удалённому VDS, склонируйте ветку `test2` и дайте права на скрипты. Для тестирования используйте основной домен `sattva-ai.top`, контактный email: `ruslan.griban@gmail.com`.
+Для выполнения теста: подключитесь к удалённому VDS, склонируйте ветку `test/copilot-instructions` и дайте права на скрипты. Для тестирования используйте основной домен `sattva-ai.top`.
+
+Примечание: `ACME_EMAIL` — адрес, используемый Traefik/ACME (Let's Encrypt) для управления сертификатами: `ruslan.griban@gmail.com`. Контактный email для уведомлений и ответственных операций задаётся отдельно через переменную в `.env` — `TEST_CONTACT` (например `TEST_CONTACT=ruslan.griban@gmail.com`).
 
 Пример однострочной команды (Windows PowerShell) — выполнит SSH-подключение к ноде, перейдёт в каталог и склонирует репозиторий, установит права на скрипты. Команда запускается без запроса подтверждений (StrictHostKeyChecking отключён):
 
 ```powershell
-ssh -i "C:\Users\Admin\.ssh\id_rsa_n8n" -o StrictHostKeyChecking=no root@37.53.91.144 "cd /opt && mkdir -p N8N-AI-Starter-Kit && cd N8N-AI-Starter-Kit && git clone -b test2 https://github.com/sattva2020/N8N-AI-Starter-Kit.git . && chmod +x scripts/*.sh && chmod +x *.sh"
+ssh -i "C:\Users\Admin\.ssh\id_rsa_n8n" -o StrictHostKeyChecking=no root@37.53.91.144 "cd /opt && mkdir -p N8N-AI-Starter-Kit && cd N8N-AI-Starter-Kit && git clone -b test/copilot-instructions https://github.com/sattva2020/N8N-AI-Starter-Kit.git . && chmod +x scripts/*.sh && chmod +x *.sh"
 ```
 
 Примечания:
@@ -108,7 +110,7 @@ docker compose -f docker-compose.yml -f compose/optional-services.yml run --rm n
 
 Дата: 2025-09-01
 Проект: N8N AI Starter Kit
-Версия/ветка: тестовая ветка — `test2`
+Версия/ветка: тестовая ветка — `test/copilot-instructions`
 Ответственные: оператор/DevOps, QA-инженер, разработчик сервиса
 
 Для выполнения теста подключитесь к тестовой ноде по SSH и подготовьте рабочую директорию как показано выше (см. команду SSH в разделе верхнего уровня). Используйте основной домен `sattva-ai.top` и контактный email `ruslan.griban@gmail.com` для настроек и уведомлений.
@@ -343,7 +345,7 @@ curl -vk https://n8n.${DOMAIN_NAME}
 
   Дата: 2025-09-01
   Проект: N8N AI Starter Kit
-  Версия/ветка: тестовая ветка, пример — `test2`
+  Версия/ветка: тестовая ветка, пример — `test/copilot-instructions`
   Ответственные: оператор/DevOps, QA-инженер, разработчик сервиса
 
   ## Цель
