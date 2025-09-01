@@ -79,10 +79,10 @@ services:
       - postgres
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.n8n-http.rule=Host(`${N8N_DOMAIN}`)"
+      - "traefik.http.routers.n8n-http.rule=Host(`n8n.${DOMAIN_NAME}`)"
       - "traefik.http.routers.n8n-http.entrypoints=web"
       - "traefik.http.routers.n8n-http.middlewares=https-redirect@file"
-      - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`)"
+      - "traefik.http.routers.n8n.rule=Host(`n8n.${DOMAIN_NAME}`)"
       - "traefik.http.routers.n8n.entrypoints=websecure"
       - "traefik.http.routers.n8n.tls=true"
       - "traefik.http.routers.n8n.tls.certresolver=myresolver"

@@ -14,7 +14,7 @@ services:
     environment:
       - OLLAMA_HOST=0.0.0.0:11434
       - OLLAMA_MODELS=/root/.ollama/models
-    
+
     deploy:
       resources:
         limits:
@@ -26,8 +26,8 @@ services:
       - backend
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ollama.rule=Host(`${OLLAMA_DOMAIN}`)"
-      - "traefik.http.routers.ollama.entrypoints=web"
+      - "traefik.http.routers.ollama.rule=Host(`ollama.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.ollama.entrypoints=websecure"
       # Disable TLS for localhost development
       # Uncomment for production:
       # - "traefik.http.routers.ollama.entrypoints=websecure"

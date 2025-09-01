@@ -2,17 +2,17 @@
 
 Дата: 2025-09-01
 Проект: N8N AI Starter Kit
-Версия/ветка: test/copilot-instructions
+Версия/ветка: test/v1.0-2025-09-01
 Ответственные: оператор/DevOps, QA, разработчик
 
-Для выполнения теста: подключитесь к удалённому VDS, склонируйте ветку `test/copilot-instructions` и дайте права на скрипты. Для тестирования используйте основной домен `sattva-ai.top`.
+Для выполнения теста: подключитесь к удалённому VDS, склонируйте ветку `test/v1.0-2025-09-01` и дайте права на скрипты. Для тестирования используйте основной домен `sattva-ai.top`.
 
 Примечание: `ACME_EMAIL` — адрес, используемый Traefik/ACME (Let's Encrypt) для управления сертификатами: `ruslan.griban@gmail.com`. Контактный email для уведомлений и ответственных операций задаётся отдельно через переменную в `.env` — `TEST_CONTACT` (например `TEST_CONTACT=ruslan.griban@gmail.com`).
 
 Пример однострочной команды (Windows PowerShell) — выполнит SSH-подключение к ноде, перейдёт в каталог и склонирует репозиторий, установит права на скрипты. Команда запускается без запроса подтверждений (StrictHostKeyChecking отключён):
 
 ```powershell
-ssh -i "C:\Users\Admin\.ssh\id_rsa_n8n" -o StrictHostKeyChecking=no root@37.53.91.144 "cd /opt && mkdir -p N8N-AI-Starter-Kit && cd N8N-AI-Starter-Kit && git clone -b test/copilot-instructions https://github.com/sattva2020/N8N-AI-Starter-Kit.git . && chmod +x scripts/*.sh && chmod +x *.sh"
+ssh -i "C:\Users\Admin\.ssh\id_rsa_n8n" -o StrictHostKeyChecking=no root@37.53.91.144 "cd /opt && mkdir -p N8N-AI-Starter-Kit && cd N8N-AI-Starter-Kit && git clone -b test/v1.0-2025-09-01 https://github.com/sattva2020/N8N-AI-Starter-Kit.git . && chmod +x scripts/*.sh && chmod +x *.sh"
 ```
 
 Примечания:
@@ -35,10 +35,10 @@ ssh -i "C:\Users\Admin\.ssh\id_rsa_n8n" -o StrictHostKeyChecking=no root@37.53.9
 
 Дата: 2025-09-01
 Проект: N8N AI Starter Kit
-Версия/ветка: test/copilot-instructions
+Версия/ветка: test/v1.0-2025-09-01
 Ответственные: оператор/DevOps, QA, разработчик
 
-Для выполнения теста: подключитесь к удалённому VDS, склонируйте ветку `test/copilot-instructions` и дайте права на скрипты. Для тестирования используйте основной домен `sattva-ai.top`.
+Для выполнения теста: подключитесь к удалённому VDS, склонируйте ветку `test/v1.0-2025-09-01` и дайте права на скрипты. Для тестирования используйте основной домен `sattva-ai.top`.
 
 Примечание: `ACME_EMAIL` — адрес, используемый Traefik/ACME (Let's Encrypt) для управления сертификатами: `ruslan.griban@gmail.com`.
 Контактный email для уведомлений и ответственных операций задаётся через переменную в `.env` — `TEST_CONTACT` (например `TEST_CONTACT=ruslan.griban@gmail.com`).
@@ -130,7 +130,7 @@ ssh -i "C:\Users\Admin\.ssh\id_rsa_n8n" -o StrictHostKeyChecking=no root@37.53.9
 
 Сохраните этот документ как `docs/PROD_TEST_PROTOCOL.md` и используйте как источник правды.
 
-Для выполнения теста: подключитесь к удалённому VDS, склонируйте ветку `test/copilot-instructions` и дайте права на скрипты. Для тестирования используйте основной домен `sattva-ai.top`.
+Для выполнения теста: подключитесь к удалённому VDS, склонируйте ветку `test/v1.0-2025-09-01` и дайте права на скрипты. Для тестирования используйте основной домен `sattva-ai.top`.
 
 Примечание: `ACME_EMAIL` — адрес, используемый Traefik/ACME (Let's Encrypt) для управления сертификатами: `ruslan.griban@gmail.com`.
 Контактный email для уведомлений и ответственных операций задаётся отдельно через переменную в `.env` — `TEST_CONTACT` (например `TEST_CONTACT=ruslan.griban@gmail.com`).
@@ -138,7 +138,7 @@ ssh -i "C:\Users\Admin\.ssh\id_rsa_n8n" -o StrictHostKeyChecking=no root@37.53.9
 Пример однострочной команды (Windows PowerShell) — выполнит SSH-подключение к ноде, перейдёт в каталог и склонирует репозиторий, установит права на скрипты. Команда запускается без запроса подтверждений (StrictHostKeyChecking отключён):
 
 ```powershell
-ssh -i "C:\Users\Admin\.ssh\id_rsa_n8n" -o StrictHostKeyChecking=no root@37.53.91.144 "cd /opt && mkdir -p N8N-AI-Starter-Kit && cd N8N-AI-Starter-Kit && git clone -b test/copilot-instructions https://github.com/sattva2020/N8N-AI-Starter-Kit.git . && chmod +x scripts/*.sh && chmod +x *.sh"
+ssh -i "C:\Users\Admin\.ssh\id_rsa_n8n" -o StrictHostKeyChecking=no root@37.53.91.144 "cd /opt && mkdir -p N8N-AI-Starter-Kit && cd N8N-AI-Starter-Kit && git clone -b test/v1.0-2025-09-01 https://github.com/sattva2020/N8N-AI-Starter-Kit.git . && chmod +x scripts/*.sh && chmod +x *.sh"
 ```
 
 Примечания:
