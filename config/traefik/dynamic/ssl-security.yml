@@ -1,23 +1,23 @@
-# Traefik Dynamic Configuration - SSL & Security
-# Traefik Dynamic Configuration - SSL & Security
-
 tls:
   options:
     default:
-      minVersion: "VersionTLS12"
-      maxVersion: "VersionTLS13"
+      # Traefik expects TLS versions like "TLSv1.2" / "TLSv1.3"
+      minVersion: "TLSv1.2"
+      maxVersion: "TLSv1.3"
       cipherSuites:
         - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
         - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
         - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
-        - "TLS_RSA_WITH_AES_256_GCM_SHA384"
-        - "TLS_RSA_WITH_AES_128_GCM_SHA256"
 
 http:
   middlewares:
     security-headers:
       headers:
-        contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' wss: ws: https:; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; worker-src 'self' blob;"
+        # Use folded block scalars for long policies to avoid parsing issues
+        contentSecurityPolicy: >-
+          default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline';
+          img-src 'self' data: https: blob:; connect-src 'self' wss: ws: https:; font-src 'self' data:; object-src 'none';
+          base-uri 'self'; frame-ancestors 'self'; worker-src 'self' blob;
         frameDeny: true
         contentTypeNosniff: true
         browserXssFilter: true
@@ -26,7 +26,9 @@ http:
         stsSeconds: 31536000
         stsIncludeSubdomains: true
         stsPreload: true
-        permissionsPolicy: "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), speaker=(), ambient-light-sensor=(), accelerometer=(), battery=(), display-capture=(), document-domain=()"
+        permissionsPolicy: >-
+          geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(),
+          speaker=(), ambient-light-sensor=(), accelerometer=(), battery=(), display-capture=(), document-domain=()
 
     api-cors:
       headers:
@@ -59,14 +61,8 @@ http:
         - "https-redirect@file"
       service: "api@internal"
       priority: 1
-# ===============================================
-# CERTIFICATES CONFIGURATION
-# ===============================================
 
-# ===============================================
 # NOTES
+# 1. Update CORS origins for your domains
+# 2. Replace admin users/htpasswd in `middlewares.yml` where needed
 # ===============================================
-# 1. Замените example.com на ваш реальный домен (в образцах использован example.com как нейтральный пример)
-# 2. Обновите users в admin-auth middleware
-# 3. Настройте CORS origins для ваших доменов
-# 4. При необходимости добавьте дополнительные routers
