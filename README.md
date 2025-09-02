@@ -301,6 +301,12 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 - Node.js (для некоторых скриптов)
 - Python 3.8+ (для тестов)
 
+Windows developers: see `docs/CI_SETUP.md` for instructions and a PowerShell bootstrap helper (`scripts/bootstrap-windows.ps1`) that can install Python, PyYAML and shellcheck. You can run it non-interactively:
+
+```powershell
+pwsh -File .\scripts\bootstrap-windows.ps1 -Yes
+```
+
 ### Что нового в этой ветке / релизе
 
 - Автоматическое форматирование YAML-файлов: добавлен `scripts/format-yaml.py` и соответствующая интеграция в pre-commit.
@@ -324,7 +330,7 @@ pre-commit run --all-files
 
 ### Структура проекта
 
-```
+```text
 ├── compose/           # Docker Compose файлы для разных стеков
 ├── config/            # Конфигурация сервисов (Grafana, Prometheus, etc.)
 ├── data/              # Постоянные данные (не коммитить)
