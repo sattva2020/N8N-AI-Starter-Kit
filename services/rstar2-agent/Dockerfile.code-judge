@@ -1,0 +1,41 @@
+# Code Judge Dockerfile for rStar2-Agent
+# Secure Python code execution environment
+FROM python:3.11-slim
+
+# Security: Create non-root user
+RUN groupadd -r coderunner && useradd -r -g coderunner -u 1000 coderunner
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone and setup code-judge
+WORKDIR /app
+RUN git clone https://github.com/0xWJ/code-judge.git . \
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir uvicorn
+
+# Security: Remove git and build tools after installation
+RUN apt-get remove -y git build-essential \
+    && apt-get autoremove -y \
+    && apt-get clean
+
+# Create necessary directories
+RUN mkdir -p /app/logs /tmp/executions \
+    && chown -R coderunner:coderunner /app /tmp/executions
+
+# Security configurations
+USER coderunner
+WORKDIR /app
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:${CODE_JUDGE_PORT:-8088}/health || exit 1
+
+EXPOSE 8088
+
+# Default command (overridden by docker-compose)
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8088"]

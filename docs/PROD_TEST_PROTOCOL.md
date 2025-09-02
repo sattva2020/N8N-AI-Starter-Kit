@@ -85,9 +85,9 @@ ssh -i "C:\Users\Admin\.ssh\id_rsa_n8n" -o StrictHostKeyChecking=no root@37.53.9
 
 ## Профили Docker Compose
 
-В репозитории используются профили: `default`, `cpu`, `gpu-nvidia`. Есть отдельный профиль `developer` для dev-only сервисов (`compose/optional-services.yml`).
+В репозитории используются профили: `default`, `cpu`, `gpu`. Есть отдельный профиль `developer` для dev-only сервисов (`compose/optional-services.yml`).
 
-Рекомендуемый порядок тестирования (production-facing): `default` → `cpu` → `gpu-nvidia`.
+Рекомендуемый порядок тестирования (production-facing): `default` → `cpu` → `gpu`.
 Запуск `developer` — отдельно, только для локальной разработки или интеграционных проверок.
 
 ## Чеклист тестирования

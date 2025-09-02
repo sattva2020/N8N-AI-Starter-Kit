@@ -1,0 +1,39 @@
+# Workers Dockerfile for rStar2-Agent
+# Processing workers for reasoning tasks
+FROM python:3.11-slim
+
+# Security: Create non-root user
+RUN groupadd -r worker && useradd -r -g worker -u 1001 worker
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone and setup rStar
+WORKDIR /app
+RUN git clone https://github.com/microsoft/rStar.git . \
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir redis
+
+# Security: Remove git and build tools after installation
+RUN apt-get remove -y git build-essential \
+    && apt-get autoremove -y \
+    && apt-get clean
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data \
+    && chown -R worker:worker /app
+
+# Security configurations
+USER worker
+WORKDIR /app
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import redis; r=redis.Redis(host='${REDIS_HOST:-rstar2-redis}', port=${REDIS_PORT:-6379}); r.ping()" || exit 1
+
+# Default command (overridden by docker-compose)
+CMD ["python", "-m", "rstar.worker"]

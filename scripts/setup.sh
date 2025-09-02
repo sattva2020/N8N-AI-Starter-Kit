@@ -702,6 +702,10 @@ create_env_from_template() {
   traefik_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
   traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1)
 
+  # rStar2-Agent secrets
+  rstar_api_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-40)
+  redis_password=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
+
   # Создаём .env напрямую
 # Write full .env based on env.schema (preferred) or env.schema.md (legacy) with generated secrets and sensible placeholders
   cat > .env <<EOF
@@ -779,6 +783,43 @@ NEO4J_PORT=${NEO4J_PORT:-7687}
 NEO4J_BOLT_PORT=${NEO4J_BOLT_PORT:-7687}
 NEO4J_HTTP_PORT=${NEO4J_HTTP_PORT:-7474}
 NEOEOF
+
+  # Add rStar2-Agent configuration variables
+  cat >> .env <<RSTAREOF
+
+# ---- rStar2-Agent (AI Reasoning) ----
+RSTAR_API_KEY=${rstar_api_key}
+RSTAR_MODEL_NAME=microsoft/rStar2-Agent-14B
+RSTAR_MODEL_PATH=/app/models
+RSTAR_MAX_TOKENS=2048
+RSTAR_TEMPERATURE=0.7
+RSTAR_DOMAIN=rstar.${DOMAIN_NAME:-example.com}
+
+# VLLM Server Configuration
+VLLM_HOST=0.0.0.0
+VLLM_PORT=8000
+VLLM_GPU_MEMORY_UTILIZATION=0.8
+VLLM_MAX_MODEL_LEN=4096
+
+# Code Judge Configuration
+CODE_JUDGE_HOST=0.0.0.0
+CODE_JUDGE_PORT=8088
+CODE_JUDGE_TIMEOUT=30
+CODE_JUDGE_MAX_MEMORY=512m
+
+# Worker Configuration
+WORKER_COUNT=2
+WORKER_CONCURRENCY=4
+WORKER_TIMEOUT=300
+
+# Redis Configuration for rStar2-Agent
+REDIS_HOST=rstar2-redis
+REDIS_PORT=6379
+REDIS_PASSWORD=${redis_password}
+
+# Integration with N8N
+ENABLE_N8N_INTEGRATION=false
+RSTAREOF
 
   # Ensure Grafana access variables exist (used by credentials and docs)
   {
@@ -1300,14 +1341,26 @@ while [ "$#" -gt 0 ]; do
       shift
       ;;
     --help|-h)
-      echo "Usage: $0 [--generate-only]"
+      echo "Usage: $0 [--generate-only|--download-rstar-model]"
+      echo "  --generate-only        : Генерировать только .env файл"
+      echo "  --download-rstar-model : Загрузить модель rStar2-Agent"
       exit 0
+      ;;
+    --download-rstar-model)
+      DOWNLOAD_RSTAR_MODEL=true
+      shift
       ;;
     *)
       break
       ;;
   esac
 done
+
+if [ "$DOWNLOAD_RSTAR_MODEL" = true ]; then
+  print_info "Режим: --download-rstar-model — загружаем модель rStar2-Agent"
+  download_rstar_model
+  exit $?
+fi
 
 if [ "$GENERATE_ONLY" = true ]; then
   print_info "Режим: --generate-only — генерируем .env встроенным генератором и выходим"
@@ -2204,14 +2257,14 @@ ensure_qdrant_snapshots_volume || print_warning "Проблемы с подго�
 
 print_info "\nДополнительные команды для разных профилей:"
 print_info "${BOLD}$DC_CMD --profile cpu up -d${NC} - Запуск с процессорными AI-сервисами"
-print_info "${BOLD}$DC_CMD --profile gpu-nvidia up -d${NC} - Запуск с NVIDIA GPU AI-сервисами"
+print_info "${BOLD}$DC_CMD --profile gpu up -d${NC} - Запуск с GPU AI-сервисами"
 print_info "${BOLD}$DC_CMD --profile gpu-amd up -d${NC} - Запуск с AMD GPU AI-сервисами"
 print_info "${BOLD}$DC_CMD --profile developer up -d${NC} - Полный набор инструментов разработчика"
 
 print_info "\nИли используйте улучшенный скрипт запуска:"
 print_info "${BOLD}./start.sh${NC} - Автоматический выбор оптимального профиля"
 print_info "${BOLD}./start.sh cpu${NC} - Запуск с процессорными AI-сервисами"
-print_info "${BOLD}./start.sh gpu-nvidia${NC} - Запуск с NVIDIA GPU AI-сервисами"
+print_info "${BOLD}./start.sh gpu${NC} - Запуск с GPU AI-сервисами"
 
 # Показываем адреса в зависимости от режима
 if [ "$SETUP_MODE" = "template" ]; then
@@ -2330,7 +2383,175 @@ auto_import_credentials() {
   set -e
 }
 
+# ----------------------
+# rStar2-Agent Model Download
+# ----------------------
+download_rstar_model() {
+  print_info "Проверка и загрузка модели rStar2-Agent..."
+
+  local model_dir="${ROOT_DIR}/data/models/rstar2-agent"
+  local model_name="microsoft/rStar2-Agent-14B"
+
+  # Создаем директорию для модели
+  mkdir -p "${model_dir}"
+
+  # Проверяем есть ли уже загруженная модель
+  if [ -d "${model_dir}/config.json" ] || [ -d "${model_dir}/pytorch_model.bin" ] || [ -d "${model_dir}/model.safetensors" ]; then
+    print_success "Модель rStar2-Agent уже загружена в ${model_dir}"
+    return 0
+  fi
+
+  # Проверяем наличие Hugging Face CLI
+  if command -v huggingface-cli >/dev/null 2>&1; then
+    print_info "Загрузка модели через huggingface-cli..."
+    cd "${model_dir}"
+    huggingface-cli download "${model_name}" --local-dir . --local-dir-use-symlinks False
+    if [ $? -eq 0 ]; then
+      print_success "Модель rStar2-Agent успешно загружена"
+      return 0
+    else
+      print_warning "Ошибка загрузки через huggingface-cli"
+    fi
+  fi
+
+  # Альтернативный метод через git (требует git-lfs)
+  if command -v git >/dev/null 2>&1 && command -v git-lfs >/dev/null 2>&1; then
+    print_info "Загрузка модели через git clone..."
+    cd "${ROOT_DIR}/data/models"
+    git lfs clone "https://huggingface.co/${model_name}" rstar2-agent
+    if [ $? -eq 0 ]; then
+      print_success "Модель rStar2-Agent успешно загружена через git"
+      return 0
+    else
+      print_warning "Ошибка загрузки через git clone"
+    fi
+  fi
+
+  # Если автоматическая загрузка не удалась
+  print_warning "Автоматическая загрузка модели не удалась."
+  echo ""
+  echo "Для ручной загрузки модели rStar2-Agent выполните:"
+  echo "1) Установите Hugging Face CLI: ${BOLD}pip install huggingface_hub[cli]${NC}"
+  echo "2) Загрузите модель: ${BOLD}huggingface-cli download ${model_name} --local-dir ${model_dir}${NC}"
+  echo ""
+  echo "Альтернативно, если у вас установлен git-lfs:"
+  echo "1) ${BOLD}cd ${ROOT_DIR}/data/models${NC}"
+  echo "2) ${BOLD}git lfs clone https://huggingface.co/${model_name} rstar2-agent${NC}"
+  echo ""
+  print_info "Модель занимает около 28GB дискового пространства"
+
+  return 1
+}
+
 # Launch auto-import in background if enabled (non-blocking)
 if [ "${N8N_AUTO_CREATE_CREDENTIALS:-false}" = "true" ]; then
   (auto_import_credentials) &
+fi
+
+# =============================================================================
+# GPU DETECTION AND CONFIGURATION
+# =============================================================================
+print_section "Детекция GPU и оптимизация"
+
+# Проверяем наличие скрипта детекции GPU
+gpu_detect_script="${ROOT_DIR}/scripts/detect-gpu.sh"
+if [ -f "$gpu_detect_script" ]; then
+  print_info "Запуск детекции GPU..."
+
+  # Делаем скрипт исполняемым
+  chmod +x "$gpu_detect_script"
+
+  # Запускаем детекцию GPU
+  if "$gpu_detect_script" --detect-only; then
+    print_success "Детекция GPU завершена"
+
+    # Предлагаем запустить полную конфигурацию
+    echo ""
+    read -p "Хотите настроить GPU конфигурацию? (y/N): " configure_gpu
+    case "$configure_gpu" in
+      [Yy]*)
+        print_info "Настройка GPU конфигурации..."
+        if "$gpu_detect_script"; then
+          print_success "GPU конфигурация настроена"
+
+          # Показываем рекомендации
+          if [ -f "${ROOT_DIR}/config/gpu.env" ]; then
+            recommended_profiles=$(grep "^RECOMMENDED_GPU_PROFILES=" "${ROOT_DIR}/config/gpu.env" | cut -d'=' -f2)
+            if [ -n "$recommended_profiles" ]; then
+              echo ""
+              print_info "Рекомендуемые профили для запуска:"
+              echo "  ./start.sh --profile $recommended_profiles"
+              echo ""
+            fi
+          fi
+        else
+          print_warning "Ошибка настройки GPU конфигурации"
+        fi
+        ;;
+      *)
+        print_info "Конфигурация GPU пропущена. Запустите './scripts/detect-gpu.sh' позже для настройки"
+        ;;
+    esac
+  else
+    print_warning "Детекция GPU завершилась с ошибками"
+  fi
+else
+  print_warning "Скрипт детекции GPU не найден: $gpu_detect_script"
+fi
+
+# =============================================================================
+# FINAL SETUP SUMMARY
+# =============================================================================
+echo ""
+print_section "Итоговое резюме настройки"
+
+print_success "Настройка N8N AI Starter Kit завершена!"
+echo ""
+echo "📋 Что было настроено:"
+echo "  ✅ Переменные окружения (.env файл)"
+echo "  ✅ SSL сертификаты и домены"
+echo "  ✅ Пароли и ключи безопасности"
+echo "  ✅ rStar2-Agent интеграция"
+if [ -f "${ROOT_DIR}/config/gpu.env" ]; then
+  echo "  ✅ GPU конфигурация"
+fi
+echo ""
+
+echo "🚀 Команды для запуска:"
+echo ""
+
+# Показываем команды в зависимости от наличия GPU конфигурации
+if [ -f "${ROOT_DIR}/config/gpu.env" ]; then
+  recommended_profiles=$(grep "^RECOMMENDED_GPU_PROFILES=" "${ROOT_DIR}/config/gpu.env" | cut -d'=' -f2)
+  if [ -n "$recommended_profiles" ]; then
+    echo "  Рекомендуемый запуск (с GPU):"
+    echo "    cd ${ROOT_DIR}"
+    echo "    ./start.sh --profile $recommended_profiles"
+    echo ""
+  fi
+fi
+
+echo "  Стандартный запуск:"
+echo "    cd ${ROOT_DIR}"
+echo "    ./start.sh"
+echo ""
+echo "  Запуск с разработкой:"
+echo "    ./start.sh developer"
+echo ""
+echo "  Показать все опции:"
+echo "    ./start.sh --help"
+echo ""
+
+print_info "Для управления сервисами используйте ./start.sh"
+print_info "Логи сервисов: docker compose logs -f [service_name]"
+
+if [ -n "$DOMAIN_NAME" ] && [ "$DOMAIN_NAME" != "localhost" ]; then
+  echo ""
+  print_info "Ваши сервисы будут доступны по адресам:"
+  echo "  🤖 N8N: https://n8n.${DOMAIN_NAME}"
+  echo "  📊 Grafana: https://grafana.${DOMAIN_NAME}"
+  echo "  🔒 Traefik: https://traefik.${DOMAIN_NAME}"
+  if [ -f "${ROOT_DIR}/config/gpu.env" ]; then
+    echo "  🎮 GPU Monitor: https://gpu-monitor.${DOMAIN_NAME}"
+  fi
 fi

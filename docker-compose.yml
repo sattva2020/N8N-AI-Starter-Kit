@@ -53,7 +53,7 @@ x-service-n8n: &service-n8n
 services:
   traefik:
     <<: *traefik-base
-    profiles: [default, cpu, gpu-nvidia, developer]
+    profiles: [default, cpu, gpu, developer]
     command:
       - "--api.dashboard=true"
       - "--api.insecure=true"
@@ -75,7 +75,7 @@ services:
 
   n8n:
     <<: *service-n8n
-    profiles: [default, cpu, gpu-nvidia, developer]
+    profiles: [default, cpu, gpu, developer]
     ports:
       - "5678:5678"
     depends_on:
@@ -96,7 +96,7 @@ services:
   postgres:
     image: pgvector/pgvector:pg17
     restart: unless-stopped
-    profiles: [default, cpu, gpu-nvidia, developer]
+    profiles: [default, cpu, gpu, developer]
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -187,6 +187,7 @@ include:
   - path: ./compose/graphiti-compose.yaml
   - path: ./compose/ollama-compose.yml
   - path: ./compose/optional-services.yml
+  - path: ./compose/gpu-compose.yml
 
 volumes:
   n8n_storage:

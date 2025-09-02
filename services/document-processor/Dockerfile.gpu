@@ -1,0 +1,91 @@
+# =============================================================================
+# DOCUMENT PROCESSOR - GPU ACCELERATED DOCKERFILE
+# =============================================================================
+# High-performance document processing with NVIDIA GPU acceleration
+# Based on PyTorch with CUDA support for transformer models
+
+FROM nvidia/cuda:11.8-devel-ubuntu22.04
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-dev \
+    build-essential \
+    curl \
+    git \
+    libssl-dev \
+    libffi-dev \
+    libpq-dev \
+    poppler-utils \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    tesseract-ocr-rus \
+    tesseract-ocr-deu \
+    tesseract-ocr-fra \
+    tesseract-ocr-spa \
+    libreoffice \
+    pandoc \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Set Python environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV CUDA_VISIBLE_DEVICES=all
+ENV TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6"
+
+# Install Python dependencies with GPU support
+COPY requirements-gpu.txt .
+RUN pip3 install --no-cache-dir -r requirements-gpu.txt
+
+# Install PyTorch with CUDA support
+RUN pip3 install --no-cache-dir \
+    torch==2.1.0+cu118 \
+    torchvision==0.16.0+cu118 \
+    torchaudio==2.1.0+cu118 \
+    --index-url https://download.pytorch.org/whl/cu118
+
+# Install additional ML libraries with GPU support
+RUN pip3 install --no-cache-dir \
+    transformers[torch] \
+    sentence-transformers \
+    accelerate \
+    bitsandbytes \
+    optimum \
+    auto-gptq \
+    xformers
+
+# Copy application code
+COPY src/ ./src/
+COPY config/ ./config/
+COPY models/ ./models/
+
+# Create necessary directories
+RUN mkdir -p /app/data /app/models /app/cache /app/logs
+
+# Set permissions
+RUN chmod -R 755 /app/src
+RUN chmod -R 777 /app/data /app/models /app/cache /app/logs
+
+# Create non-root user
+RUN useradd -m -u 1000 processor && \
+    chown -R processor:processor /app
+
+USER processor
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Expose port
+EXPOSE 8000
+
+# Start command
+CMD ["python3", "src/main.py"]

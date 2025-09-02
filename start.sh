@@ -82,8 +82,43 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         --help|-h)
             echo "Usage: $0 [--auto-import] [--no-import-prompt] [profile]"
+            echo ""
+            echo "OPTIONS:"
             echo "  --auto-import        enable automatic import of workflows (equivalent to N8N_AUTO_IMPORT=true)"
             echo "  --no-import-prompt   never prompt about importing workflows; skip import prompts (equivalent to N8N_AUTO_IMPORT=false)"
+            echo ""
+            echo "PROFILES:"
+            echo "  default              Core services (Traefik, N8N, PostgreSQL)"
+            echo "  developer            + Qdrant, PgAdmin, JupyterLab, optional services"
+            echo "  cpu                  CPU-optimized AI services (Ollama CPU-only)"
+            echo "  reasoning            rStar2-Agent with CPU inference"
+            echo "  gpu                  GPU-accelerated services (auto-detects NVIDIA/AMD)"
+            echo "  rstar-gpu            rStar2-Agent with GPU acceleration"
+            echo "  developer-gpu        Development tools with GPU acceleration"
+            echo "  monitoring-gpu       GPU monitoring and metrics"
+            echo ""
+            echo "CPU PROFILE COMBINATIONS:"
+            echo "  default                           Core services only"
+            echo "  cpu,developer                     CPU AI + Development tools"
+            echo "  cpu,reasoning,developer           Full CPU stack with reasoning"
+            echo ""
+            echo "GPU PROFILE COMBINATIONS:"
+            echo "  gpu                               Basic GPU services (auto-detects)"
+            echo "  gpu,rstar-gpu                     + rStar2-Agent with GPU"
+            echo "  gpu,developer-gpu                 + Development tools with GPU"
+            echo "  gpu,monitoring-gpu                + GPU monitoring"
+            echo "  Full stack (24GB+ VRAM):          gpu,rstar-gpu,developer-gpu,monitoring-gpu"
+            echo ""
+            echo "EXAMPLES:"
+            echo "  $0                                Auto-detect optimal profile"
+            echo "  $0 developer                      CPU-only development environment"
+            echo "  $0 cpu,reasoning,developer        Full CPU stack with AI reasoning"
+            echo "  $0 gpu                            GPU-accelerated services"
+            echo "  $0 gpu,rstar-gpu,developer-gpu   Full GPU stack"
+            echo "  $0 --auto-import cpu,developer   CPU development with auto-import"
+            echo ""
+            echo "GPU DETECTION:"
+            echo "  Run './scripts/detect-gpu.sh' to analyze your GPU and get recommendations"
             exit 0
             ;;
         --*)
@@ -118,32 +153,65 @@ fi
 detect_optimal_profile() {
     local memory=$(free -m 2>/dev/null | awk 'NR==2{printf "%.0f", $2/1024}' || echo "0")
     local cpu_cores=$(nproc 2>/dev/null || echo "1")
-    
+
     echo -e "${BLUE}Анализ системы:${NC}" >&2
     echo -e "  ${EMOJI_CHART} Память: ${memory}GB" >&2
     echo -e "  ${EMOJI_CPU}  CPU ядер: ${cpu_cores}" >&2
-    
-    # Проверка GPU
+
+    # Расширенная проверка GPU
     if command -v nvidia-smi &> /dev/null && nvidia-smi &> /dev/null; then
-        gpu_info=$(nvidia-smi --query-gpu=name --format=csv,noheader,nounits | head -1 2>/dev/null || echo "Unknown")
-        echo -e "  ${EMOJI_GPU} GPU: ${gpu_info}" >&2
-        echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: gpu-nvidia${NC}" >&2
-        echo "gpu-nvidia"
+        gpu_info=$(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader,nounits | head -1 2>/dev/null || echo "Unknown,0")
+        gpu_name=$(echo "$gpu_info" | cut -d',' -f1 | xargs)
+        gpu_memory=$(echo "$gpu_info" | cut -d',' -f2 | xargs)
+        gpu_memory_gb=$((gpu_memory / 1024))
+
+        echo -e "  ${EMOJI_GPU} GPU: ${gpu_name} (${gpu_memory_gb}GB)" >&2
+
+        # Docker GPU support check
+        if docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi &>/dev/null; then
+            echo -e "  ${GREEN}${EMOJI_OK} Docker GPU support: Работает${NC}" >&2
+
+            # Рекомендации на основе VRAM
+            if [ "$gpu_memory_gb" -ge 24 ]; then
+                echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: gpu,rstar-gpu,developer-gpu,monitoring-gpu${NC}" >&2
+                echo "gpu,rstar-gpu,developer-gpu,monitoring-gpu"
+            elif [ "$gpu_memory_gb" -ge 12 ]; then
+                echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: gpu,rstar-gpu${NC}" >&2
+                echo "gpu,rstar-gpu"
+            elif [ "$gpu_memory_gb" -ge 8 ]; then
+                echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: gpu${NC}" >&2
+                echo "gpu"
+            else
+                echo -e "${YELLOW}${EMOJI_WARN} Низкий объем VRAM (${gpu_memory_gb}GB), рекомендуется CPU${NC}" >&2
+                echo "default,developer"
+            fi
+        else
+            echo -e "  ${YELLOW}${EMOJI_WARN} Docker GPU support: Не настроен${NC}" >&2
+            echo -e "${YELLOW}${EMOJI_ROCKET} Рекомендуемый профиль: developer (CPU fallback)${NC}" >&2
+            echo "developer"
+        fi
+    elif command -v rocm-smi &> /dev/null && rocm-smi &> /dev/null; then
+        echo -e "  ${EMOJI_GPU} GPU: AMD ROCm обнаружен" >&2
+        echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: gpu,gpu-amd${NC}" >&2
+        echo "gpu,gpu-amd"
+    elif [ "$memory" -gt 32 ] && [ "$cpu_cores" -gt 16 ]; then
+        echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: developer,rstar-cpu${NC}" >&2
+        echo "developer,rstar-cpu"
     elif [ "$memory" -gt 16 ] && [ "$cpu_cores" -gt 8 ]; then
         echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: developer${NC}" >&2
         echo "developer"
     else
-        echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: cpu${NC}" >&2
-        echo "cpu"
+        echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: default${NC}" >&2
+        echo "default"
     fi
 }
 
 # Функция предварительной проверки
 pre_flight_check() {
     echo -e "${BLUE}Предварительная проверка...${NC}"
-    
+
     local issues=0
-    
+
     # Проверка Docker
     if ! command -v docker &> /dev/null; then
         echo -e "  ${RED}${EMOJI_ERROR} Docker не найден${NC}"
@@ -151,7 +219,7 @@ pre_flight_check() {
     else
         echo -e "  ${GREEN}${EMOJI_OK} Docker найден${NC}"
     fi
-    
+
     # Проверка Docker Compose
     if ! docker compose version &> /dev/null && ! command -v docker-compose &> /dev/null; then
         echo -e "  ${RED}${EMOJI_ERROR} Docker Compose не найден${NC}"
@@ -159,35 +227,35 @@ pre_flight_check() {
     else
         echo -e "  ${GREEN}${EMOJI_OK} Docker Compose найден${NC}"
     fi
-    
+
     # Проверка .env файла
     if [ ! -f .env ]; then
         echo -e "  ${YELLOW}${EMOJI_WARN} Файл .env не найден${NC}"
         ((issues++))
     else
         echo -e "  ${GREEN}${EMOJI_OK} Файл .env найден${NC}"
-        
+
         # Проверка ключевых переменных в .env
         if ! grep -q "OPENAI_API_KEY" .env || grep -q "^# OPENAI_API_KEY=" .env; then
             echo -e "  ${YELLOW}${EMOJI_WARN} OpenAI API key не настроен${NC}"
         else
             echo -e "  ${GREEN}${EMOJI_OK} OpenAI API key настроен${NC}"
         fi
-        
+
         if ! grep -q "N8N_ENCRYPTION_KEY" .env; then
             echo -e "  ${YELLOW}${EMOJI_WARN} N8N encryption key не найден${NC}"
             ((issues++))
         else
             echo -e "  ${GREEN}${EMOJI_OK} N8N encryption key найден${NC}"
         fi
-        
+
         # Проверка на проблемные символы в .env
         if grep -q '\$[^{]' .env; then
             echo -e "  ${YELLOW}${EMOJI_WARN} Найдены неэкранированные символы $ в .env${NC}"
             ((issues++))
         fi
     fi
-    
+
     # Проверка конфигурации Docker Compose
     if ! docker compose config &>/dev/null; then
         echo -e "  ${RED}${EMOJI_ERROR} Ошибки в конфигурации Docker Compose${NC}"
@@ -195,7 +263,7 @@ pre_flight_check() {
     else
         echo -e "  ${GREEN}${EMOJI_OK} Конфигурация Docker Compose корректна${NC}"
     fi
-    
+
     return $issues
 }
 
@@ -203,12 +271,12 @@ pre_flight_check() {
 run_setup() {
     echo -e "${BLUE}${EMOJI_SETUP} Запуск мастера настройки...${NC}"
     echo ""
-    
+
     if [ -f "./scripts/setup.sh" ]; then
         chmod +x ./scripts/setup.sh
         echo -e "${CYAN}Запускается ./scripts/setup.sh...${NC}"
         ./scripts/setup.sh
-        
+
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}${EMOJI_OK} Настройка завершена успешно!${NC}"
             # setup.sh created or updated .env during its run; record this to avoid
@@ -312,7 +380,7 @@ merge_env_files() {
 # Функция автоматического исправления проблем (быстрые исправления)
 auto_fix_issues() {
     echo -e "${YELLOW}Попытка автоматического исправления проблем...${NC}"
-    
+
     # Создание .env файла если отсутствует
     if [ ! -f .env ]; then
         echo -e "  ${EMOJI_FILE} Файл .env не найден — запускаем генерацию из схемы переменных..."
@@ -332,14 +400,14 @@ auto_fix_issues() {
             return 1
         fi
     fi
-    
+
     # Исправление переменных окружения
     if [ -f ./scripts/fix-env-vars.sh ]; then
         echo -e "  ${EMOJI_SETUP} Исправление переменных окружения..."
         chmod +x ./scripts/fix-env-vars.sh
         ./scripts/fix-env-vars.sh > /dev/null 2>&1
     fi
-    
+
     # Исправление проблем с хэшем пароля
     if [ -f .env ] && grep -q '\$[^{]' .env; then
         echo -e "  ${EMOJI_SETUP} Исправление хэша пароля Traefik..."
@@ -347,20 +415,20 @@ auto_fix_issues() {
         sed -i 's/\$\$\$/$/g' .env 2>/dev/null || true
         sed -i 's/\$\$/$/g' .env 2>/dev/null || true
     fi
-    
+
     # Добавление отсутствующих переменных
     if [ -f .env ] && ! grep -q "WEBHOOK_URL" .env; then
         echo -e "  ${EMOJI_NOTE} Добавление отсутствующих переменных..."
         echo "WEBHOOK_URL=" >> .env
     fi
-    
+
     return 0
 }
 
 # Функция для проверки критических компонентов
 check_critical_components() {
     local critical_issues=0
-    
+
     # Проверка Docker
     if ! command -v docker &> /dev/null; then
         echo -e "${RED}${EMOJI_ERROR} Docker не установлен${NC}"
@@ -369,13 +437,13 @@ check_critical_components() {
         echo -e "${RED}${EMOJI_ERROR} Docker демон не запущен${NC}"
         ((critical_issues++))
     fi
-    
+
     # Проверка Docker Compose
     if ! docker compose version &> /dev/null && ! command -v docker-compose &> /dev/null; then
         echo -e "${RED}${EMOJI_ERROR} Docker Compose не установлен${NC}"
         ((critical_issues++))
     fi
-    
+
     return $critical_issues
 }
 
@@ -399,7 +467,7 @@ if ! check_critical_components; then
     echo ""
     echo -e "${CYAN}Запустить мастер настройки? (y/n): ${NC}"
     read -r setup_choice
-    
+
     if [[ "$setup_choice" =~ ^[Yy]$ ]]; then
         if ! run_setup; then
             echo -e "${RED}${EMOJI_ERROR} Настройка не завершена. Завершение работы.${NC}"
@@ -580,7 +648,7 @@ if ! pre_flight_check; then
     echo ""
     echo -ne "${CYAN}Ваш выбор (1-3): ${NC}"
     read -r fix_choice
-    
+
     case $fix_choice in
         1)
             echo -e "${YELLOW}Выполнение быстрого исправления...${NC}"
@@ -625,7 +693,7 @@ if ! pre_flight_check; then
             fi
             ;;
     esac
-    
+
     # Финальная проверка перед запуском
     echo ""
     echo -e "${BLUE}Финальная проверка конфигурации...${NC}"
@@ -784,7 +852,7 @@ if [ $? -eq 0 ]; then
 
     # Call the dynamic printer
     print_endpoints
-    
+
     # Проверка OpenAI API Key
     if [ -f .env ] && (grep -q "^# OPENAI_API_KEY=" .env || ! grep -q "OPENAI_API_KEY=" .env); then
         echo ""

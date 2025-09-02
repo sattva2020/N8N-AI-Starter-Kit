@@ -75,7 +75,7 @@
    ```powershell
    $env:COMPOSE_PARALLEL_LIMIT=1; docker-compose --profile cpu up -d
    ```
-   
+
    Или используйте скрипт автоматического исправления:
    ```powershell
    .\scripts\fix-and-start.ps1
@@ -380,7 +380,7 @@
 1. Используйте более легкие модели (например, llama3:8b вместо llama3)
 2. Если доступна видеокарта, убедитесь что используется профиль GPU:
    ```bash
-   docker compose --profile gpu-nvidia up -d
+   docker compose --profile gpu up -d
    ```
 3. Увеличьте количество ядер CPU, доступных для Ollama:
    ```yaml
@@ -423,7 +423,7 @@
    ```powershell
    # Windows
    netstat -ano | findstr LISTENING
-   
+
    # Linux/macOS
    sudo lsof -i -P -n | grep LISTEN
    ```
@@ -440,7 +440,7 @@
    ```powershell
    # Windows - найдите PID процесса использующего порт и остановите его
    Get-Process -Id (Get-NetTCPConnection -LocalPort 5678).OwningProcess | Stop-Process -Force
-   
+
    # Linux/macOS
    sudo kill $(sudo lsof -t -i:5678)
    ```
@@ -456,7 +456,7 @@
    ```powershell
    # Проверка правил брандмауэра
    Get-NetFirewallRule | Where-Object { $_.Enabled -eq 'True' } | Format-Table Name, DisplayName, Direction, Action -AutoSize
-   
+
    # Добавление разрешения для порта
    New-NetFirewallRule -DisplayName "Allow N8N" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 5678
    ```
@@ -465,7 +465,7 @@
    ```bash
    # UFW
    sudo ufw allow 5678/tcp
-   
+
    # iptables
    sudo iptables -A INPUT -p tcp --dport 5678 -j ACCEPT
    ```
@@ -474,7 +474,7 @@
    ```powershell
    # Windows
    Test-NetConnection -ComputerName your-server-ip -Port 5678
-   
+
    # Linux/macOS
    nc -zv your-server-ip 5678
    ```

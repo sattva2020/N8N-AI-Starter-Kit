@@ -5,7 +5,7 @@ services:
     image: ollama/ollama:latest
     container_name: ollama
     restart: unless-stopped
-    profiles: [default, cpu, gpu-nvidia, developer]
+    profiles: [default, cpu, gpu, developer]
     ports:
       - "11434:11434"
     volumes:
@@ -37,7 +37,7 @@ services:
   # Сервис для предварительной загрузки моделей Ollama
   ollama-pull:
     image: alpine:3.18 # базовый образ; установим curl+jq в рантайме
-    profiles: [default, cpu, gpu-nvidia, developer]
+    profiles: [default, cpu, gpu, developer]
     restart: "no"
     networks:
       - backend

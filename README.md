@@ -5,7 +5,15 @@
 
 > NOTE: Для временной отладки в тестовой ветке может быть включен DEBUG-лог Traefik (описано в PR/branch). Не оставляйте этот режим в production.
 
-<!-- docs sync: quick note added to satisfy pre-commit docs check -->
+<!-- docs s## 📄 Лицензия
+
+Этот проект распространяется под лицензией MIT. Подробности в файле [LICENSE](./LICENSE).
+
+## 📚 Дополнительная документация
+
+- **[rStar2-Agent Integration](./docs/rstar2-agent-integration.md)** — полное руководство по интеграции Microsoft rStar2-Agent
+- **[Project Documentation](./docs/)** — полная документация проекта
+- **[N8N Workflows](./n8n/workflows/)** — готовые рабочие процессы для импорта: quick note added to satisfy pre-commit docs check -->
 
 [![CI/CD](https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml/badge.svg)](<https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml>)
 
@@ -27,6 +35,7 @@ N8N AI Starter Kit — это готовое к развертыванию ре�
 
 - **n8n** — платформа визуального программирования рабочих процессов
 - **Ollama** — локальный запуск больших языковых моделей (LLM)
+- **rStar2-Agent** — 14B модель для agentic reasoning с tool calling (Microsoft)
 - **Qdrant** — векторная база данных для семантического поиска
 - **Graphiti + Neo4j** — работа с графовыми данными и памятью AI-агентов
 
@@ -154,7 +163,7 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 - **Базовые**: `DOMAIN_NAME`, `COMPOSE_PROJECT_NAME`
 - **PostgreSQL**: `POSTGRES_PASSWORD`, `POSTGRES_USER`
 - **N8N**: `N8N_ENCRYPTION_KEY`, `N8N_HOST`, `N8N_ADMIN_TOKEN`, `N8N_PUBLIC_API_DISABLED`
-- **AI-сервисы**: `OLLAMA_DOMAIN`, `QDRANT_URL`
+- **AI-сервисы**: `OLLAMA_DOMAIN`, `QDRANT_URL`, `RSTAR_API_KEY`, `RSTAR_MODEL_NAME`
 - **Мониторинг**: `GRAFANA_ADMIN_PASSWORD`, `PROMETHEUS_RETENTION`
 
 ### Автоматизация настройки
@@ -165,6 +174,12 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 
 # Генерация .env из шаблона
 ./scripts/setup.sh --generate-only
+
+# Загрузка модели rStar2-Agent
+./scripts/setup.sh --download-rstar-model
+
+# Запуск с rStar2-Agent
+./scripts/start-rstar.sh
 ```
 
 ### Импорт credential в n8n (авто)
