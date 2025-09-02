@@ -2,13 +2,13 @@
 
 This file is used by unit tests to validate parsing and payload logic.
 """
-import csv
 import ast
+import csv
 import json
-from typing import List, Dict, Any
+from typing import Any
 
 
-def parse_csv_to_entries(path: str) -> List[Dict[str, Any]]:
+def parse_csv_to_entries(path: str) -> list[dict[str, Any]]:
     rows = []
     with open(path, newline='', encoding='utf-8') as fh:
         reader = csv.DictReader(fh)
@@ -28,7 +28,13 @@ def parse_csv_to_entries(path: str) -> List[Dict[str, Any]]:
                 # normalize newlines (CRLF -> LF)
                 raw = raw.replace('\r\n', '\n').replace('\r', '\n')
                 # strip surrounding quotes if present
-                if len(raw) >= 2 and ((raw.startswith('"') and raw.endswith('"')) or (raw.startswith("'") and raw.endswith("'"))):
+                if (
+                    len(raw) >= 2
+                    and (
+                        (raw.startswith('"') and raw.endswith('"'))
+                        or (raw.startswith("'") and raw.endswith("'"))
+                    )
+                ):
                     raw = raw[1:-1]
                 # unescape doubled quotes often produced in CSV exports
                 raw = raw.replace('""', '"')
@@ -56,7 +62,7 @@ def parse_csv_to_entries(path: str) -> List[Dict[str, Any]]:
     return rows
 
 
-def build_payload(name: str, type_: str, data: Any) -> Dict[str, Any]:
+def build_payload(name: str, type_: str, data: Any) -> dict[str, Any]:
     # ensure data is a dict
     if isinstance(data, str):
         try:
@@ -64,7 +70,7 @@ def build_payload(name: str, type_: str, data: Any) -> Dict[str, Any]:
         except Exception:
             data = {'value': data}
 
-    payload = {
+    payload: dict[str, Any] = {
         'name': name,
         'type': type_,
         'nodesAccess': [],
@@ -73,15 +79,36 @@ def build_payload(name: str, type_: str, data: Any) -> Dict[str, Any]:
     return payload
 
 
-def detect_type_from_env(env: Dict[str, str], prefer: str = None) -> Dict[str, Any]:
+def detect_type_from_env(env: dict[str, str], prefer: str | None = None) -> dict[str, Any]:
     """Return a guessed payload for known env vars. Used for integration parity with bash script."""
     if prefer and prefer.lower() in ('qdrant', 'qdrantapi', 'qdrantApi'):
-        return build_payload('qdrant', 'qdrantApi', {'url': env.get('QDRANT_URL', 'http://qdrant:6333'), 'apiKey': env.get('QDRANT_API_KEY', '')})
-    
+        return build_payload(
+            'qdrant',
+            'qdrantApi',
+            {
+                'url': env.get('QDRANT_URL', 'http://qdrant:6333'),
+                'apiKey': env.get('QDRANT_API_KEY', ''),
+            },
+        )
+
     if prefer and prefer.lower() in ('redis',):
-        return build_payload('redis', 'redis', {'url': env.get('REDIS_URL', 'redis://redis:6379'), 'password': env.get('REDIS_PASSWORD', '')})
+        return build_payload(
+            'redis',
+            'redis',
+            {
+                'url': env.get('REDIS_URL', 'redis://redis:6379'),
+                'password': env.get('REDIS_PASSWORD', ''),
+            },
+        )
     if prefer and prefer.lower() in ('graphiti', 'graphitiapi'):
-        return build_payload('graphiti', 'graphitiApi', {'apiKey': env.get('GRAPHITI_API_KEY', ''), 'url': env.get('GRAPHITI_URL', 'http://graphiti:8000')})
+        return build_payload(
+            'graphiti',
+            'graphitiApi',
+            {
+                'apiKey': env.get('GRAPHITI_API_KEY', ''),
+                'url': env.get('GRAPHITI_URL', 'http://graphiti:8000'),
+            },
+        )
 
     # fallback empty
     return build_payload('unknown', prefer or 'generic', {})

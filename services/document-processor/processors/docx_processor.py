@@ -1,4 +1,3 @@
-from typing import Optional
 
 try:
     import docx  # python-docx

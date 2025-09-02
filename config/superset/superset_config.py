@@ -1,6 +1,4 @@
 import os
-from datetime import timedelta
-from typing import Optional
 
 # Flask app configuration
 SECRET_KEY = os.environ.get('SUPERSET_SECRET_KEY', 'superset_secret_key_2024')

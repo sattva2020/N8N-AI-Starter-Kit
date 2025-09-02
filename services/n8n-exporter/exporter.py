@@ -4,15 +4,14 @@ N8N Metrics Exporter для Prometheus
 Собирает метрики с N8N API и экспортирует их в формате Prometheus
 """
 
-import time
+import asyncio
 import logging
 import os
-import asyncio
+import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
 
 import requests
-from prometheus_client import start_http_server, Gauge, Counter, Histogram, Info
+from prometheus_client import Counter, Gauge, Histogram, Info, start_http_server
 from prometheus_client.core import CollectorRegistry
 
 # Настройка логирования
@@ -111,7 +110,7 @@ class N8NMetricsExporter:
             'Content-Type': 'application/json'
         } if self.api_key else {'Content-Type': 'application/json'}
         
-    def make_api_request(self, endpoint: str, method: str = 'GET') -> Optional[Dict]:
+    def make_api_request(self, endpoint: str, method: str = 'GET') -> dict | None:
         """Выполняет API запрос к N8N"""
         url = f"{self.n8n_url}/api/v1/{endpoint}"
         

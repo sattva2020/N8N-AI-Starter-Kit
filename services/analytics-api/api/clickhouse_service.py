@@ -3,16 +3,23 @@ ClickHouse Service для Analytics API
 """
 
 import asyncio
-from datetime import datetime, date, timedelta
-from typing import List, Dict, Any, Optional
+from datetime import date, datetime, timedelta
+from typing import Any
+
 import structlog
 from clickhouse_driver import Client as SyncClient
 from clickhouse_driver.errors import Error as ClickHouseError
 
 from .models import (
-    WorkflowAnalytics, UserActivity, SystemMetrics, DocumentAnalytics,
-    APIUsageStats, ErrorAnalysis, PerformanceReport, RealtimeDashboard,
-    WorkflowMetrics, ErrorRecord
+    APIUsageStats,
+    DocumentAnalytics,
+    ErrorAnalysis,
+    PerformanceReport,
+    RealtimeDashboard,
+    SystemMetrics,
+    UserActivity,
+    WorkflowAnalytics,
+    WorkflowMetrics,
 )
 
 logger = structlog.get_logger(__name__)
@@ -54,7 +61,7 @@ class ClickHouseService:
             logger.error("Failed to initialize ClickHouse service", error=str(e))
             raise
 
-    async def execute(self, query: str, params: Optional[Dict] = None) -> List[Any]:
+    async def execute(self, query: str, params: dict | None = None) -> list[Any]:
         """Execute query asynchronously"""
         if not self._initialized:
             raise RuntimeError("ClickHouse service not initialized")
@@ -74,7 +81,7 @@ class ClickHouseService:
             logger.error("Unexpected error executing ClickHouse query", query=query, error=str(e))
             raise
 
-    async def get_workflow_analytics(self, start_date: date, end_date: date, workflow_id: Optional[str] = None) -> WorkflowAnalytics:
+    async def get_workflow_analytics(self, start_date: date, end_date: date, workflow_id: str | None = None) -> WorkflowAnalytics:
         """Get workflow analytics"""
         try:
             # Base conditions - используем toDate() для сравнения с started_at
@@ -201,7 +208,7 @@ class ClickHouseService:
             logger.error("Failed to get workflow analytics", error=str(e))
             raise
 
-    async def get_top_performing_workflows(self, start_date: date, end_date: date, limit: int = 10) -> List[Dict[str, Any]]:
+    async def get_top_performing_workflows(self, start_date: date, end_date: date, limit: int = 10) -> list[dict[str, Any]]:
         """Get top performing workflows"""
         try:
             query = """
@@ -242,7 +249,7 @@ class ClickHouseService:
             logger.error("Failed to get top performing workflows", error=str(e))
             raise
 
-    async def get_user_activity(self, start_date: date, end_date: date, user_id: Optional[str] = None, offset: int = 0, limit: int = 100) -> UserActivity:
+    async def get_user_activity(self, start_date: date, end_date: date, user_id: str | None = None, offset: int = 0, limit: int = 100) -> UserActivity:
         """Get user activity analytics"""
         try:
             # This is a placeholder - actual implementation depends on having user_activity table
@@ -262,7 +269,7 @@ class ClickHouseService:
             logger.error("Failed to get user activity", error=str(e))
             raise
 
-    async def get_system_metrics(self, start_time: datetime, end_time: datetime, metric_type: Optional[str] = None) -> SystemMetrics:
+    async def get_system_metrics(self, start_time: datetime, end_time: datetime, metric_type: str | None = None) -> SystemMetrics:
         """Get system metrics"""
         try:
             # Placeholder implementation
@@ -281,7 +288,7 @@ class ClickHouseService:
             logger.error("Failed to get system metrics", error=str(e))
             raise
 
-    async def get_document_analytics(self, start_date: date, end_date: date, document_type: Optional[str] = None) -> DocumentAnalytics:
+    async def get_document_analytics(self, start_date: date, end_date: date, document_type: str | None = None) -> DocumentAnalytics:
         """Get document analytics"""
         try:
             # Placeholder implementation
@@ -301,7 +308,7 @@ class ClickHouseService:
             logger.error("Failed to get document analytics", error=str(e))
             raise
 
-    async def get_api_usage_stats(self, start_date: date, end_date: date, endpoint: Optional[str] = None) -> APIUsageStats:
+    async def get_api_usage_stats(self, start_date: date, end_date: date, endpoint: str | None = None) -> APIUsageStats:
         """Get API usage statistics"""
         try:
             # Placeholder implementation
@@ -321,7 +328,7 @@ class ClickHouseService:
             logger.error("Failed to get API usage stats", error=str(e))
             raise
 
-    async def get_error_analysis(self, start_date: date, end_date: date, error_type: Optional[str] = None, workflow_id: Optional[str] = None) -> ErrorAnalysis:
+    async def get_error_analysis(self, start_date: date, end_date: date, error_type: str | None = None, workflow_id: str | None = None) -> ErrorAnalysis:
         """Get error analysis"""
         try:
             conditions = ["toDate(created_at) >= %(start_date)s", "toDate(created_at) <= %(end_date)s"]

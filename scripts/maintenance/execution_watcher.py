@@ -7,9 +7,10 @@ Usage:
 
 """
 import argparse
-import requests
 import time
 from datetime import datetime, timedelta
+
+import requests
 
 
 def list_failed_executions(base_url, token, since_minutes=60):

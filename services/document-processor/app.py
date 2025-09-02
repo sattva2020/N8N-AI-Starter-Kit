@@ -2,37 +2,27 @@
 # =============================
 # FastAPI приложение для обработки документов и векторных операций
 
-import os
+import json
 import logging
-from typing import List, Optional, Dict, Any
-from datetime import datetime
-import asyncio
+import os
 import tempfile
-import shutil
 import time
+from datetime import datetime
+from typing import Any
 
-import uvicorn
-from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, BackgroundTasks, Form
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
-
-# ML и Vector Processing - АКТИВИРОВАНЫ
-import pandas as pd
-import numpy as np
-from sentence_transformers import SentenceTransformer
-from qdrant_client import QdrantClient, models
-from qdrant_client.http import models as qdrant_models
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import aiohttp
 import asyncpg
 
-import json
+# ML и Vector Processing - АКТИВИРОВАНЫ
+import uvicorn
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from processors.docx_processor import extract_text_from_docx
 
 # Local processors for rich document formats
 from processors.pdf_processor import extract_text_from_pdf
-from processors.docx_processor import extract_text_from_docx
+from pydantic import BaseModel, Field
+from qdrant_client import QdrantClient, models
+from sentence_transformers import SentenceTransformer
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -60,30 +50,30 @@ app.add_middleware(
 class DocumentModel(BaseModel):
     title: str
     content: str
-    metadata: Optional[Dict[str, Any]] = None
-    categories: Optional[List[str]] = None
-    tags: Optional[List[str]] = None
-    version: Optional[str] = None
-    created_at: Optional[str] = None
-    last_modified_at: Optional[str] = None
+    metadata: dict[str, Any] | None = None
+    categories: list[str] | None = None
+    tags: list[str] | None = None
+    version: str | None = None
+    created_at: str | None = None
+    last_modified_at: str | None = None
 
 class DocumentInfo(BaseModel):
     id: str
     title: str
     content: str
-    metadata: Optional[Dict[str, Any]] = None
-    categories: Optional[List[str]] = None
-    tags: Optional[List[str]] = None
-    version: Optional[str] = None
-    created_at: Optional[str] = None
-    last_modified_at: Optional[str] = None
+    metadata: dict[str, Any] | None = None
+    categories: list[str] | None = None
+    tags: list[str] | None = None
+    version: str | None = None
+    created_at: str | None = None
+    last_modified_at: str | None = None
 
 class SearchRequest(BaseModel):
     query: str = Field(..., description="Поисковый запрос")
     limit: int = Field(default=5, ge=1, le=100, description="Количество результатов")
     threshold: float = Field(default=0.05, ge=0.0, le=1.0, description="Порог релевантности")
-    categories: Optional[List[str]] = Field(None, description="Список категорий для фильтрации")
-    tags: Optional[List[str]] = Field(None, description="Список тегов для фильтрации")
+    categories: list[str] | None = Field(None, description="Список категорий для фильтрации")
+    tags: list[str] | None = Field(None, description="Список тегов для фильтрации")
 
 class SearchResult(BaseModel):
     document_id: str
@@ -94,7 +84,7 @@ class SearchResult(BaseModel):
 
 class SearchResponse(BaseModel):
     query: str
-    results: List[SearchResult]
+    results: list[SearchResult]
     total_found: int
     search_time_ms: float
 
@@ -105,7 +95,7 @@ class ProcessRequest(BaseModel):
 class HealthResponse(BaseModel):
     status: str
     version: str
-    services: Dict[str, str]
+    services: dict[str, str]
 
 # Глобальные переменные для инициализации
 embedding_model = None
@@ -208,9 +198,9 @@ async def root():
 async def upload_document(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    metadata: Optional[str] = Form(None),
-    categories: Optional[str] = Form(None),
-    tags: Optional[str] = Form(None)
+    metadata: str | None = Form(None),
+    categories: str | None = Form(None),
+    tags: str | None = Form(None)
 ):
     """Загрузка и обработка документа"""
     try:
@@ -406,11 +396,11 @@ async def delete_document(document_id: str):
         logger.error(f"Ошибка удаления документа: {e}")
         raise HTTPException(status_code=500, detail=f"Ошибка удаления документа: {str(e)}")
 
-@app.get("/documents", response_model=Dict[str, Any])
+@app.get("/documents", response_model=dict[str, Any])
 async def list_documents(
-    query: Optional[str] = None,
-    category: Optional[str] = None,
-    tag: Optional[str] = None,
+    query: str | None = None,
+    category: str | None = None,
+    tag: str | None = None,
     sort_by: str = "created_at",
     sort_order: str = "desc",
     limit: int = 10,
@@ -488,7 +478,7 @@ async def list_documents(
         raise HTTPException(status_code=500, detail=f"Ошибка получения списка документов: {str(e)}")
 
 # Служебные функции
-async def process_document_async(file_path: str, filename: str, content_type: str, metadata: Optional[str], categories: Optional[str], tags: Optional[str]):
+async def process_document_async(file_path: str, filename: str, content_type: str, metadata: str | None, categories: str | None, tags: str | None):
     """Асинхронная обработка документа"""
     try:
         logger.info(f"Начало обработки документа: {filename}")
@@ -502,7 +492,7 @@ async def process_document_async(file_path: str, filename: str, content_type: st
         ):
             content = extract_text_from_docx(file_path)
         else:
-            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(file_path, encoding='utf-8', errors='ignore') as f:
                 content = f.read()
             
         # Создание эмбеддинга

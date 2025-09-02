@@ -3,10 +3,10 @@ Redis Cache Service
 """
 
 import json
-import asyncio
-from typing import Any, Optional
-import structlog
+from typing import Any
+
 import redis.asyncio as redis
+import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -15,7 +15,7 @@ class CacheService:
     
     def __init__(self, config):
         self.config = config
-        self.redis_client: Optional[redis.Redis] = None
+        self.redis_client: redis.Redis | None = None
         self._initialized = False
 
     async def initialize(self):
@@ -42,7 +42,7 @@ class CacheService:
             # Don't raise - cache is optional
             self._initialized = False
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """Get value from cache"""
         if not self._initialized or not self.redis_client:
             return None

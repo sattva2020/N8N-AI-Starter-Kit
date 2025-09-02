@@ -4,32 +4,28 @@ N8N Analytics ETL Processor
 """
 
 import asyncio
-import logging
-import os
 import signal
 import sys
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta
 
 import schedule
 import structlog
 import uvicorn
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
-from pydantic import BaseModel
-
 from etl.clickhouse_client import ClickHouseClient
-from etl.postgres_client import PostgresClient
+from etl.config import ETLConfig
 from etl.n8n_api_client import N8NAPIClient
+from etl.postgres_client import PostgresClient
 from etl.processors import (
+    ErrorAnalysisProcessor,
+    NodePerformanceProcessor,
     WorkflowExecutionProcessor,
     WorkflowMetricsProcessor,
-    NodePerformanceProcessor,
-    ErrorAnalysisProcessor
 )
-from etl.config import ETLConfig
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from prometheus_client import Counter, Histogram, generate_latest
+from pydantic import BaseModel
 
 # Configure structured logging
 structlog.configure(
@@ -60,10 +56,10 @@ RECORDS_PROCESSED = Counter('etl_records_processed_total', 'Total number of reco
 class ETLStatus(BaseModel):
     """ETL status response model"""
     status: str
-    last_run: Optional[datetime]
-    next_run: Optional[datetime]
-    processed_records: Dict[str, int]
-    errors: List[str]
+    last_run: datetime | None
+    next_run: datetime | None
+    processed_records: dict[str, int]
+    errors: list[str]
 
 class ETLProcessor:
     """Main ETL processor class"""
@@ -250,7 +246,7 @@ class ETLProcessor:
                 self.processed_records['workflow_executions'] = records
                 self.last_run = datetime.utcnow()
                 
-                logger.info(f"Recent executions job completed", records_processed=records)
+                logger.info("Recent executions job completed", records_processed=records)
                 
         except Exception as e:
             JOBS_COUNTER.labels(job_type=job_type, status='error').inc()
@@ -279,7 +275,7 @@ class ETLProcessor:
                 
                 self.processed_records['workflow_metrics'] = records
                 
-                logger.info(f"Workflow metrics job completed", records_processed=records)
+                logger.info("Workflow metrics job completed", records_processed=records)
                 
         except Exception as e:
             JOBS_COUNTER.labels(job_type=job_type, status='error').inc()
@@ -309,7 +305,7 @@ class ETLProcessor:
                 
                 self.processed_records['node_performance'] = records
                 
-                logger.info(f"Node performance job completed", records_processed=records)
+                logger.info("Node performance job completed", records_processed=records)
                 
         except Exception as e:
             JOBS_COUNTER.labels(job_type=job_type, status='error').inc()
@@ -339,7 +335,7 @@ class ETLProcessor:
                 
                 self.processed_records['error_analysis'] = records
                 
-                logger.info(f"Error analysis job completed", records_processed=records)
+                logger.info("Error analysis job completed", records_processed=records)
                 
         except Exception as e:
             JOBS_COUNTER.labels(job_type=job_type, status='error').inc()
@@ -372,7 +368,7 @@ class ETLProcessor:
                 
                 JOBS_COUNTER.labels(job_type=job_type, status='success').inc()
                 
-                logger.info(f"Full sync job completed", total_records=total_records)
+                logger.info("Full sync job completed", total_records=total_records)
                 
         except Exception as e:
             JOBS_COUNTER.labels(job_type=job_type, status='error').inc()

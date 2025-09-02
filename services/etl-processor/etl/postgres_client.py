@@ -2,12 +2,12 @@
 PostgreSQL client for N8N data access
 """
 
-import asyncio
-from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
-import structlog
+from datetime import datetime
+from typing import Any
+
 import asyncpg
-from asyncpg import Connection, Pool
+import structlog
+from asyncpg import Pool
 
 logger = structlog.get_logger(__name__)
 
@@ -16,7 +16,7 @@ class PostgresClient:
     
     def __init__(self, config):
         self.config = config
-        self.pool: Optional[Pool] = None
+        self.pool: Pool | None = None
         self._initialized = False
 
     async def initialize(self):
@@ -50,7 +50,7 @@ class PostgresClient:
             logger.error("Failed to initialize PostgreSQL client", error=str(e))
             raise
 
-    async def get_recent_executions(self, since: datetime) -> List[Dict[str, Any]]:
+    async def get_recent_executions(self, since: datetime) -> list[dict[str, Any]]:
         """Get recent workflow executions"""
         if not self._initialized:
             raise RuntimeError("PostgreSQL client not initialized")
@@ -99,7 +99,7 @@ class PostgresClient:
             logger.error("Failed to get recent executions", error=str(e))
             raise
 
-    async def get_workflow_metrics(self, date: datetime) -> List[Dict[str, Any]]:
+    async def get_workflow_metrics(self, date: datetime) -> list[dict[str, Any]]:
         """Get workflow metrics for a specific date"""
         query = """
             SELECT 
@@ -147,7 +147,7 @@ class PostgresClient:
             logger.error("Failed to get workflow metrics", error=str(e))
             raise
 
-    async def get_node_performance(self, since: datetime) -> List[Dict[str, Any]]:
+    async def get_node_performance(self, since: datetime) -> list[dict[str, Any]]:
         """Get node performance data"""
         query = """
             SELECT 
@@ -195,14 +195,14 @@ class PostgresClient:
                                         }
                                         node_performance.append(performance)
                 
-                logger.info(f"Retrieved node performance data", nodes=len(node_performance))
+                logger.info("Retrieved node performance data", nodes=len(node_performance))
                 return node_performance
                 
         except Exception as e:
             logger.error("Failed to get node performance", error=str(e))
             raise
 
-    async def get_error_analysis(self, since: datetime) -> List[Dict[str, Any]]:
+    async def get_error_analysis(self, since: datetime) -> list[dict[str, Any]]:
         """Get error analysis data"""
         query = """
             SELECT 
@@ -259,14 +259,14 @@ class PostgresClient:
                     }
                     errors.append(error_analysis)
                 
-                logger.info(f"Retrieved error analysis data", errors=len(errors))
+                logger.info("Retrieved error analysis data", errors=len(errors))
                 return errors
                 
         except Exception as e:
             logger.error("Failed to get error analysis", error=str(e))
             raise
 
-    async def get_workflows_info(self) -> List[Dict[str, Any]]:
+    async def get_workflows_info(self) -> list[dict[str, Any]]:
         """Get workflow information"""
         query = """
             SELECT 
@@ -298,7 +298,7 @@ class PostgresClient:
                     }
                     workflows.append(workflow)
                 
-                logger.info(f"Retrieved workflows info", workflows=len(workflows))
+                logger.info("Retrieved workflows info", workflows=len(workflows))
                 return workflows
                 
         except Exception as e:

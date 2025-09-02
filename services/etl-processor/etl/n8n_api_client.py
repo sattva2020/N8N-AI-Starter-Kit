@@ -3,9 +3,10 @@ N8N API client for accessing workflow and execution data
 """
 
 from datetime import datetime
-from typing import List, Dict, Any, Optional
-import structlog
+from typing import Any
+
 import httpx
+import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -14,7 +15,7 @@ class N8NAPIClient:
     
     def __init__(self, config):
         self.config = config
-        self.client: Optional[httpx.AsyncClient] = None
+        self.client: httpx.AsyncClient | None = None
         self._initialized = False
 
     async def initialize(self):
@@ -48,7 +49,7 @@ class N8NAPIClient:
             # Don't raise - API access is optional
             self._initialized = False
 
-    async def get_workflows(self) -> List[Dict[str, Any]]:
+    async def get_workflows(self) -> list[dict[str, Any]]:
         """Get all workflows"""
         if not self._initialized or not self.client:
             return []
@@ -67,7 +68,7 @@ class N8NAPIClient:
             logger.error("Failed to get workflows from API", error=str(e))
             return []
 
-    async def get_workflow(self, workflow_id: str) -> Optional[Dict[str, Any]]:
+    async def get_workflow(self, workflow_id: str) -> dict[str, Any] | None:
         """Get specific workflow"""
         if not self._initialized or not self.client:
             return None
@@ -84,7 +85,7 @@ class N8NAPIClient:
             logger.error(f"Failed to get workflow {workflow_id} from API", error=str(e))
             return None
 
-    async def get_executions(self, workflow_id: Optional[str] = None, limit: int = 100) -> List[Dict[str, Any]]:
+    async def get_executions(self, workflow_id: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
         """Get workflow executions"""
         if not self._initialized or not self.client:
             return []
@@ -107,7 +108,7 @@ class N8NAPIClient:
             logger.error("Failed to get executions from API", error=str(e))
             return []
 
-    async def get_execution(self, execution_id: str) -> Optional[Dict[str, Any]]:
+    async def get_execution(self, execution_id: str) -> dict[str, Any] | None:
         """Get specific execution with full data"""
         if not self._initialized or not self.client:
             return None
@@ -124,7 +125,7 @@ class N8NAPIClient:
             logger.error(f"Failed to get execution {execution_id} from API", error=str(e))
             return None
 
-    async def get_active_workflows(self) -> List[Dict[str, Any]]:
+    async def get_active_workflows(self) -> list[dict[str, Any]]:
         """Get active workflows"""
         if not self._initialized or not self.client:
             return []
@@ -141,7 +142,7 @@ class N8NAPIClient:
             logger.error("Failed to get active workflows from API", error=str(e))
             return []
 
-    async def get_workflow_statistics(self, workflow_id: str) -> Optional[Dict[str, Any]]:
+    async def get_workflow_statistics(self, workflow_id: str) -> dict[str, Any] | None:
         """Get workflow execution statistics"""
         if not self._initialized or not self.client:
             return None

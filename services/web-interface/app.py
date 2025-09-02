@@ -2,19 +2,18 @@
 # ========================
 # FastAPI + Jinja2 веб-интерфейс для n8n-ai-starter-kit
 
-import os
 import logging
-from typing import List, Optional, Dict, Any
+import os
 from datetime import datetime
-import asyncio
-import aiohttp
+from typing import Any
 
+import aiohttp
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request, Form, UploadFile, File
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # Настройка логирования
@@ -50,19 +49,19 @@ DOCUMENT_PROCESSOR_URL = os.getenv("DOCUMENT_PROCESSOR_URL", "http://document-pr
 class SearchRequest(BaseModel):
     query: str
     limit: int = 10
-    categories: Optional[List[str]] = None
-    tags: Optional[List[str]] = None
+    categories: list[str] | None = None
+    tags: list[str] | None = None
 
 class DocumentInfo(BaseModel):
     id: str
     title: str
     content: str
-    metadata: Optional[Dict[str, Any]] = None
-    categories: Optional[List[str]] = None
-    tags: Optional[List[str]] = None
-    version: Optional[str] = None
-    created_at: Optional[str] = None
-    last_modified_at: Optional[str] = None
+    metadata: dict[str, Any] | None = None
+    categories: list[str] | None = None
+    tags: list[str] | None = None
+    version: str | None = None
+    created_at: str | None = None
+    last_modified_at: str | None = None
 
 # Health Check
 @app.get("/health")
@@ -132,8 +131,8 @@ async def documents_page(request: Request):
 @app.post("/api/upload")
 async def upload_document(
     file: UploadFile = File(...),
-    categories: Optional[str] = Form(None),
-    tags: Optional[str] = Form(None)
+    categories: str | None = Form(None),
+    tags: str | None = Form(None)
 ):
     """API для загрузки документов"""
     try:
@@ -177,11 +176,11 @@ async def search_documents(request: SearchRequest):
 @app.get("/api/documents")
 async def list_documents(
     request: Request,
-    query: Optional[str] = None,
-    category: Optional[str] = None,
-    tag: Optional[str] = None,
-    sort_by: Optional[str] = "created_at",
-    sort_order: Optional[str] = "desc",
+    query: str | None = None,
+    category: str | None = None,
+    tag: str | None = None,
+    sort_by: str | None = "created_at",
+    sort_order: str | None = "desc",
     limit: int = 10,
     offset: int = 0
 ):

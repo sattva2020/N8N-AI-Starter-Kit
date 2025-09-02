@@ -3,7 +3,7 @@ ETL Data Processors
 """
 
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
+
 import structlog
 
 logger = structlog.get_logger(__name__)

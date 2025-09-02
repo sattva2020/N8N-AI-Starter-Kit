@@ -2,10 +2,9 @@
 Analytics API Configuration
 """
 
-import os
-from typing import List, Union
-from pydantic import Field, field_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class APIConfig(BaseSettings):
     """Analytics API configuration settings"""
@@ -33,12 +32,12 @@ class APIConfig(BaseSettings):
     
     # CORS settings - использовать жёсткие значения для тестирования
     @property
-    def cors_origins(self) -> List[str]:
+    def cors_origins(self) -> list[str]:
         """Возвращает список разрешённых CORS origins"""
         return ["http://localhost:3000", "http://localhost:8088", "*"]
     
     @property
-    def api_keys(self) -> List[str]:
+    def api_keys(self) -> list[str]:
         """Возвращает список API ключей"""
         return []  # Пустой список - авторизация отключена
     

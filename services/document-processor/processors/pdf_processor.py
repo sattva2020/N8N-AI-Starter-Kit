@@ -1,4 +1,3 @@
-from typing import Optional
 
 try:
     from PyPDF2 import PdfReader

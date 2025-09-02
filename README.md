@@ -1,5 +1,14 @@
 # N8N AI Starter Kit
 
+## Update 2025-09-02: Windows bootstrap and YAML validator
+
+The repository now includes a hardened Windows bootstrap and automatic YAML validation/formatting:
+
+- Windows setup: run `scripts/bootstrap-windows.ps1` (supports non-interactive `-Yes` mode). It detects Python via `py -3`/`python` and installs required tools (pip upgrades, PyYAML, ShellCheck) using available package managers.
+- YAML validation/formatting: `scripts/format-yaml.py` normalizes all YAML files (2-space indent, stable key order) and validates syntax. It’s integrated into the pre-commit checks and CI.
+
+Pre-commit on Windows will offer to run the bootstrap when required tools are missing.
+
 <!-- test branch note: infra fixes made in test/v1.0-2025-09-01 -->
 <!-- Note: Traefik dynamic config mount fixed in test branch -->
 
@@ -17,7 +26,7 @@
 
 [![CI/CD](https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml)
 
-**Мощная платформа для AI-автоматизации с локальными LLM**
+## Мощная платформа для AI-автоматизации с локальными LLM
 
 > **🔒 Безопасность**: LightRAG теперь защищен многоуровневой системой безопасности включая Basic Auth, принудительный HTTPS, security headers и rate limiting. Все административные интерфейсы требуют аутентификации.
 

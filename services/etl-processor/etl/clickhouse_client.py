@@ -3,9 +3,9 @@ ClickHouse client for analytics data
 """
 
 import asyncio
-import time
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import Any
+
 import structlog
 from clickhouse_driver import Client as SyncClient
 from clickhouse_driver.errors import Error as ClickHouseError
@@ -67,7 +67,7 @@ class ClickHouseClient:
                 await asyncio.sleep(retry_delay)
                 retry_delay *= 2  # Exponential backoff
 
-    async def execute(self, query: str, params: Optional[Dict] = None) -> List[Any]:
+    async def execute(self, query: str, params: dict | None = None) -> list[Any]:
         """Execute query asynchronously"""
         if not self._initialized:
             raise RuntimeError("ClickHouse client not initialized")
@@ -88,7 +88,7 @@ class ClickHouseClient:
             logger.error("Unexpected error executing ClickHouse query", query=query, error=str(e))
             raise
 
-    async def insert_data(self, table: str, data: List[Dict[str, Any]]) -> int:
+    async def insert_data(self, table: str, data: list[dict[str, Any]]) -> int:
         """Insert data into table"""
         if not data:
             return 0
@@ -114,7 +114,7 @@ class ClickHouseClient:
             logger.error(f"Failed to insert data into {table}", error=str(e))
             raise
 
-    async def insert_workflow_executions(self, executions: List[Dict[str, Any]]) -> int:
+    async def insert_workflow_executions(self, executions: list[dict[str, Any]]) -> int:
         """Insert workflow executions data"""
         if not executions:
             return 0
@@ -139,28 +139,28 @@ class ClickHouseClient:
         
         return await self.insert_data('workflow_executions', processed_data)
 
-    async def insert_workflow_metrics(self, metrics: List[Dict[str, Any]]) -> int:
+    async def insert_workflow_metrics(self, metrics: list[dict[str, Any]]) -> int:
         """Insert workflow metrics data"""
         if not metrics:
             return 0
             
         return await self.insert_data('workflow_metrics', metrics)
 
-    async def insert_node_performance(self, performance_data: List[Dict[str, Any]]) -> int:
+    async def insert_node_performance(self, performance_data: list[dict[str, Any]]) -> int:
         """Insert node performance data"""
         if not performance_data:
             return 0
             
         return await self.insert_data('node_performance', performance_data)
 
-    async def insert_error_analysis(self, errors: List[Dict[str, Any]]) -> int:
+    async def insert_error_analysis(self, errors: list[dict[str, Any]]) -> int:
         """Insert error analysis data"""
         if not errors:
             return 0
             
         return await self.insert_data('error_analysis', errors)
 
-    async def get_last_processed_timestamp(self, table: str, timestamp_column: str = 'created_at') -> Optional[datetime]:
+    async def get_last_processed_timestamp(self, table: str, timestamp_column: str = 'created_at') -> datetime | None:
         """Get last processed timestamp from table"""
         try:
             query = f"SELECT max({timestamp_column}) FROM {table}"
@@ -185,7 +185,7 @@ class ClickHouseClient:
             except Exception as e:
                 logger.warning(f"Failed to optimize table {table}", error=str(e))
 
-    def _calculate_duration_ms(self, started_at: Optional[datetime], finished_at: Optional[datetime]) -> int:
+    def _calculate_duration_ms(self, started_at: datetime | None, finished_at: datetime | None) -> int:
         """Calculate duration in milliseconds"""
         if not started_at or not finished_at:
             return 0

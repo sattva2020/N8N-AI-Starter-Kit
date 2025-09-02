@@ -4,8 +4,9 @@ Simple YAML formatter using PyYAML safe_load/safe_dump.
 Rewrites files with 2-space indentation and stable key order preserved (sort_keys=False).
 """
 import sys
-import yaml
 from pathlib import Path
+
+import yaml
 
 
 def format_file(path: Path) -> int:

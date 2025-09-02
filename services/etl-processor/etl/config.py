@@ -2,10 +2,9 @@
 ETL Configuration
 """
 
-import os
-from typing import Optional
 from pydantic import Field
 from pydantic_settings import BaseSettings
+
 
 class ETLConfig(BaseSettings):
     """ETL configuration settings"""
@@ -26,7 +25,7 @@ class ETLConfig(BaseSettings):
     
     # N8N API settings
     n8n_api_url: str = Field(default="http://n8n:5678", env="N8N_API_URL")
-    n8n_api_key: Optional[str] = Field(default=None, env="N8N_API_KEY")
+    n8n_api_key: str | None = Field(default=None, env="N8N_API_KEY")
     
     # Redis settings
     redis_url: str = Field(default="redis://redis:6379/2", env="REDIS_URL")

@@ -3,35 +3,30 @@ N8N Analytics API
 REST API для доступа к аналитическим данным из ClickHouse
 """
 
-import asyncio
-import logging
-import os
 import signal
 import sys
-from datetime import datetime, timedelta, date
-from typing import Dict, List, Optional, Any
 from contextlib import asynccontextmanager
+from datetime import date, datetime, timedelta
 
 import structlog
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
-from pydantic import BaseModel, Field
-
-from api.clickhouse_service import ClickHouseService
 from api.cache_service import CacheService
+from api.clickhouse_service import ClickHouseService
 from api.config import APIConfig
 from api.models import (
-    WorkflowAnalytics,
-    UserActivity,
-    SystemMetrics,
-    DocumentAnalytics,
     APIUsageStats,
+    DocumentAnalytics,
     ErrorAnalysis,
-    PerformanceReport
+    PerformanceReport,
+    SystemMetrics,
+    UserActivity,
+    WorkflowAnalytics,
 )
+from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from prometheus_client import Counter, Histogram, generate_latest
+from pydantic import BaseModel, Field
 
 # Configure structured logging
 structlog.configure(
@@ -112,7 +107,7 @@ app.add_middleware(
 )
 
 # Dependency для проверки API ключей (если нужно)
-async def verify_api_key(api_key: Optional[str] = Query(None)):
+async def verify_api_key(api_key: str | None = Query(None)):
     """Проверка API ключа"""
     if config.require_api_key and not api_key:
         raise HTTPException(status_code=401, detail="API key required")
@@ -148,7 +143,7 @@ async def get_metrics():
 async def get_workflow_analytics(
     start_date: date = Query(..., description="Дата начала"),
     end_date: date = Query(..., description="Дата окончания"),
-    workflow_id: Optional[str] = Query(None, description="ID воркфлоу"),
+    workflow_id: str | None = Query(None, description="ID воркфлоу"),
     api_key: str = Depends(verify_api_key)
 ):
     """Получить аналитику по воркфлоу"""
@@ -220,7 +215,7 @@ async def get_top_performing_workflows(
 async def get_user_activity(
     start_date: date = Query(...),
     end_date: date = Query(...),
-    user_id: Optional[str] = Query(None),
+    user_id: str | None = Query(None),
     pagination: PaginationParams = Depends(),
     api_key: str = Depends(verify_api_key)
 ):
@@ -256,7 +251,7 @@ async def get_user_activity(
 async def get_system_metrics(
     start_time: datetime = Query(...),
     end_time: datetime = Query(...),
-    metric_type: Optional[str] = Query(None, description="Тип метрики"),
+    metric_type: str | None = Query(None, description="Тип метрики"),
     api_key: str = Depends(verify_api_key)
 ):
     """Получить системные метрики"""
@@ -291,7 +286,7 @@ async def get_system_metrics(
 async def get_document_analytics(
     start_date: date = Query(...),
     end_date: date = Query(...),
-    document_type: Optional[str] = Query(None),
+    document_type: str | None = Query(None),
     api_key: str = Depends(verify_api_key)
 ):
     """Получить аналитику по документам"""
@@ -326,7 +321,7 @@ async def get_document_analytics(
 async def get_api_usage_stats(
     start_date: date = Query(...),
     end_date: date = Query(...),
-    endpoint: Optional[str] = Query(None),
+    endpoint: str | None = Query(None),
     api_key: str = Depends(verify_api_key)
 ):
     """Получить статистику использования API"""
@@ -361,8 +356,8 @@ async def get_api_usage_stats(
 async def get_error_analysis(
     start_date: date = Query(...),
     end_date: date = Query(...),
-    error_type: Optional[str] = Query(None),
-    workflow_id: Optional[str] = Query(None),
+    error_type: str | None = Query(None),
+    workflow_id: str | None = Query(None),
     api_key: str = Depends(verify_api_key)
 ):
     """Получить анализ ошибок"""
