@@ -6,12 +6,12 @@
 
 ---
 
-1) Идея в двух шагах:
+1. Идея в двух шагах:
 
-- Объявить именованные сети внизу `docker-compose.yml` (один публичный для Traefik, один внутренний для бэкендов). 
+- Объявить именованные сети внизу `docker-compose.yml` (один публичный для Traefik, один внутренний для бэкендов).
 - Убедиться, что у всех трёх сервисов (`traefik`, `n8n`, `ollama`) в разделе `networks:` перечислены нужные сети — тогда Docker provider в Traefik всегда увидит правильные endpoints.
 
-2) Минимальный пример изменений (вставьте/адаптируйте в `docker-compose.yml`):
+2. Минимальный пример изменений (вставьте/адаптируйте в `docker-compose.yml`):
 
 ```yaml
 services:
@@ -39,19 +39,19 @@ services:
 # В конце файла объявляем сети
 networks:
   traefik_public:
-    external: true   # если у вас есть внешняя сеть (рекомендуется), или false для управления compose
+    external: true # если у вас есть внешняя сеть (рекомендуется), или false для управления compose
   frontend:
     driver: bridge
   backend:
     driver: bridge
-
 ```
 
 Пояснения:
+
 - `traefik_public` — сеть, в которую рекомендуется подключить Traefik (и которая должна иметь привязку хоста/портов 80/443). Если у вас уже есть сеть с таким именем (например, созданная ранее), выставьте `external: true`. Если нет — можно не ставить `external` и Compose создаст сеть при поднятии стека.
 - `backend` и `frontend` — локальные сети для микросервисов. Ключевой момент — Traefik должен быть подключён хотя бы к той сети, где находится целевой контейнер (или к обеим), иначе он не увидит endpoint и будет пробовать недоступный IP.
 
-3) Пример безопасного workflow при применении изменений
+3. Пример безопасного workflow при применении изменений
 
 - Сделать бэкап текущего `docker-compose.yml`.
 - Внести патч/изменения и проверить конфигурацию:
@@ -68,29 +68,28 @@ docker compose up -d
 
 - Проверить, что Traefik видит роутеры и сервисы (если доступен dashboard) или проверить логи Traefik на отсутствие 504.
 
-4) Примечания и варианты
+4. Примечания и варианты
 
 - Если вы используете Swarm/Kubernetes — концепция схожа, но нужно использовать секреты/сети в рамках вашей платформы.
 - Не подключайте Traefik к сетям, где он не должен видеть внутреннюю службу — подключайте только при необходимости (чтобы не увеличивать поверхность атаки). Но для разработки часто удобно дать Traefik обе сети.
 - Если после перезапуска вы снова видите 504, проверьте порядок старта: иногда Traefik стартует раньше, чем контейнеры приложений; в добавок можно поставить `depends_on` (docker compose v2) или healthchecks.
 
-5) Пример `depends_on` + healthcheck для ollama (рекомендуется)
+5. Пример `depends_on` + healthcheck для ollama (рекомендуется)
 
 ```yaml
-  ollama:
-    image: ollama/ollama:latest
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/" ]
-      interval: 10s
-      timeout: 3s
-      retries: 5
+ollama:
+  image: ollama/ollama:latest
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:11434/"]
+    interval: 10s
+    timeout: 3s
+    retries: 5
 
-  traefik:
-    image: traefik:latest
-    depends_on:
-      ollama:
-        condition: service_healthy
-
+traefik:
+  image: traefik:latest
+  depends_on:
+    ollama:
+      condition: service_healthy
 ```
 
 Healthcheck снижает шанс того, что Traefik начнёт проксировать на ещё не поднявшийся backend и будет получать 504.

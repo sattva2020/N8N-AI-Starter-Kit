@@ -15,7 +15,7 @@
 - **[Project Documentation](./docs/)** — полная документация проекта
 - **[N8N Workflows](./n8n/workflows/)** — готовые рабочие процессы для импорта: quick note added to satisfy pre-commit docs check -->
 
-[![CI/CD](https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml/badge.svg)](<https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml>)
+[![CI/CD](https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml)
 
 **Мощная платформа для AI-автоматизации с локальными LLM**
 
@@ -141,14 +141,14 @@ graph TD
 
 Выберите нужные компоненты через переменную `COMPOSE_PROFILES`:
 
-| Профиль | Сервисы | Назначение |
-|---------|---------|------------|
-| `default` | n8n, postgres, traefik, ollama, qdrant | Базовый AI-стек |
-| `developer` | pgadmin, jupyterlab | Инструменты разработки |
-| `reasoning` | lightrag | Легкая RAG служба для онлайновой подстановки знаний |
-| `monitoring` | prometheus, grafana, alertmanager | Мониторинг и алерты |
-| `logging` | elasticsearch, kibana, logstash | Централизованное логирование |
-| `analytics` | superset, clickhouse, redis | Бизнес-аналитика |
+| Профиль      | Сервисы                                | Назначение                                          |
+| ------------ | -------------------------------------- | --------------------------------------------------- |
+| `default`    | n8n, postgres, traefik, ollama, qdrant | Базовый AI-стек                                     |
+| `developer`  | pgadmin, jupyterlab                    | Инструменты разработки                              |
+| `reasoning`  | lightrag                               | Легкая RAG служба для онлайновой подстановки знаний |
+| `monitoring` | prometheus, grafana, alertmanager      | Мониторинг и алерты                                 |
+| `logging`    | elasticsearch, kibana, logstash        | Централизованное логирование                        |
+| `analytics`  | superset, clickhouse, redis            | Бизнес-аналитика                                    |
 
 ```bash
 # Пример: запуск с мониторингом
@@ -266,15 +266,15 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 
 ## � Документация
 
-| Раздел | Описание |
-|--------|----------|
-| [🚀 Начало работы](./docs/01-getting-started.md) | Пошаговая установка и первый запуск |
-| [⚙️ Конфигурация](./docs/02-configuration.md) | Подробные настройки всех компонентов |
-| [🏗️ Архитектура](./docs/03-architecture.md) | Техническое описание системы |
-| [🤖 AI-функции](./docs/04-guides/ai-features.md) | Работа с Ollama, Qdrant, Graphiti |
-| [📊 Мониторинг](./docs/04-guides/monitoring-and-logging.md) | Настройка Grafana, Kibana |
-| [🔧 Скрипты](./docs/04-guides/automation-scripts.md) | Автоматизация и управление |
-| [🛠 Устранение неполадок](./TROUBLESHOOTING.md) | Решение проблем |
+| Раздел                                                      | Описание                             |
+| ----------------------------------------------------------- | ------------------------------------ |
+| [🚀 Начало работы](./docs/01-getting-started.md)            | Пошаговая установка и первый запуск  |
+| [⚙️ Конфигурация](./docs/02-configuration.md)               | Подробные настройки всех компонентов |
+| [🏗️ Архитектура](./docs/03-architecture.md)                 | Техническое описание системы         |
+| [🤖 AI-функции](./docs/04-guides/ai-features.md)            | Работа с Ollama, Qdrant, Graphiti    |
+| [📊 Мониторинг](./docs/04-guides/monitoring-and-logging.md) | Настройка Grafana, Kibana            |
+| [🔧 Скрипты](./docs/04-guides/automation-scripts.md)        | Автоматизация и управление           |
+| [🛠 Устранение неполадок](./TROUBLESHOOTING.md)              | Решение проблем                      |
 
 ## 🎯 Примеры использования
 

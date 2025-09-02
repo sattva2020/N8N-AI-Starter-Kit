@@ -1,0 +1,36 @@
+name: CI - setup dependencies
+
+on:
+  push:
+    branches: [ main, test, 'test/*' ]
+  pull_request:
+    branches: [ main, test ]
+
+jobs:
+  deps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi
+
+      - name: Install shellcheck
+        run: |
+          # Install shellcheck on Ubuntu runners
+          sudo apt-get update -y
+          sudo apt-get install -y shellcheck
+
+      - name: Verify installs
+        run: |
+          python --version
+          python -c "import yaml; print('PyYAML', yaml.__version__)"
+          shellcheck --version

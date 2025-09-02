@@ -169,4 +169,4 @@ ollama_data/
 # Application data
 /data/
 /compose/data/
-/n8n/
+/n8n/# rStar2 config template - safe to commit (contains placeholders only)

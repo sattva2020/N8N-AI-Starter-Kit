@@ -63,16 +63,19 @@ The `scripts/setup.sh` script has been significantly enhanced to provide better 
 ## System Requirements
 
 ### 💾 Memory:
+
 - Less than 4GB: Performance warning issued
 - 4-8GB: Suitable for basic tasks
 - Over 8GB: Optimal for all services
 
 ### 💻 CPU:
+
 - Less than 2 cores: Limited performance warning
 - 2-4 cores: Suitable for basic tasks
 - Over 4 cores: Optimal for all services
 
 ### 💿 Disk Space:
+
 - Less than 10GB: Space shortage warning
 - 10-20GB: Sufficient for initial setup
 - Over 20GB: Recommended for long-term use
@@ -89,16 +92,16 @@ bash scripts/setup.sh
 
 After the setup script has generated your `.env` and you've started the stack (for example `docker compose up -d` or `./start.sh`), n8n UI may take a short while to become available. To apply bulk credentials safely:
 
-1) Create a personal/admin token in the n8n UI and keep it secret (see `docs/credentials.md`).
-2) Verify n8n is reachable (default: `http://localhost:5678`).
-3) Run a dry-run to validate payloads (no changes made):
+1. Create a personal/admin token in the n8n UI and keep it secret (see `docs/credentials.md`).
+2. Verify n8n is reachable (default: `http://localhost:5678`).
+3. Run a dry-run to validate payloads (no changes made):
 
 ```bash
 ./scripts/create_n8n_credential.sh --dry-run --token "<YOUR_N8N_ADMIN_TOKEN>" \
    --bulk-file config/samples/credentials-bulk.json --n8n-url http://localhost:5678
 ```
 
-4) If the dry-run output looks good, run the real import:
+4. If the dry-run output looks good, run the real import:
 
 ```bash
 ./scripts/create_n8n_credential.sh --token "<YOUR_N8N_ADMIN_TOKEN>" \
@@ -106,7 +109,6 @@ After the setup script has generated your `.env` and you've started the stack (f
 ```
 
 For CI use, read the token from your secret manager and export it into the environment instead of checking it into files.
-
 
 ### Installation Process:
 
@@ -123,12 +125,14 @@ For CI use, read the token from your secret manager and export it into the envir
 ## Operating System Support
 
 ### Linux:
+
 - Ubuntu (all recent versions)
 - Debian (all recent versions)
 - CentOS/RHEL (7 and above)
 - Fedora (all recent versions)
 
 ### macOS:
+
 - Docker Desktop installation instructions provided
 - Manual Docker installation required, but script supports pre-installed Docker
 
@@ -137,6 +141,7 @@ For CI use, read the token from your secret manager and export it into the envir
 ### Testing Recommendations:
 
 1. **Cross-Platform Testing**:
+
    - Ubuntu 22.04 and 24.04
    - Debian 11 and 12
    - CentOS/RHEL 8 and 9

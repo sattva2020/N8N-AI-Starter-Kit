@@ -18,6 +18,7 @@ nano .env
 ### Основные требования
 
 **Обязательные переменные для запуска:**
+
 - `DOMAIN_NAME` - ваш основной домен
 - `N8N_ENCRYPTION_KEY` - ключ шифрования (32+ символов)
 - `POSTGRES_PASSWORD` - пароль базы данных
@@ -27,13 +28,13 @@ nano .env
 
 Гибкая система запуска сервисов по ролям:
 
-| Профиль | Сервисы | Назначение |
-|---------|---------|------------|
-| `default` | n8n, postgres, traefik, ollama, qdrant, graphiti, neo4j | Базовая AI-автоматизация |
-| `monitoring` | prometheus, grafana, alertmanager, exporters | Мониторинг и метрики |
-| `logging` | elasticsearch, kibana, logstash | Централизованное логирование |
-| `analytics` | superset, clickhouse, redis | Бизнес-аналитика |
-| `developer` | pgadmin, jupyterlab | Инструменты разработки |
+| Профиль      | Сервисы                                                 | Назначение                   |
+| ------------ | ------------------------------------------------------- | ---------------------------- |
+| `default`    | n8n, postgres, traefik, ollama, qdrant, graphiti, neo4j | Базовая AI-автоматизация     |
+| `monitoring` | prometheus, grafana, alertmanager, exporters            | Мониторинг и метрики         |
+| `logging`    | elasticsearch, kibana, logstash                         | Централизованное логирование |
+| `analytics`  | superset, clickhouse, redis                             | Бизнес-аналитика             |
+| `developer`  | pgadmin, jupyterlab                                     | Инструменты разработки       |
 
 ### Примеры запуска
 
@@ -52,156 +53,168 @@ COMPOSE_PROFILES=default,developer
 
 ### Основные настройки
 
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `DOMAIN_NAME` | Основной домен для всех сервисов | **Да** | `example.com` |
-| `COMPOSE_PROJECT_NAME` | Имя проекта Docker Compose | Нет | `n8n-ai-starter-kit` |
-| `GENERIC_TIMEZONE` | Временная зона контейнеров | Нет | `UTC` |
+| Переменная             | Описание                         | Обязательно | Пример               |
+| ---------------------- | -------------------------------- | ----------- | -------------------- |
+| `DOMAIN_NAME`          | Основной домен для всех сервисов | **Да**      | `example.com`        |
+| `COMPOSE_PROJECT_NAME` | Имя проекта Docker Compose       | Нет         | `n8n-ai-starter-kit` |
+| `GENERIC_TIMEZONE`     | Временная зона контейнеров       | Нет         | `UTC`                |
 
 ### PostgreSQL
 
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `POSTGRES_USER` | Пользователь базы данных | Нет | `n8n` |
-| `POSTGRES_PASSWORD` | Пароль PostgreSQL | **Да** | `gH4tL9jK1oP3` |
-| `POSTGRES_DB` | Имя базы данных | Нет | `n8n` |
-| `POSTGRES_HOST` | Хост сервиса | Нет | `postgres` |
-| `POSTGRES_PORT` | Порт сервиса | Нет | `5432` |
+| Переменная          | Описание                 | Обязательно | Пример         |
+| ------------------- | ------------------------ | ----------- | -------------- |
+| `POSTGRES_USER`     | Пользователь базы данных | Нет         | `n8n`          |
+| `POSTGRES_PASSWORD` | Пароль PostgreSQL        | **Да**      | `gH4tL9jK1oP3` |
+| `POSTGRES_DB`       | Имя базы данных          | Нет         | `n8n`          |
+| `POSTGRES_HOST`     | Хост сервиса             | Нет         | `postgres`     |
+| `POSTGRES_PORT`     | Порт сервиса             | Нет         | `5432`         |
 
 ### N8N - Основные настройки
 
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `N8N_ENCRYPTION_KEY` | Ключ шифрования учетных данных | **Да** | `your_32_char_encryption_key_here_` |
-| `N8N_USER_MANAGEMENT_JWT_SECRET` | JWT секрет для управления пользователями | Нет | `your_jwt_secret_key_here_min_32_chars` |
-| `N8N_HOST` | Домен n8n | **Да** | `n8n.example.com` |
-| `N8N_PORT` | Порт n8n | Нет | `5678` |
-| `N8N_PROTOCOL` | Протокол (http/https) | Нет | `http` |
-| `N8N_SECURE_COOKIE` | Безопасные cookies | Нет | `false` |
-| `WEBHOOK_URL` | URL для вебхуков | Нет | `http://n8n.example.com/` |
-| `N8N_API_KEY` | Ключ API n8n | Нет | `your_n8n_api_key_here` |
-| `N8N_ADMIN_TOKEN` | Админ токен для API | **Да** | `n8n-pat-....` |
+| Переменная                       | Описание                                 | Обязательно | Пример                                  |
+| -------------------------------- | ---------------------------------------- | ----------- | --------------------------------------- |
+| `N8N_ENCRYPTION_KEY`             | Ключ шифрования учетных данных           | **Да**      | `your_32_char_encryption_key_here_`     |
+| `N8N_USER_MANAGEMENT_JWT_SECRET` | JWT секрет для управления пользователями | Нет         | `your_jwt_secret_key_here_min_32_chars` |
+| `N8N_HOST`                       | Домен n8n                                | **Да**      | `n8n.example.com`                       |
+| `N8N_PORT`                       | Порт n8n                                 | Нет         | `5678`                                  |
+| `N8N_PROTOCOL`                   | Протокол (http/https)                    | Нет         | `http`                                  |
+| `N8N_SECURE_COOKIE`              | Безопасные cookies                       | Нет         | `false`                                 |
+| `WEBHOOK_URL`                    | URL для вебхуков                         | Нет         | `http://n8n.example.com/`               |
+| `N8N_API_KEY`                    | Ключ API n8n                             | Нет         | `your_n8n_api_key_here`                 |
+| `N8N_ADMIN_TOKEN`                | Админ токен для API                      | **Да**      | `n8n-pat-....`                          |
 
 ### N8N - Дополнительные настройки
 
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `N8N_DEFAULT_BINARY_DATA_MODE` | Режим хранения бинарных данных | Нет | `filesystem` |
-| `N8N_API_AUTH_ACTIVE` | Активация API аутентификации | Нет | `true` |
-| `N8N_METRICS` | Включить метрики | Нет | `true` |
-| `N8N_RESET` | Сброс настроек при запуске | Нет | `false` |
-| `N8N_RUNNERS_ENABLED` | Включить task runners | Нет | `true` |
+| Переменная                     | Описание                       | Обязательно | Пример       |
+| ------------------------------ | ------------------------------ | ----------- | ------------ |
+| `N8N_DEFAULT_BINARY_DATA_MODE` | Режим хранения бинарных данных | Нет         | `filesystem` |
+| `N8N_API_AUTH_ACTIVE`          | Активация API аутентификации   | Нет         | `true`       |
+| `N8N_METRICS`                  | Включить метрики               | Нет         | `true`       |
+| `N8N_RESET`                    | Сброс настроек при запуске     | Нет         | `false`      |
+| `N8N_RUNNERS_ENABLED`          | Включить task runners          | Нет         | `true`       |
 
 ### Traefik (Reverse Proxy)
 
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `ACME_EMAIL` | Email для Let's Encrypt | **Да** | `admin@example.com` |
-| `TRAEFIK_USERNAME` | Логин дашборда Traefik | Нет | `admin` |
-| `TRAEFIK_PASSWORD_HASHED` | Хеш пароля (htpasswd) | Нет | `$apr1$...` |
-| `TRAEFIK_DASHBOARD_DOMAIN` | Домен дашборда | Нет | `traefik.example.com` |
+| Переменная                 | Описание                | Обязательно | Пример                |
+| -------------------------- | ----------------------- | ----------- | --------------------- |
+| `ACME_EMAIL`               | Email для Let's Encrypt | **Да**      | `admin@example.com`   |
+| `TRAEFIK_USERNAME`         | Логин дашборда Traefik  | Нет         | `admin`               |
+| `TRAEFIK_PASSWORD_HASHED`  | Хеш пароля (htpasswd)   | Нет         | `$apr1$...`           |
+| `TRAEFIK_DASHBOARD_DOMAIN` | Домен дашборда          | Нет         | `traefik.example.com` |
 
 ### AI Сервисы
 
 #### Ollama
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `OLLAMA_DOMAIN` | Домен Ollama API | **Да** | `ollama.example.com` |
-| `OLLAMA_HOST` | Хост внутри Docker | Нет | `ollama` |
+
+| Переменная      | Описание           | Обязательно | Пример               |
+| --------------- | ------------------ | ----------- | -------------------- |
+| `OLLAMA_DOMAIN` | Домен Ollama API   | **Да**      | `ollama.example.com` |
+| `OLLAMA_HOST`   | Хост внутри Docker | Нет         | `ollama`             |
 
 #### Graphiti / OpenAI
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `GRAPHITI_DOMAIN` | Домен Graphiti API | **Да** | `graphiti.example.com` |
-| `OPENAI_API_KEY` | Ключ OpenAI API | Нет | `sk-...` |
+
+| Переменная        | Описание           | Обязательно | Пример                 |
+| ----------------- | ------------------ | ----------- | ---------------------- |
+| `GRAPHITI_DOMAIN` | Домен Graphiti API | **Да**      | `graphiti.example.com` |
+| `OPENAI_API_KEY`  | Ключ OpenAI API    | Нет         | `sk-...`               |
 
 #### Neo4j
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `NEO4J_URI` | URI подключения Neo4j | Нет | `bolt://neo4j-graphiti:7687` |
-| `NEO4J_USER` | Пользователь Neo4j | Нет | `neo4j` |
-| `NEO4J_PASSWORD` | Пароль Neo4j | **Да** | `gH4tL9jK1oP3` |
-| `NEO4J_HOST` | Хост Neo4j | Нет | `neo4j-graphiti` |
-| `NEO4J_PORT` | Порт Neo4j | Нет | `7687` |
+
+| Переменная       | Описание              | Обязательно | Пример                       |
+| ---------------- | --------------------- | ----------- | ---------------------------- |
+| `NEO4J_URI`      | URI подключения Neo4j | Нет         | `bolt://neo4j-graphiti:7687` |
+| `NEO4J_USER`     | Пользователь Neo4j    | Нет         | `neo4j`                      |
+| `NEO4J_PASSWORD` | Пароль Neo4j          | **Да**      | `gH4tL9jK1oP3`               |
+| `NEO4J_HOST`     | Хост Neo4j            | Нет         | `neo4j-graphiti`             |
+| `NEO4J_PORT`     | Порт Neo4j            | Нет         | `7687`                       |
 
 #### Qdrant
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `QDRANT_DOMAIN` | Домен Qdrant | **Да** | `qdrant.example.com` |
-| `QDRANT_URL` | URL Qdrant | Нет | `http://qdrant:6333` |
+
+| Переменная      | Описание     | Обязательно | Пример               |
+| --------------- | ------------ | ----------- | -------------------- |
+| `QDRANT_DOMAIN` | Домен Qdrant | **Да**      | `qdrant.example.com` |
+| `QDRANT_URL`    | URL Qdrant   | Нет         | `http://qdrant:6333` |
 
 #### LightRAG
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `LIGHRAG_DOMAIN` | Домен LightRAG | **Авто** | `lightrag.example.com` |
-| `LIGHRAG_PORT` | Порт LightRAG | **Авто** | `9621` |
-| `LIGHTRAG_API_KEY` | API ключ LightRAG | **Авто** | `strong_api_key_here` |
-| `TOKEN_SECRET` | Секрет для JWT | **Авто** | `strong_token_secret` |
-| `ALLOW_ANONYMOUS_ACCESS` | Разрешить анонимный доступ | **Авто** | `false` |
+
+| Переменная               | Описание                   | Обязательно | Пример                 |
+| ------------------------ | -------------------------- | ----------- | ---------------------- |
+| `LIGHRAG_DOMAIN`         | Домен LightRAG             | **Авто**    | `lightrag.example.com` |
+| `LIGHRAG_PORT`           | Порт LightRAG              | **Авто**    | `9621`                 |
+| `LIGHTRAG_API_KEY`       | API ключ LightRAG          | **Авто**    | `strong_api_key_here`  |
+| `TOKEN_SECRET`           | Секрет для JWT             | **Авто**    | `strong_token_secret`  |
+| `ALLOW_ANONYMOUS_ACCESS` | Разрешить анонимный доступ | **Авто**    | `false`                |
 
 > **ℹ️ Примечание:** Переменные LightRAG генерируются автоматически скриптом `setup.sh` во всех режимах установки. Ручная настройка не требуется.
 
 > **🔒 Безопасность:** LightRAG защищен многоуровневой системой безопасности:
+>
 > - **Basic Auth**: Требует аутентификацию (admin/adminpass) через Traefik
-> - **HTTPS**: Принудительное перенаправление с HTTP на HTTPS  
+> - **HTTPS**: Принудительное перенаправление с HTTP на HTTPS
 > - **Security Headers**: CSP, HSTS, XSS защита и другие заголовки безопасности
 > - **Rate Limiting**: Защита от перебора паролей и злоупотреблений
 > - **Network Isolation**: Работает в изолированных Docker-сетях
 
 ### Обработка документов
 
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `DOCUMENT_PROCESSOR_DOMAIN` | Домен обработчика документов | Нет | `doc-processor.example.com` |
-| `DOCUMENT_PROCESSOR_MAX_FILE_SIZE` | Максимальный размер файла | Нет | `100MB` |
-| `DOCUMENT_PROCESSOR_SUPPORTED_FORMATS` | Поддерживаемые форматы | Нет | `pdf,docx,txt,md,rtf` |
-| `DOCUMENT_PROCESSOR_CHUNK_SIZE` | Размер чанка | Нет | `512` |
-| `DOCUMENT_PROCESSOR_OVERLAP` | Перекрытие чанков | Нет | `50` |
-| `DOCUMENT_PROCESSOR_TIMEOUT` | Таймаут обработки | Нет | `300` |
+| Переменная                             | Описание                     | Обязательно | Пример                      |
+| -------------------------------------- | ---------------------------- | ----------- | --------------------------- |
+| `DOCUMENT_PROCESSOR_DOMAIN`            | Домен обработчика документов | Нет         | `doc-processor.example.com` |
+| `DOCUMENT_PROCESSOR_MAX_FILE_SIZE`     | Максимальный размер файла    | Нет         | `100MB`                     |
+| `DOCUMENT_PROCESSOR_SUPPORTED_FORMATS` | Поддерживаемые форматы       | Нет         | `pdf,docx,txt,md,rtf`       |
+| `DOCUMENT_PROCESSOR_CHUNK_SIZE`        | Размер чанка                 | Нет         | `512`                       |
+| `DOCUMENT_PROCESSOR_OVERLAP`           | Перекрытие чанков            | Нет         | `50`                        |
+| `DOCUMENT_PROCESSOR_TIMEOUT`           | Таймаут обработки            | Нет         | `300`                       |
 
 ### Рабочие процессы
 
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `WORKFLOWS_DOC_DOMAIN` | Домен документации workflows | Нет | `workflows.example.com` |
-| `WORKFLOWS_MANAGER_DOMAIN` | Домен менеджера workflows | Нет | `workflows-manager.example.com` |
-| `WORKFLOWS_MANAGER_API_KEY` | API ключ менеджера | Нет | `your_api_key_here` |
+| Переменная                  | Описание                     | Обязательно | Пример                          |
+| --------------------------- | ---------------------------- | ----------- | ------------------------------- |
+| `WORKFLOWS_DOC_DOMAIN`      | Домен документации workflows | Нет         | `workflows.example.com`         |
+| `WORKFLOWS_MANAGER_DOMAIN`  | Домен менеджера workflows    | Нет         | `workflows-manager.example.com` |
+| `WORKFLOWS_MANAGER_API_KEY` | API ключ менеджера           | Нет         | `your_api_key_here`             |
 
 ### Мониторинг и аналитика
 
 #### Grafana
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `GRAFANA_ADMIN_USER` | Админ пользователь Grafana | Нет | `admin` |
-| `GRAFANA_ADMIN_PASSWORD` | Пароль админа Grafana | Нет | `secure_password` |
+
+| Переменная               | Описание                   | Обязательно | Пример            |
+| ------------------------ | -------------------------- | ----------- | ----------------- |
+| `GRAFANA_ADMIN_USER`     | Админ пользователь Grafana | Нет         | `admin`           |
+| `GRAFANA_ADMIN_PASSWORD` | Пароль админа Grafana      | Нет         | `secure_password` |
 
 #### Elasticsearch
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `ELASTIC_PASSWORD` | Пароль Elasticsearch | Нет | `secure_elastic_password` |
+
+| Переменная         | Описание             | Обязательно | Пример                    |
+| ------------------ | -------------------- | ----------- | ------------------------- |
+| `ELASTIC_PASSWORD` | Пароль Elasticsearch | Нет         | `secure_elastic_password` |
 
 #### Superset
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `SUPERSET_SECRET_KEY` | Секретный ключ Superset | Нет | `strong_secret_key` |
+
+| Переменная            | Описание                | Обязательно | Пример              |
+| --------------------- | ----------------------- | ----------- | ------------------- |
+| `SUPERSET_SECRET_KEY` | Секретный ключ Superset | Нет         | `strong_secret_key` |
 
 #### ClickHouse
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `CLICKHOUSE_PASSWORD` | Пароль ClickHouse | Нет | `secure_clickhouse_password` |
+
+| Переменная            | Описание          | Обязательно | Пример                       |
+| --------------------- | ----------------- | ----------- | ---------------------------- |
+| `CLICKHOUSE_PASSWORD` | Пароль ClickHouse | Нет         | `secure_clickhouse_password` |
 
 ### Инструменты разработчика
 
 #### pgAdmin
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `PGADMIN_DEFAULT_EMAIL` | Email для pgAdmin | Нет | `admin@example.com` |
-| `PGADMIN_DEFAULT_PASSWORD` | Пароль pgAdmin | Нет | `secure_pgadmin_password` |
+
+| Переменная                 | Описание          | Обязательно | Пример                    |
+| -------------------------- | ----------------- | ----------- | ------------------------- |
+| `PGADMIN_DEFAULT_EMAIL`    | Email для pgAdmin | Нет         | `admin@example.com`       |
+| `PGADMIN_DEFAULT_PASSWORD` | Пароль pgAdmin    | Нет         | `secure_pgadmin_password` |
 
 #### JupyterLab
-| Переменная | Описание | Обязательно | Пример |
-|------------|----------|-------------|---------|
-| `JUPYTER_TOKEN` | Токен Jupyter | Нет | `your_jupyter_token` |
+
+| Переменная      | Описание      | Обязательно | Пример               |
+| --------------- | ------------- | ----------- | -------------------- |
+| `JUPYTER_TOKEN` | Токен Jupyter | Нет         | `your_jupyter_token` |
 
 ## 🔐 Генерация секретных ключей
 
@@ -313,18 +326,21 @@ TRAEFIK_MIDDLEWARE_RATE_LIMIT=100
 ### Распространенные ошибки
 
 **"Encryption key is too short"**
+
 ```bash
 # Сгенерируйте новый ключ
 openssl rand -base64 32
 ```
 
 **"SSL certificate failed"**
+
 ```bash
 # Проверьте email в ACME_EMAIL
 # Убедитесь что домен доступен
 ```
 
 **"Database connection failed"**
+
 ```bash
 # Проверьте POSTGRES_PASSWORD
 # Проверьте доступность порта 5432

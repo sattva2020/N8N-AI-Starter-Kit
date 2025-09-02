@@ -3,10 +3,12 @@
 Этот документ описывает, как вручную добавлять модели в Ollama, как просмотреть список уже загруженных моделей, как удалять модели, и даёт безопасные примеры команд для использования в Docker Compose окружении проекта.
 
 Файлы и пути в стеке:
+
 - Конфиг моделей: `config/ollama-models.txt` — список, который использует сервис `ollama-pull`.
 - Директория данных Ollama в контейнере: `/root/.ollama` (см. том `ollama_data` в `docker-compose`).
 
 Рекомендуемый быстрый поток (safe):
+
 1. Отредактировать `config/ollama-models.txt` — оставить нужные модели (по одной на строке).
 2. Запустить helper‑задачу, которая аккуратно загрузит все модели из файла:
 
@@ -20,7 +22,7 @@ docker compose -f docker-compose.yml -f compose/ollama-compose.yml run --rm olla
 
 ---
 
-1) HTTP API (удобно из скриптов CI / удалённо)
+1. HTTP API (удобно из скриптов CI / удалённо)
 
 - Pull (загрузить модель):
 
@@ -46,7 +48,7 @@ curl -sS http://localhost:11434/v1/models | jq .
 curl -sS http://localhost:11434/v1/models | jq -r '.data[]?.id'
 ```
 
-2) CLI внутри контейнера (интерактивно, надёжно)
+2. CLI внутри контейнера (интерактивно, надёжно)
 
 Команды ниже предполагают, что контейнер называется `ollama` (см. `compose/ollama-compose.yml`).
 
@@ -72,7 +74,7 @@ docker exec -it ollama ollama rm phi4:14b
 
 Если у вашей версии CLI команды отличаются (`list` vs `ls`) — используйте автокомплит/`--help`: `docker exec -it ollama ollama --help`.
 
-3) Helper via docker-compose (batch from file)
+3. Helper via docker-compose (batch from file)
 
 ```bash
 docker compose -f docker-compose.yml -f compose/ollama-compose.yml run --rm ollama-pull

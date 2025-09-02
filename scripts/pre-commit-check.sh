@@ -233,6 +233,10 @@ check_file_content() {
     )
 
     for file in $staged_files; do
+        # Skip scanning internal tooling scripts
+        if [[ "$file" == scripts/* ]]; then
+            continue
+        fi
         if [[ -f "$file" ]]; then
             for keyword in "${sensitive_keywords[@]}"; do
                 if grep -q "$keyword" "$file" 2>/dev/null; then
@@ -243,6 +247,51 @@ check_file_content() {
             done
         fi
     done
+}
+
+# Форматирование YAML файлов (автоисправление)
+format_yaml_files() {
+    print_header "🔧 Форматирование YAML файлов"
+
+    # Собираем изменённые/staged yaml файлы
+    local staged_files
+    staged_files=$(git diff --cached --name-only 2>/dev/null | grep -E "\.(yml|yaml)$" || true)
+    if [[ -z "$staged_files" ]]; then
+        staged_files=$(git diff --name-only 2>/dev/null | grep -E "\.(yml|yaml)$" || true)
+    fi
+
+    if [[ -z "$staged_files" ]]; then
+        print_info "Нет изменений в YAML файлах"
+        return 0
+    fi
+
+    # Ensure python formatter exists
+    if ! command -v python3 >/dev/null 2>&1; then
+        print_warning "python3 не найден — пропускаем форматирование YAML"
+        return 0
+    fi
+
+    if [[ ! -f "scripts/format-yaml.py" ]]; then
+        print_warning "Форматтер scripts/format-yaml.py не найден — пропускаем"
+        return 0
+    fi
+
+    local changed=0
+    echo "$staged_files" | while read -r f; do
+        if [[ -f "$f" ]]; then
+            print_info "Форматирование $f"
+            python3 scripts/format-yaml.py "$f" || {
+                print_error "Форматирование файла $f не удалось"
+                ISSUES_FOUND=$((ISSUES_FOUND+1))
+            }
+            git add "$f" 2>/dev/null || true
+            changed=1
+        fi
+    done
+
+    if [[ $changed -eq 1 ]]; then
+        print_success "YAML файлы форматированы и добавлены в индекс"
+    fi
 }
 
 # Функция автоматического исправления .gitignore
@@ -386,6 +435,7 @@ main() {
     print_banner
 
     # Проверки
+    format_yaml_files
     check_dev_only_files
     check_sensitive_files
     check_file_content
