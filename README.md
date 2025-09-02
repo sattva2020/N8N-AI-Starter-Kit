@@ -145,6 +145,7 @@ graph TD
 |---------|---------|------------|
 | `default` | n8n, postgres, traefik, ollama, qdrant | Базовый AI-стек |
 | `developer` | pgadmin, jupyterlab | Инструменты разработки |
+| `reasoning` | lightrag | Легкая RAG служба для онлайновой подстановки знаний |
 | `monitoring` | prometheus, grafana, alertmanager | Мониторинг и алерты |
 | `logging` | elasticsearch, kibana, logstash | Централизованное логирование |
 | `analytics` | superset, clickhouse, redis | Бизнес-аналитика |
