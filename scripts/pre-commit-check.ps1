@@ -25,6 +25,7 @@ function Write-Header { param($Message) Write-Host $Message -ForegroundColor $Cy
 $script:IssuesFound = 0
 $script:FilesToIgnore = 0
 $script:FilesToDelete = 0
+$script:CriticalFound = $false
 
 Write-Header "============================================================================="
 Write-Header "                    PRE-COMMIT CLEANUP & VALIDATION"
@@ -93,6 +94,11 @@ $DevOnlyDirectories = @(
     "data/",
     "n8n/",
     "qdrant_data/"
+)
+
+# Критичные директории: наличие файлов в этих путях блокирует коммит
+$CriticalBlockDirectories = @(
+    "ai-instructions/"
 )
 
 $SensitivePatterns = @(
@@ -211,6 +217,11 @@ function Test-DevOnlyFiles {
                 $script:FilesToIgnore++
             }
             $script:IssuesFound++
+
+            if ($CriticalBlockDirectories -contains $dir) {
+                Write-Error "Критично: обнаружены чувствительные материалы ($dir). Коммит будет заблокирован."
+                $script:CriticalFound = $true
+            }
         }
     }
 }
@@ -395,6 +406,10 @@ if (-not $Auto) {
 }
 
 # Финальная проверка
+if ($script:CriticalFound) {
+    Write-Error "Коммит заблокирован: обнаружены чувствительные файлы (ai-instructions/). Удалите их из индекса."
+    exit 1
+}
 if ($script:IssuesFound -gt 0) {
     Write-Warning "Найдены проблемы. Рекомендуется исправить их перед коммитом."
     if ($Strict) {

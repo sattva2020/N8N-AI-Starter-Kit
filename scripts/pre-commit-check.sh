@@ -20,6 +20,7 @@ NC='\033[0m' # No Color
 ISSUES_FOUND=0
 FILES_TO_IGNORE=0
 FILES_TO_DELETE=0
+CRITICAL_FOUND=0
 
 print_header() { echo -e "${CYAN}${BOLD}$1${NC}"; }
 print_success() { echo -e "${GREEN}✓${NC} $1"; }
@@ -202,6 +203,11 @@ declare -a DEV_ONLY_DIRECTORIES=(
     "qdrant_data/"
 )
 
+# Критичные директории: наличие файлов в этих путях блокирует коммит
+declare -a CRITICAL_BLOCK_DIRECTORIES=(
+    "ai-instructions/"
+)
+
 declare -a SENSITIVE_PATTERNS=(
     ".env"
     ".env.*"
@@ -307,6 +313,14 @@ check_dev_only_files() {
                 ((FILES_TO_IGNORE++))
             done
             ((ISSUES_FOUND++))
+
+            # Критичные директории — жёсткая блокировка
+            for cdir in "${CRITICAL_BLOCK_DIRECTORIES[@]}"; do
+                if [[ "$dir" == "$cdir" ]]; then
+                    print_error "Критично: обнаружены чувствительные материалы ($dir). Коммит будет заблокирован."
+                    CRITICAL_FOUND=1
+                fi
+            done
         fi
     done
 }
@@ -706,6 +720,11 @@ main() {
     generate_report
 
     # Интерактивное исправление
+    if [[ $CRITICAL_FOUND -eq 1 ]]; then
+        print_error "Коммит заблокирован: обнаружены чувствительные файлы (ai-instructions/). Удалите их из индекса."
+        exit 1
+    fi
+
     if [[ "${1:-}" != "--auto" ]]; then
         interactive_fix
     fi
