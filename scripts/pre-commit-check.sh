@@ -37,6 +37,85 @@ print_banner() {
     echo
 }
 
+# Определение рабочего Python интерпретатора. Устанавливает PYTHON_CMD и PYTHON_ARGS.
+detect_python_cmd() {
+    PYTHON_CMD=""
+    PYTHON_ARGS=""
+    # Prefer Windows launcher py -3, then python, then python3
+    if command -v py >/dev/null 2>&1; then
+        if py -3 -c "import sys" >/dev/null 2>&1; then
+            PYTHON_CMD=py
+            PYTHON_ARGS='-3'
+            return 0
+        fi
+    fi
+    if command -v python >/dev/null 2>&1; then
+        if python -c "import sys" >/dev/null 2>&1; then
+            PYTHON_CMD=python
+            PYTHON_ARGS=''
+            return 0
+        fi
+    fi
+    if command -v python3 >/dev/null 2>&1; then
+        if python3 -c "import sys" >/dev/null 2>&1; then
+            PYTHON_CMD=python3
+            PYTHON_ARGS=''
+            return 0
+        fi
+    fi
+    return 1
+}
+
+# Предложить и/или запустить Windows bootstrap скрипт (если доступен)
+offer_bootstrap() {
+    # Only for interactive or AUTO_YES
+    if [[ ! -f "scripts/bootstrap-windows.ps1" ]]; then
+        return 0
+    fi
+
+    # find powershell runner
+    POWERSHELL_CMD=""
+    if command -v pwsh >/dev/null 2>&1; then
+        POWERSHELL_CMD=pwsh
+    elif command -v powershell >/dev/null 2>&1; then
+        POWERSHELL_CMD=powershell
+    fi
+
+    if [[ -z "$POWERSHELL_CMD" ]]; then
+        print_warning "Скрипт bootstrap присутствует, но pwsh/powershell не найден — запустите вручную"
+        return 0
+    fi
+
+    if [[ "${AUTO_YES:-0}" -eq 1 ]]; then
+        print_info "AUTO: запускаю bootstrap non-interactive"
+        $POWERSHELL_CMD -NoProfile -ExecutionPolicy Bypass -File scripts/bootstrap-windows.ps1 -Yes || print_warning "bootstrap вернул ошибку"
+        return $?
+    fi
+
+    read -p "Не найдены требуемые инструменты. Запустить scripts/bootstrap-windows.ps1 сейчас? [y/N]: " yn
+    if [[ "$yn" =~ ^[Yy] ]]; then
+        $POWERSHELL_CMD -NoProfile -ExecutionPolicy Bypass -File scripts/bootstrap-windows.ps1 || print_warning "bootstrap вернул ошибку"
+    else
+        print_warning "bootstrap пропущен пользователем"
+    fi
+}
+
+# Проверить наличие основных инструментов и при отсутствии предложить bootstrap
+ensure_tools_or_offer_bootstrap() {
+    local need_bootstrap=0
+    if ! detect_python_cmd; then
+        print_warning "Python не найден/нерабочий"
+        need_bootstrap=1
+    fi
+    if ! command -v shellcheck >/dev/null 2>&1; then
+        print_warning "shellcheck не найден"
+        need_bootstrap=1
+    fi
+    if [[ $need_bootstrap -eq 1 ]]; then
+        offer_bootstrap
+    fi
+}
+
 # Массивы для определения файлов только для разработки
 declare -a DEV_ONLY_PATTERNS=(
     # Временные и отладочные файлы
@@ -108,7 +187,6 @@ declare -a DEV_ONLY_DIRECTORIES=(
     "backups/"
     ".internal/"
     "logs/"
-    "tests/"
     "ai-instructions/"
     ".github/instructions/"
     "volumes/"
@@ -270,14 +348,9 @@ format_yaml_files() {
         return 0
     fi
 
-    # Ensure python formatter exists - accept python3 or python
-    PYTHON_CMD=""
-    if command -v python3 >/dev/null 2>&1; then
-        PYTHON_CMD=python3
-    elif command -v python >/dev/null 2>&1; then
-        PYTHON_CMD=python
-    else
-        print_warning "python3 или python не найден — пропускаем форматирование YAML"
+    # Determine python command (py -3, python, python3)
+    if ! detect_python_cmd; then
+        print_warning "Python не найден или нерабочий — пропускаем форматирование YAML"
         return 0
     fi
 
@@ -290,7 +363,7 @@ format_yaml_files() {
     echo "$staged_files" | while read -r f; do
         if [[ -f "$f" ]]; then
             print_info "Форматирование $f"
-            if ! $PYTHON_CMD scripts/format-yaml.py "$f"; then
+            if ! $PYTHON_CMD $PYTHON_ARGS scripts/format-yaml.py "$f"; then
                 print_warning "Форматирование файла $f не удалось — убедитесь, что установлен python и PyYAML; продолжим"
                 # don't treat formatter failure as a hard issue to avoid blocking commits on dev machines
             fi
@@ -441,8 +514,135 @@ interactive_fix() {
 }
 
 # Основная функция
+install_deps() {
+    print_header "⚙️ Установка зависимостей (python, pip, PyYAML, shellcheck)"
+
+    # only run interactively unless AUTO_YES is set
+    if [[ ! -t 0 && "${AUTO_YES:-0}" -ne 1 ]]; then
+        print_warning "Неинтерактивная среда и не задан --yes — пропускаем попытку установки зависимостей"
+        return 0
+    fi
+
+    # detect platform
+    UNAME=$(uname -s 2>/dev/null || echo "")
+    IS_WINDOWS=0
+    if echo "$UNAME" | grep -qiE "mingw|msys|cygwin"; then
+        IS_WINDOWS=1
+    fi
+
+    # helper to run commands with confirmation
+    ask_and_run() {
+        local cmd="$1"
+        echo
+        print_info "Будет выполнена команда: $cmd"
+        if [[ "${AUTO_YES:-0}" -eq 1 ]]; then
+            print_info "Запуск в неинтерактивном режиме (--yes)"
+            set +e
+            eval "$cmd"
+            local rc=$?
+            set -euo pipefail
+            if [[ $rc -ne 0 ]]; then
+                print_warning "Команда вернула код $rc"
+            else
+                print_success "Команда выполнена успешно"
+            fi
+            return
+        fi
+        read -p "Выполнить? [y/N]: " yn
+        if [[ "$yn" =~ ^[Yy] ]]; then
+            set +e
+            eval "$cmd"
+            local rc=$?
+            set -euo pipefail
+            if [[ $rc -ne 0 ]]; then
+                print_warning "Команда вернула код $rc"
+            else
+                print_success "Команда выполнена успешно"
+            fi
+        else
+            print_warning "Пропущено пользователем"
+        fi
+    }
+
+    # Python
+    if command -v python3 >/dev/null 2>&1 || command -v python >/dev/null 2>&1 || command -v py >/dev/null 2>&1; then
+        print_info "Python уже установлен"
+    else
+        if [[ $IS_WINDOWS -eq 1 ]]; then
+            if command -v winget >/dev/null 2>&1; then
+                ask_and_run "winget install --id=Python.Python.3 --source=winget"
+            elif command -v choco >/dev/null 2>&1; then
+                ask_and_run "choco install python -y"
+            else
+                print_warning "Не найден winget/choco. Установите Python вручную: https://www.python.org/downloads/"
+            fi
+        else
+            if command -v apt-get >/dev/null 2>&1; then
+                ask_and_run "sudo apt-get update && sudo apt-get install -y python3 python3-pip"
+            else
+                print_warning "Автоустановка Python не поддерживается для этой ОС. Установите вручную."
+            fi
+        fi
+    fi
+
+    # shellcheck
+    if command -v shellcheck >/dev/null 2>&1; then
+        print_info "shellcheck уже установлен"
+    else
+        if [[ $IS_WINDOWS -eq 1 ]]; then
+            if command -v scoop >/dev/null 2>&1; then
+                ask_and_run "scoop install shellcheck"
+            elif command -v choco >/dev/null 2>&1; then
+                ask_and_run "choco install shellcheck -y"
+            elif command -v winget >/dev/null 2>&1; then
+                ask_and_run "winget install --id=ShellCheck.ShellCheck -s winget"
+            else
+                print_warning "Не найден менеджер пакетов (scoop/choco/winget). Установите shellcheck вручную."
+            fi
+        else
+            if command -v apt-get >/dev/null 2>&1; then
+                ask_and_run "sudo apt-get install -y shellcheck"
+            else
+                print_warning "Автоустановка shellcheck не поддерживается для этой ОС. Установите вручную."
+            fi
+        fi
+    fi
+
+    # PyYAML via requirements using detected python
+    if detect_python_cmd; then
+        if [[ -f requirements.txt ]]; then
+            ask_and_run "$PYTHON_CMD $PYTHON_ARGS -m pip install --upgrade pip && $PYTHON_CMD $PYTHON_ARGS -m pip install -r requirements.txt"
+        else
+            ask_and_run "$PYTHON_CMD $PYTHON_ARGS -m pip install PyYAML"
+        fi
+    else
+        print_warning "Python не найден, пропускаем установку PyYAML"
+    fi
+
+    print_success "Попытка установки зависимостей завершена (см. выше результаты)."
+}
+
 main() {
     print_banner
+        # Parse flags
+        AUTO_YES=0
+        INSTALL_DEPS=0
+        for arg in "$@"; do
+            case "$arg" in
+                --install-deps)
+                    INSTALL_DEPS=1
+                    ;;
+                --yes|-y|--non-interactive)
+                    AUTO_YES=1
+                    ;;
+                *)
+                    ;;
+            esac
+        done
+
+        if [[ "${INSTALL_DEPS:-0}" -eq 1 ]]; then
+            install_deps
+        fi
 
     # Проверки
     format_yaml_files
@@ -477,3 +677,5 @@ main() {
 
 # Запуск
 main "$@"
+
+

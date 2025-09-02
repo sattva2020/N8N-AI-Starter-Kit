@@ -1,0 +1,26 @@
+# Enforce LF endings for text files
+* text=auto eol=lf
+
+# Explicit LF for common types
+*.sh text eol=lf
+*.bash text eol=lf
+*.py text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.env text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.json text eol=lf
+
+# Keep binaries untouched
+*.png -text
+*.jpg -text
+*.jpeg -text
+*.gif -text
+*.ico -text
+*.pdf -text
+*.zip -text
+*.tar -text
+*.gz -text
+*.7z -text

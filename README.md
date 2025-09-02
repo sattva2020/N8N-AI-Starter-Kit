@@ -307,6 +307,13 @@ Windows developers: see `docs/CI_SETUP.md` for instructions and a PowerShell boo
 pwsh -File .\scripts\bootstrap-windows.ps1 -Yes
 ```
 
+### Обновления инфраструктуры (текущая ветка)
+
+- Включён контроль перевода строк: добавлен `.gitattributes` с принудительным `eol=lf` для текстовых файлов и shell‑скриптов. Это устраняет ошибки ShellCheck из‑за CRLF.
+- Добавлен CI workflow `.github/workflows/tests.yml` для запуска `pytest` и публикации артефактов тестов.
+- Улучшен `scripts/pre-commit-check.sh`: более мягкое поведение на Windows, предложение автозапуска bootstrap при отсутствии инструментов, интеграция автоформатирования YAML.
+- Обновлён `scripts/bootstrap-windows.ps1`: поддержка неинтерактивного режима `-Yes`, установка Python/зависимостей и shellcheck.
+
 ### Что нового в этой ветке / релизе
 
 - Автоматическое форматирование YAML-файлов: добавлен `scripts/format-yaml.py` и соответствующая интеграция в pre-commit.

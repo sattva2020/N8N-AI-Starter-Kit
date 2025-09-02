@@ -28,9 +28,14 @@ volumes/
 !/data/credentials-bulk.json
 
 # Тестовые файлы
-tests/
+# Разрешаем каталог tests и CI workflow для тестов
+!tests/**
+!/.github/workflows/tests.yml
+# По-прежнему игнорируем любые временные/служебные test*.yml вне workflows
 *test*.yml
 *test*.yaml
+tests/test-results/*
+!tests/test-results/.gitkeep
 
 # Системные файлы
 .DS_Store
@@ -158,8 +163,8 @@ template.env
 *TEST*.md
 MISSION_*.md
 CRITICAL_*.md
-"# ஥ Git ९ਨ"  
-"n8n-workflows-es-main/" 
+"# ஥ Git ९ਨ"
+"n8n-workflows-es-main/"
 
 # Ollama: logs and local runtime artifacts
 logs/ollama/
