@@ -64,7 +64,7 @@ show_spinner() {
   local delay=0.1
   local spinstr='|/-\'
   echo -e -n "${BLUE}$message${NC} "
-  
+
   while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
     local temp=${spinstr#?}
     printf "[%c]  " "$spinstr"
@@ -79,18 +79,18 @@ show_spinner() {
 run_with_spinner() {
   local command="$1"
   local message="$2"
-  
+
   # Запуск команды в фоновом режиме
   eval "$command" &>/dev/null &
   local pid=$!
-  
+
   # Отображение индикатора прогресса
   show_spinner $pid "$message"
-  
+
   # Ожидание завершения команды
   wait $pid
   local exit_code=$?
-  
+
   if [ $exit_code -eq 0 ]; then
     print_success "$message: Выполнено!"
   else
@@ -154,7 +154,7 @@ validate_email() {
   local email=$1
   # Более строгое регулярное выражение для проверки email
   local email_regex="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-  
+
   if [[ $email =~ $email_regex ]]; then
     return 0  # Валидный email
   else
@@ -170,13 +170,13 @@ backup_existing_config() {
     mkdir -p "$backup_dir"
     cp .env "$backup_dir/.env.backup"
     print_success "Резервная копия .env сохранена в $backup_dir"
-    
+
     # Если существуют другие важные файлы конфигурации, копируем их тоже
     if [ -f docker-compose.override.yml ]; then
       cp docker-compose.override.yml "$backup_dir/docker-compose.override.yml.backup"
       print_success "Резервная копия docker-compose.override.yml сохранена"
     fi
-    
+
     return 0  # Успешное создание резервной копии
   else
     print_info "Файла .env не существует, резервная копия не требуется"
@@ -187,23 +187,23 @@ backup_existing_config() {
 # Функция для установки необходимых утилит
 install_required_utils() {
   print_info "Проверка и установка необходимых утилит..."
-  
+
   # Список необходимых утилит
   local utils=("curl" "openssl")
   local missing_utils=()
-  
+
   # Проверяем наличие каждой утилиты
   for util in "${utils[@]}"; do
     if ! command -v "$util" &> /dev/null; then
       missing_utils+=("$util")
     fi
   done
-  
+
   # Если есть отсутствующие утилиты, устанавливаем их
   if [ ${#missing_utils[@]} -gt 0 ]; then
     print_warning "Отсутствуют следующие утилиты: ${missing_utils[*]}"
     read -p "Установить отсутствующие утилиты? (y/n): " install_utils
-    
+
     if [ "$install_utils" = "y" ]; then
       if [[ "$OS_TYPE" == *"Ubuntu"* ]] || [[ "$OS_TYPE" == *"Debian"* ]]; then
         print_info "Установка утилит на Ubuntu/Debian..."
@@ -238,21 +238,21 @@ install_required_utils() {
 # Функция для проверки сетевого подключения
 check_network_connectivity() {
   print_info "Проверка сетевого подключения..."
-  
+
   # Проверка доступности Docker Hub
   if curl -s --connect-timeout 5 https://registry.hub.docker.com/_ping > /dev/null; then
     print_success "Соединение с Docker Hub: OK"
   else
     print_warning "Не удается подключиться к Docker Hub. Это может вызвать проблемы при загрузке образов."
   fi
-  
+
   # Проверка доступности GitHub (для загрузки Docker Compose)
   if curl -s --connect-timeout 5 https://api.github.com > /dev/null; then
     print_success "Соединение с GitHub: OK"
   else
     print_warning "Не удается подключиться к GitHub. Это может вызвать проблемы при установке Docker Compose."
   fi
-  
+
   # Проверка доступности Let's Encrypt (для SSL-сертификатов)
   if curl -s --connect-timeout 5 https://acme-v02.api.letsencrypt.org/directory > /dev/null; then
     print_success "Соединение с Let's Encrypt: OK"
@@ -264,13 +264,13 @@ check_network_connectivity() {
 # Функция для проверки доступности портов
 check_port_availability() {
   print_info "Проверка доступности портов..."
-  
+
   local port_issues=false
-  
+
   # Проверяем порты 80 и 443, необходимые для Traefik и Let's Encrypt
   for port in 80 443; do
     print_info "Проверка порта $port..."
-    
+
     # На Linux используем ss или netstat
     if command -v ss &> /dev/null; then
       if ss -tuln | grep -q ":$port "; then
@@ -298,11 +298,11 @@ check_port_availability() {
       print_warning "Не удалось проверить доступность порта $port. Убедитесь, что порты 80 и 443 не заняты другими программами."
     fi
   done
-  
+
   if [ "$port_issues" = true ]; then
     print_warning "Обнаружены проблемы с портами. Traefik требует доступные порты 80 и 443 для работы с Let's Encrypt и SSL."
     print_info "Вы можете продолжить установку, но могут возникнуть проблемы с SSL-сертификатами."
-    
+
     # В интерактивном режиме более подробно объясняем
     if [ "$SETUP_MODE" = "interactive" ]; then
       print_info "💡 В интерактивном режиме вы сможете настроить альтернативные порты или отключить SSL."
@@ -311,7 +311,7 @@ check_port_availability() {
     else
       read -p "Продолжить установку? (y/n): " continue_setup
     fi
-    
+
     if [[ ! "$continue_setup" =~ ^[Yy]$ ]]; then
       print_info "Установка прервана пользователем."
       exit 1
@@ -322,12 +322,12 @@ check_port_availability() {
 # Проверка доступной памяти
 check_memory_requirements() {
   print_info "Проверка доступной памяти..."
-  
+
   if command -v free &> /dev/null; then
     # На Linux используем free
     total_mem=$(free -m | awk '/^Mem:/ {print $2}')
     print_info "Доступная память: ${total_mem} МБ"
-    
+
     if [ "$total_mem" -lt 4000 ]; then
       print_warning "У вас меньше 4 ГБ памяти. Это может вызвать проблемы при запуске нескольких сервисов."
       print_info "Рекомендуется использовать базовый профиль: --profile cpu"
@@ -341,7 +341,7 @@ check_memory_requirements() {
     # На macOS используем sysctl
     total_mem=$(sysctl -n hw.memsize | awk '{print int($1/1024/1024)}')
     print_info "Доступная память: ${total_mem} МБ"
-    
+
     if [ "$total_mem" -lt 4000 ]; then
       print_warning "У вас меньше 4 ГБ памяти. Это может вызвать проблемы при запуске нескольких сервисов."
       print_info "Рекомендуется использовать базовый профиль: --profile cpu"
@@ -360,12 +360,12 @@ check_memory_requirements() {
 # Проверка CPU ресурсов
 check_cpu_resources() {
   print_info "Проверка CPU ресурсов..."
-  
+
   if command -v nproc &> /dev/null; then
     # На Linux используем nproc
     cpu_cores=$(nproc)
     print_info "Доступно CPU ядер: ${cpu_cores}"
-    
+
     if [ "$cpu_cores" -lt 2 ]; then
       print_warning "У вас менее 2 ядер CPU. Это может вызвать проблемы с производительностью."
       print_info "Рекомендуется использовать базовый профиль: --profile cpu"
@@ -379,7 +379,7 @@ check_cpu_resources() {
     # На macOS используем sysctl
     cpu_cores=$(sysctl -n hw.ncpu)
     print_info "Доступно CPU ядер: ${cpu_cores}"
-    
+
     if [ "$cpu_cores" -lt 2 ]; then
       print_warning "У вас менее 2 ядер CPU. Это может вызвать проблемы с производительностью."
       print_info "Рекомендуется использовать базовый профиль: --profile cpu"
@@ -426,7 +426,7 @@ clone_official_workflows() {
 # Функция для создания файла с советами по устранению неполадок
 create_troubleshooting_file() {
   print_info "Создание файла с советами по устранению неполадок..."
-  
+
   cat > TROUBLESHOOTING.local.md << EOF
 # Устранение неполадок N8N AI Starter Kit
 
@@ -526,7 +526,7 @@ check_docker_health() {
     print_error "Docker не установлен или не доступен в PATH."
     return 1
   fi
-  
+
   # Проверка запущен ли демон Docker с таймаутом
   print_info "Проверка демона Docker (таймаут 10 сек)..."
   if [ -n "$TIMEOUT_CMD" ]; then
@@ -583,7 +583,7 @@ check_docker_health() {
     print_warning "Пропуск теста контейнера (timeout недоступен)."
     print_info "Основные проверки Docker прошли успешно."
   fi
-  
+
   print_success "Проверка Docker завершена!"
   return 0
 }
@@ -603,7 +603,7 @@ choose_setup_mode() {
   echo "   - Подходит для разработки и тестирования"
   echo "   - Быстро создаёт рабочую конфигурацию без шаблонов"
   echo ""
-  
+
   while true; do
     read -p "Введите номер режима (1-2): " setup_mode
     case $setup_mode in
@@ -692,7 +692,7 @@ create_env_from_template() {
   # LightRAG secrets
   lightrag_api_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-32)
   lightrag_token_secret=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-40)
-  
+
   # Analytics and monitoring secrets
   clickhouse_password=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
   superset_secret_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
@@ -826,7 +826,7 @@ NEOEOF
     echo "4) Если dry-run прошёл успешно, примените создание credential (выполнит реальные POST-запросы):"
     echo "   ${BOLD}./scripts/create_n8n_credential.sh --token \"<YOUR_N8N_ADMIN_TOKEN>\" --bulk-file config/samples/credentials-bulk.json --n8n-url http://localhost:5678${NC}"
     echo
-    echo "Альтернативно в CI или скриптах можно экспортировать токен и запускать без интерактивности, например:" 
+    echo "Альтернативно в CI или скриптах можно экспортировать токен и запускать без интерактивности, например:"
     echo "   ${BOLD}export N8N_ADMIN_TOKEN=\"<YOUR_N8N_ADMIN_TOKEN>\" && ./scripts/create_n8n_credential.sh --dry-run --bulk-file config/samples/credentials-bulk.json --n8n-url http://localhost:5678${NC}"
     echo
     print_info "Не храните реальные секреты или админ-токены в системе контроля версий; используйте секреты среды или менеджер секретов."
@@ -852,21 +852,21 @@ NEOEOF
 # Функция ожидания готовности PostgreSQL
 wait_for_postgres() {
   print_info "Ожидание готовности PostgreSQL..."
-  
+
   local max_attempts=30
   local attempt=1
-  
+
   while [ $attempt -le $max_attempts ]; do
     if docker exec n8n-ai-starter-kit-postgres-1 pg_isready -U postgres >/dev/null 2>&1; then
       print_success "PostgreSQL готов к работе"
       return 0
     fi
-    
+
     echo -n "."
     sleep 2
     attempt=$((attempt + 1))
   done
-  
+
   print_error "PostgreSQL не готов после $max_attempts попыток"
   return 1
 }
@@ -891,19 +891,19 @@ update_traefik_config() {
   # Обновляем ssl-security.yml если он существует
   if [ -f "config/traefik/dynamic/ssl-security.yml" ]; then
     print_info "Обновляем ssl-security.yml..."
-    
+
     # Создаем резервную копию если ее еще нет
     if [ ! -f "config/traefik/dynamic/ssl-security.yml.backup" ]; then
       cp config/traefik/dynamic/ssl-security.yml config/traefik/dynamic/ssl-security.yml.backup
     fi
-    
+
     # Заменяем старые домены на новые
     sed -i "s/yourdomain\.com/${DOMAIN_NAME}/g" config/traefik/dynamic/ssl-security.yml
     sed -i "s/n8n\.yourdomain\.com/n8n.${DOMAIN_NAME}/g" config/traefik/dynamic/ssl-security.yml
     sed -i "s/api\.yourdomain\.com/api.${DOMAIN_NAME}/g" config/traefik/dynamic/ssl-security.yml
     sed -i "s/monitor\.yourdomain\.com/monitor.${DOMAIN_NAME}/g" config/traefik/dynamic/ssl-security.yml
     sed -i "s/admin\.yourdomain\.com/admin.${DOMAIN_NAME}/g" config/traefik/dynamic/ssl-security.yml
-    
+
     print_success "ssl-security.yml обновлен"
   fi
 
@@ -1131,7 +1131,7 @@ ensure_traefik_volume_exists() {
 
   return 0
 }
-  
+
   # Обновляем домен
   if [ -n "$domain_name" ]; then
     sed -i "s/^DOMAIN_NAME=.*/DOMAIN_NAME=$domain_name/" .env
@@ -1144,7 +1144,7 @@ ensure_traefik_volume_exists() {
     sed -i "s/^OLLAMA_DOMAIN=.*/OLLAMA_DOMAIN=ollama.$domain_name/" .env
     print_success "Домены обновлены на: $domain_name"
   fi
-  
+
   # Обновляем email для Let's Encrypt
   if [ -n "$acme_email" ]; then
     if grep -q "^ACME_EMAIL=" .env; then
@@ -1154,7 +1154,7 @@ ensure_traefik_volume_exists() {
     fi
     print_success "Email для Let's Encrypt обновлен: $acme_email"
   fi
-  
+
   # Обновляем API ключи
   if [ -n "$openai_api_key" ]; then
     if grep -q "^OPENAI_API_KEY=" .env; then
@@ -1164,7 +1164,7 @@ ensure_traefik_volume_exists() {
     fi
     print_success "OpenAI API ключ обновлен"
   fi
-  
+
   # Обновляем конфигурацию Traefik после изменения доменов
   update_traefik_config
 }
@@ -1172,7 +1172,7 @@ ensure_traefik_volume_exists() {
 interactive_setup() {
   print_info "Интерактивная настройка N8N AI Starter Kit"
   echo ""
-  
+
   # Запрашиваем домен
   read -p "Введите ваш основной домен (например, example.com): " domain_name
   while [ -z "$domain_name" ]; do
@@ -1185,21 +1185,21 @@ interactive_setup() {
     print_error "Введённый домен не прошёл валидацию: $domain_name"
     exit 1
   fi
-  
+
   # Запрашиваем email для Let's Encrypt
   read -p "Введите email для Let's Encrypt (для SSL сертификатов): " acme_email
   while [ -z "$acme_email" ]; do
     print_error "Email не может быть пустым!"
     read -p "Введите email для Let's Encrypt (для SSL сертификатов): " acme_email
   done
-  
+
   # Запрашиваем API ключи (опционально)
   echo ""
   print_info "API ключи (оставьте пустым если не используете):"
-  
+
   read -p "OpenAI API ключ (для Graphiti): " openai_api_key
   read -p "Другие API ключи (через запятую): " other_api_keys
-  
+
   # Подтверждение
   echo ""
   print_info "Настройки:"
@@ -1211,16 +1211,16 @@ interactive_setup() {
     echo "  OpenAI API ключ: Не задан"
   fi
   echo ""
-  
+
   read -p "Продолжить с этими настройками? (y/N): " confirm
   case $confirm in
     [Yy]* ) ;;
-    * ) 
+    * )
       print_info "Настройка отменена"
       exit 0
       ;;
   esac
-  
+
   # Обновляем файл схемы (env.schema или template.env) с новыми значениями
   update_template_with_user_settings "$domain_name" "$acme_email" "$openai_api_key"
 }
@@ -1236,7 +1236,7 @@ update_template_with_user_settings() {
   if [ -n "$domain_name" ]; then
     domain_name=$(normalize_domain "$domain_name")
     if ! validate_domain_name "$domain_name"; then
-      print_warning "Параметр domain_name='$domain_name' не прошёл валидацию. Пропускаем обновление доменов." 
+      print_warning "Параметр domain_name='$domain_name' не прошёл валидацию. Пропускаем обновление доменов."
       domain_name=""
     fi
   fi
@@ -1330,7 +1330,7 @@ if [ "$GENERATE_ONLY" = true ]; then
     # Generate LightRAG secrets for --generate-only mode
     lightrag_api_key=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-32)
     lightrag_token_secret=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-40)
-    
+
     # Generate analytics and monitoring secrets
     clickhouse_password=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
     superset_secret_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-32)
@@ -1571,124 +1571,124 @@ if ! command -v docker >/dev/null 2>&1; then
 
   if [ "$install_docker" = "y" ]; then
     print_info "Установка Docker..."
-    
+
     if [[ "$OS_TYPE" == *"Ubuntu"* ]]; then
       print_info "Установка Docker на Ubuntu..."
-      
+
       # Установим необходимые пакеты
       run_with_spinner "sudo apt-get update" "Обновление списка пакетов"
       run_with_spinner "sudo apt-get install -y ca-certificates curl gnupg" "Установка необходимых пакетов"
-      
+
       # Добавим официальный GPG ключ Docker
       sudo install -m 0755 -d /etc/apt/keyrings
       run_with_spinner "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg" "Добавление GPG ключа Docker"
       sudo chmod a+r /etc/apt/keyrings/docker.gpg
-      
+
       # Добавим репозиторий Docker
       echo \
         "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
         $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
         sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-      
+
       # Обновим базу пакетов
       run_with_spinner "sudo apt-get update" "Обновление списка пакетов"
-      
+
       # Установим Docker
       run_with_spinner "sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin" "Установка Docker"
-      
+
       # Добавим текущего пользователя в группу docker
       run_with_spinner "sudo usermod -aG docker $USER" "Добавление пользователя в группу docker"
-      
+
       print_success "Docker успешно установлен!"
       print_warning "Чтобы применить изменения групп, перезагрузите систему или выполните: newgrp docker"
-    
+
     elif [[ "$OS_TYPE" == *"Debian"* ]]; then
       print_info "Установка Docker на Debian..."
-      
+
       # Установка необходимых пакетов
       run_with_spinner "sudo apt-get update" "Обновление списка пакетов"
       run_with_spinner "sudo apt-get install -y ca-certificates curl gnupg" "Установка необходимых пакетов"
-      
+
       # Добавление официального GPG ключа Docker
       sudo install -m 0755 -d /etc/apt/keyrings
       run_with_spinner "curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg" "Добавление GPG ключа Docker"
       sudo chmod a+r /etc/apt/keyrings/docker.gpg
-      
+
       # Добавление репозитория Docker
       echo \
         "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
         $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
         sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-      
+
       # Обновление базы пакетов
       run_with_spinner "sudo apt-get update" "Обновление списка пакетов"
-      
+
       # Установка Docker
       run_with_spinner "sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin" "Установка Docker"
-      
+
       # Добавление текущего пользователя в группу docker
       run_with_spinner "sudo usermod -aG docker $USER" "Добавление пользователя в группу docker"
-      
+
       print_success "Docker успешно установлен!"
       print_warning "Чтобы применить изменения групп, перезагрузите систему или выполните: newgrp docker"
-    
+
     elif [[ "$OS_TYPE" == *"CentOS"* ]] || [[ "$OS_TYPE" == *"RHEL"* ]]; then
       print_info "Установка Docker на CentOS/RHEL..."
-      
+
       # Установка необходимых пакетов
       run_with_spinner "sudo yum install -y yum-utils" "Установка yum-utils"
-      
+
       # Настройка репозитория Docker
       run_with_spinner "sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo" "Добавление репозитория Docker"
-      
+
       # Установка Docker
       run_with_spinner "sudo yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin" "Установка Docker"
-      
+
       # Включение и запуск Docker
       run_with_spinner "sudo systemctl enable docker" "Включение службы Docker"
       run_with_spinner "sudo systemctl start docker" "Запуск службы Docker"
-      
+
       # Добавление текущего пользователя в группу docker
       run_with_spinner "sudo usermod -aG docker $USER" "Добавление пользователя в группу docker"
-      
+
       print_success "Docker успешно установлен!"
       print_warning "Чтобы применить изменения групп, перезагрузите систему или выполните: newgrp docker"
-    
+
     elif [[ "$OS_TYPE" == *"Fedora"* ]]; then
       print_info "Установка Docker на Fedora..."
-      
+
       # Установка необходимых пакетов
       run_with_spinner "sudo dnf -y install dnf-plugins-core" "Установка dnf-plugins-core"
-      
+
       # Настройка репозитория Docker
       run_with_spinner "sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo" "Добавление репозитория Docker"
-      
+
       # Установка Docker
       run_with_spinner "sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin" "Установка Docker"
-      
+
       # Включение и запуск Docker
       run_with_spinner "sudo systemctl enable docker" "Включение службы Docker"
       run_with_spinner "sudo systemctl start docker" "Запуск службы Docker"
-      
+
       # Добавление текущего пользователя в группу docker
       run_with_spinner "sudo usermod -aG docker $USER" "Добавление пользователя в группу docker"
-      
+
       print_success "Docker успешно установлен!"
       print_warning "Чтобы применить изменения групп, перезагрузите систему или выполните: newgrp docker"
-    
+
     elif [[ "$OS_TYPE" == "macOS" ]]; then
       print_info "Для macOS рекомендуется установить Docker Desktop с официального сайта:"
       print_info "https://www.docker.com/products/docker-desktop"
       print_error "Установка Docker для macOS не может быть выполнена автоматически."
       exit 1
-      
+
     else
       print_error "Автоматическая установка Docker не поддерживается для вашей ОС."
       print_info "Посетите официальный сайт Docker для инструкций по установке:"
       print_info "https://docs.docker.com/engine/install/"
       exit 1
     fi
-    
+
     # Проверка установки Docker
     if command -v docker &> /dev/null; then
       print_success "Проверка Docker: $(docker --version)"
@@ -1722,10 +1722,10 @@ elif command -v docker-compose >/dev/null 2>&1; then
 else
   print_warning "Docker Compose не обнаружен. Хотите установить Docker Compose? (y/n)"
   read install_compose
-  
+
   if [ "$install_compose" = "y" ]; then
     print_info "Установка Docker Compose..."
-    
+
     if [[ "$OS_TYPE" == *"Ubuntu"* ]] || [[ "$OS_TYPE" == *"Debian"* ]]; then
       # Проверка, установлен ли Docker с установщиком apt
       if sudo apt-get list --installed docker-ce-cli &> /dev/null; then
@@ -1739,7 +1739,7 @@ else
         run_with_spinner "sudo curl -L \"https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose" "Загрузка Docker Compose"
         run_with_spinner "sudo chmod +x /usr/local/bin/docker-compose" "Установка прав доступа"
       fi
-    
+
     elif [[ "$OS_TYPE" == *"CentOS"* ]] || [[ "$OS_TYPE" == *"RHEL"* ]] || [[ "$OS_TYPE" == *"Fedora"* ]]; then
       # Проверка, установлен ли Docker с установщиком yum/dnf
       if sudo yum list installed docker-ce-cli &> /dev/null || sudo dnf list installed docker-ce-cli &> /dev/null; then
@@ -1756,7 +1756,7 @@ else
         run_with_spinner "sudo curl -L \"https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose" "Загрузка Docker Compose"
         run_with_spinner "sudo chmod +x /usr/local/bin/docker-compose" "Установка прав доступа"
       fi
-    
+
     else
       # Общий метод установки для остальных ОС
       print_info "Загрузка последней версии Docker Compose для вашей системы..."
@@ -1764,7 +1764,7 @@ else
       run_with_spinner "sudo curl -L \"https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose" "Загрузка Docker Compose"
       run_with_spinner "sudo chmod +x /usr/local/bin/docker-compose" "Установка прав доступа"
     fi
-    
+
     print_info "Docker Compose установлен, используем команду docker-compose"
     DC_CMD="docker-compose"
   else
@@ -1782,7 +1782,7 @@ if [ "$SETUP_MODE" = "template" ]; then
   if [ -f .env ]; then
     print_warning "Файл .env уже существует."
     read -p "Создать резервную копию и перезаписать? (y/n): " overwrite
-    
+
     if [ "$overwrite" = "y" ]; then
       backup_existing_config
     else
@@ -1790,23 +1790,23 @@ if [ "$SETUP_MODE" = "template" ]; then
       exit 0
     fi
   fi
-  
+
   create_env_from_template
   print_success "Быстрый режим завершен успешно"
-  
+
 elif [ "$SETUP_MODE" = "interactive" ]; then
   # Интерактивный режим - запрашиваем все параметры
   print_info "🎯 Интерактивный режим настройки"
-  
+
   # Сначала запускаем интерактивную настройку
   interactive_setup
-  
+
   # Проверяем существующий .env файл ПОСЛЕ получения настроек
   if [ -f .env ]; then
     print_warning "Файл .env уже существует."
     print_info "Рекомендуется создать резервную копию перед перезаписью."
     read -p "Создать резервную копию и перезаписать? (y/n): " overwrite
-    
+
   # Если схема не задана или файл отсутствует — пробуем env.schema (каноническая),
       # затем падаем назад к template.env для обратной совместимости, а при отсутствии обоих — прямая генерация .env.
       GENERATE_FROM_TEMPLATE=true
@@ -1826,7 +1826,7 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
 
   # Создаем новый .env файл на основе схемы (env.schema preferred, env.schema.md or template.env fallback) с интерактивными настройками
   print_info "Создание нового .env файла с вашими настройками..."
-  
+
   # Копируем схему в .env если это возможно, иначе пропускаем и сгенерируем значения напрямую
   if [ "${GENERATE_FROM_TEMPLATE}" = true ] && [ -n "${SCHEMA_FILE}" ] && [ -f "${SCHEMA_FILE}" ]; then
     # Extract only KEY=VALUE lines from the schema file to avoid copying Markdown or comments
@@ -1836,7 +1836,7 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
     # создаём пустой .env как база (будет перезаписан далее)
     : > .env
   fi
-  
+
   # Применяем интерактивные настройки
   update_existing_env_with_interactive_settings
 
@@ -1906,6 +1906,47 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
     traefik_pwd_hash=$(echo -n "${traefik_pwd}salt" | sha256sum | cut -c1-32)
   fi
   print_info "Сгенерированный хэш пароля: $traefik_pwd_hash"
+
+  # Проверка и установка htpasswd для генерации bcrypt-хэша admin-auth
+  print_info "Проверка установки htpasswd (apache2-utils) для генерации bcrypt-хэша..."
+  if ! command -v htpasswd &> /dev/null; then
+    print_warning "htpasswd не найден. Пытаемся установить apache2-utils..."
+    if [[ "$OS_TYPE" == *"Ubuntu"* ]] || [[ "$OS_TYPE" == *"Debian"* ]]; then
+      run_with_spinner "sudo apt-get update" "Обновление списка пакетов"
+      run_with_spinner "sudo apt-get install -y apache2-utils" "Установка apache2-utils"
+    elif [[ "$OS_TYPE" == *"CentOS"* ]] || [[ "$OS_TYPE" == *"RHEL"* ]]; then
+      run_with_spinner "sudo yum install -y httpd-tools" "Установка httpd-tools"
+    elif [[ "$OS_TYPE" == *"Fedora"* ]]; then
+      run_with_spinner "sudo dnf install -y httpd-tools" "Установка httpd-tools"
+    else
+      print_error "Не удалось автоматически установить htpasswd. Установите apache2-utils или httpd-tools вручную."
+      print_info "После установки повторите: htpasswd -nbB admin 'ваш_пароль'"
+      admin_auth_hash="admin:\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"  # fallback
+    fi
+  fi
+
+  # Генерация bcrypt-хэша для admin-auth в Traefik
+  if command -v htpasswd &> /dev/null; then
+    print_info "Генерация bcrypt-хэша для admin-auth..."
+    read -p "Введите пароль для admin-пользователя Traefik (оставьте пустым для автогенерации): " admin_pwd
+    if [ -z "$admin_pwd" ]; then
+      admin_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
+      print_info "Сгенерирован случайный пароль для admin: ${BOLD}$admin_pwd${NC} (сохраните его в безопасном месте)"
+    fi
+
+    # Генерация bcrypt-хэша с помощью htpasswd
+    admin_auth_hash=$(htpasswd -nbB admin "$admin_pwd" 2>/dev/null | cut -d: -f2)
+    if [ -z "$admin_auth_hash" ]; then
+      print_warning "Не удалось сгенерировать bcrypt-хэш. Используем fallback-хэш."
+      admin_auth_hash="\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"
+    else
+      admin_auth_hash="admin:$admin_auth_hash"
+      print_success "bcrypt-хэш для admin сгенерирован"
+    fi
+  else
+    print_warning "htpasswd недоступен. Используем предустановленный bcrypt-хэш для admin:password"
+    admin_auth_hash="admin:\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"
+  fi
 
   # Создание файла .env интерактивно — генерируем напрямую и не используем схему-шаблон
   print_info "Создание файла .env (интерактивный режим) — генерируем значения напрямую..."
@@ -1997,11 +2038,31 @@ EOF
   print_success "Файл .env успешно создан!"
   print_warning "ВАЖНО: Сохраните копию файла .env в безопасном месте!"
 
+  # Обновляем Traefik middlewares.yml с bcrypt хешем админа (если был сгенерирован)
+  if [ -n "${admin_auth_hash:-}" ]; then
+    print_info "Обновляем Traefik middlewares.yml с bcrypt хешем админа..."
+    middlewares_file="config/traefik/dynamic/middlewares.yml"
+    if [ -f "$middlewares_file" ]; then
+      # Заменяем placeholder на сгенерированный bcrypt хеш
+      sed -i "s|admin:\$2y\$10\$92IXUNpkjO0rOQ5byMi\.Ye4oKoEa3Ro9llC/\.og/at2\.uheWG/igi|${admin_auth_hash}|g" "$middlewares_file"
+      if [ $? -eq 0 ]; then
+        print_success "Traefik middlewares.yml успешно обновлён с bcrypt хешем админа"
+      else
+        print_warning "Не удалось обновить middlewares.yml — проверьте файл вручную"
+      fi
+    else
+      print_warning "Файл $middlewares_file не найден — пропускаем обновление"
+    fi
+  fi
+
   # Отображение важной информации
   echo -e "\n${BLUE}===============================================${NC}"
   echo -e "${BOLD}Важная информация о паролях и ключах:${NC}"
   echo -e "${BLUE}===============================================${NC}"
   echo -e "${YELLOW}Traefik Dashboard пароль:${NC} ${BOLD}$traefik_pwd${NC}"
+  if [ -n "${admin_pwd:-}" ]; then
+    echo -e "${YELLOW}Admin пароль (bcrypt):${NC} ${BOLD}$admin_pwd${NC}"
+  fi
   echo -e "${YELLOW}PgAdmin пароль:${NC} ${BOLD}$pgadmin_pwd${NC}"
   echo -e "${YELLOW}Grafana пароль:${NC} ${BOLD}$grafana_pwd${NC}"
   echo -e "${YELLOW}Jupyter Token:${NC} ${BOLD}$jupyter_ds_token${NC}"

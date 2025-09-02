@@ -4,6 +4,7 @@
 x-traefik-base: &traefik-base
   image: traefik:latest
   restart: unless-stopped
+  stop_grace_period: 60s
   ports:
     - "0.0.0.0:80:80"
     - "0.0.0.0:443:443"
@@ -55,6 +56,7 @@ services:
     profiles: [default, cpu, gpu-nvidia, developer]
     command:
       - "--api.dashboard=true"
+      - "--api.insecure=true"
       - "--entryPoints.traefik.address=:8080"
       - "--providers.docker=true"
       - "--providers.docker.exposedByDefault=false"

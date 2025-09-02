@@ -1,23 +1,16 @@
 tls:
   options:
     default:
-      # Traefik expects TLS versions like "TLSv1.2" / "TLSv1.3"
       minVersion: "TLSv1.2"
       maxVersion: "TLSv1.3"
-      cipherSuites:
-        - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
-        - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
-        - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
 
 http:
   middlewares:
     security-headers:
       headers:
-        # Use folded block scalars for long policies to avoid parsing issues
         contentSecurityPolicy: >-
           default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline';
           img-src 'self' data: https: blob:; connect-src 'self' wss: ws: https:; font-src 'self' data:; object-src 'none';
-          base-uri 'self'; frame-ancestors 'self'; worker-src 'self' blob;
         frameDeny: true
         contentTypeNosniff: true
         browserXssFilter: true
@@ -25,44 +18,12 @@ http:
         forceSTSHeader: true
         stsSeconds: 31536000
         stsIncludeSubdomains: true
-        stsPreload: true
-        permissionsPolicy: >-
-          geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(),
-          speaker=(), ambient-light-sensor=(), accelerometer=(), battery=(), display-capture=(), document-domain=()
 
     api-cors:
       headers:
         accessControlAllowMethods:
           - GET
           - POST
-          - PUT
-          - DELETE
           - OPTIONS
-        accessControlAllowHeaders:
-          - "Content-Type"
-          - "Authorization"
-          - "X-Requested-With"
-        accessControlAllowOriginList:
-          - "https://*.localhost"
-          - "https://*.local"
-        accessControlAllowCredentials: true
-        accessControlMaxAge: 86400
 
-    gzip-compression:
-      compress: {}
-
-  routers:
-    # Global HTTPS redirect for all HTTP requests (uses https-redirect middleware defined in middlewares.yml)
-    https-redirect-global:
-      entryPoints:
-        - "web"
-      rule: "HostRegexp(`{host:.+}`)"
-      middlewares:
-        - "https-redirect@file"
-      service: "api@internal"
-      priority: 1
-
-# NOTES
-# 1. Update CORS origins for your domains
-# 2. Replace admin users/htpasswd in `middlewares.yml` where needed
-# ===============================================
+# Notes: keep this file minimal and valid; mount secrets for htpasswd via file/secret in production

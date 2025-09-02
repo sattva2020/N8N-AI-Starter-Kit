@@ -7,38 +7,7 @@
 
 <!-- docs sync: quick note added to satisfy pre-commit docs check -->
 
-[![CI/CD](https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml/badge.svg)](<https://github.co##> 📚 Документация
-
-| Раздел | Описание |
-|--------|----------|
-| [🚀 Начало работы](./docs/01-getting-started.md) | Пошаговая установка и первый запуск |
-| [⚙️ Конфигурация](./docs/02-configuration.md) | Подробные настройки всех компонентов |
-| [🏗️ Архитектура](./docs/03-architecture.md) | Техническое описание системы |
-| [🤖 AI-функции](./docs/04-guides/ai-features.md) | Полное руководство по AI-сервисам |
-| [📊 Мониторинг и логирование](./docs/05-monitoring-and-logging.md) | Настройка систем наблюдения |
-| [🔧 Автоматизация развертывания](./docs/06-automation-scripts.md) | Скрипты и автоматизация процессов |
-| [📋 Рабочие процессы](./docs/07-workflows-integration.md) | Создание и интеграция workflows |
-| [🛠 Устранение неполадок](./TROUBLESHOOTING.md) | Решение проблем и отладка |
-
-### 🎯 Рекомендуемый порядок изучения
-
-**Для новичков:**
-
-1. **[Начало работы](./docs/01-getting-started.md)** - Установка и запуск
-2. **[Конфигурация](./docs/02-configuration.md)** - Базовые настройки
-3. **[AI-функции](./docs/04-guides/ai-features.md)** - Изучение возможностей AI
-
-**Для разработчиков:**
-
-1. **[Архитектура](./docs/03-architecture.md)** - Понимание системы
-2. **[Рабочие процессы](./docs/07-workflows-integration.md)** - Создание автоматизации
-3. **[Автоматизация развертывания](./docs/06-automation-scripts.md)** - Оптимизация процессов
-
-**Для DevOps-инженеров:**
-
-1. **[Мониторинг и логирование](./docs/05-monitoring-and-logging.md)** - Наблюдение системы
-2. **[Автоматизация развертывания](./docs/06-automation-scripts.md)** - Масштабирование
-3. **[Архитектура](./docs/03-architecture.md)** - Оптимизация инфраструктуры0/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml)
+[![CI/CD](https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml/badge.svg)](<https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml>)
 
 **Мощная платформа для AI-автоматизации с локальными LLM**
 
@@ -47,6 +16,8 @@
 > **🆕 Важное исправление**: Переменные LightRAG (`LIGHTRAG_API_KEY`, `TOKEN_SECRET`, `LIGHRAG_DOMAIN`) теперь генерируются автоматически во всех режимах установки скрипта `setup.sh`. Это устраняет предупреждения Docker Compose о недостающих переменных окружения.
 
 > **🆕 Дополнение**: `setup.sh` также автоматически добавляет `GRAFANA_URL` (и `GRAFANA_DOMAIN`) в `.env`. Это упрощает создание Grafana‑credential в n8n и устраняет ошибки с неразрешёнными плейсхолдерами `${GRAFANA_URL:-...}` в bulk‑импортах.
+
+> **🔐 Интерактивная генерация паролей**: Добавлена интерактивная генерация bcrypt-хешей для Traefik admin-auth с автоматической установкой `htpasswd` и обновлением middlewares.yml. Поддерживает cross-platform установку apache2-utils/httpd-tools.
 
 N8N AI Starter Kit — это готовое к развертыванию решение для создания интеллектуальных рабочих процессов. Объединяет n8n с передовыми инструментами для локального запуска больших языковых моделей, векторного поиска и комплексного мониторинга.
 
