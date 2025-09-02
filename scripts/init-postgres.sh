@@ -51,6 +51,9 @@ execute_sql "CREATE DATABASE \"$POSTGRES_DB\";" "Создание базы да�
 # Создание пользователя для N8N (если не существует) 
 execute_sql "CREATE USER \"$POSTGRES_USER\" WITH PASSWORD '$POSTGRES_PASSWORD';" "Создание пользователя $POSTGRES_USER"
 
+# Передача базы n8n пользователю n8n (корректно!)
+execute_sql "ALTER DATABASE \"$POSTGRES_DB\" OWNER TO \"$POSTGRES_USER\";" "Передача базы $POSTGRES_DB пользователю $POSTGRES_USER"
+
 # Предоставление прав пользователю
 execute_sql "GRANT ALL PRIVILEGES ON DATABASE \"$POSTGRES_DB\" TO \"$POSTGRES_USER\";" "Предоставление прав на базу данных"
 

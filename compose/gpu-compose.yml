@@ -1,0 +1,286 @@
+# =============================================================================
+# GPU PROFILE - UNIVERSAL GPU ACCELERATED SERVICES
+# =============================================================================
+# This compose file provides GPU-accelerated alternatives to CPU services
+# Supports both NVIDIA GPU (CUDA) and AMD GPU (ROCm) with automatic detection
+
+# NVIDIA GPU configuration template
+x-nvidia-gpu-config: &nvidia-gpu-config
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+
+# AMD GPU configuration template
+x-amd-gpu-config: &amd-gpu-config
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: amd-gpu
+            count: all
+            capabilities: [gpu]
+  device_cgroup_rules:
+    - 'c 226:* rmw'  # DRI devices
+    - 'c 89:* rmw'   # KFD devices
+  devices:
+    - /dev/kfd:/dev/kfd
+    - /dev/dri:/dev/dri
+
+services:
+  # GPU-accelerated document processor for advanced text processing
+  # Supports both NVIDIA (CUDA) and AMD (ROCm) GPUs
+  document-processor-gpu:
+    build:
+      context: ../services/document-processor
+      dockerfile: Dockerfile.gpu
+    restart: unless-stopped
+    profiles: [gpu]
+    # GPU configuration is applied based on detected hardware
+    # NVIDIA: Uses nvidia runtime and CUDA libraries
+    # AMD: Uses ROCm runtime and HIP libraries
+    <<: *nvidia-gpu-config  # Default to NVIDIA config (most common)
+    environment:
+      # Universal GPU environment variables
+      - GPU_ENABLED=true
+      - GPU_TYPE=${GPU_TYPE:-nvidia}  # Set by detect-gpu.sh
+      - GPU_MEMORY_FRACTION=0.8
+      - USE_GPU=true
+      - MODEL_CACHE_DIR=/app/models
+      - MAX_BATCH_SIZE=32
+      - WORKER_COUNT=4
+      # NVIDIA-specific (ignored on AMD)
+      - CUDA_VISIBLE_DEVICES=all
+      - TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6"
+      # AMD-specific (ignored on NVIDIA)
+      - ROC_VISIBLE_DEVICES=all
+      - HIP_VISIBLE_DEVICES=all
+    volumes:
+      - gpu_models_cache:/app/models
+      - document_processor_data:/app/data
+    networks:
+      - backend
+      - frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.doc-proc-gpu.rule=Host(`docs-gpu.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.doc-proc-gpu.entrypoints=websecure"
+      - "traefik.http.routers.doc-proc-gpu.tls=true"
+      - "traefik.http.routers.doc-proc-gpu.tls.certresolver=myresolver"
+      - "traefik.http.routers.doc-proc-gpu.middlewares=security-headers@file,admin-auth@file"
+      - "traefik.http.services.doc-proc-gpu.loadbalancer.server.port=8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Ollama with GPU support for local LLM inference
+  # Automatically detects and uses NVIDIA or AMD GPU
+  ollama-gpu:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    profiles: [gpu]
+    <<: *nvidia-gpu-config  # Default to NVIDIA config (most common)
+    environment:
+      # Universal Ollama settings
+      - OLLAMA_ORIGINS=*
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_MODELS=/root/.ollama/models
+      - OLLAMA_GPU_OVERHEAD=0
+      - OLLAMA_NUM_PARALLEL=4
+      - OLLAMA_MAX_LOADED_MODELS=4
+      - OLLAMA_FLASH_ATTENTION=1
+      # GPU type detection (set by detect-gpu.sh)
+      - GPU_TYPE=${GPU_TYPE:-nvidia}
+      # NVIDIA-specific (ignored on AMD)
+      - CUDA_VISIBLE_DEVICES=all
+      # AMD-specific (ignored on NVIDIA)
+      - ROC_VISIBLE_DEVICES=all
+      - HIP_VISIBLE_DEVICES=all
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models_gpu:/root/.ollama/models
+      - ollama_data_gpu:/root/.ollama
+    networks:
+      - backend
+      - frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ollama-gpu.rule=Host(`ollama-gpu.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.ollama-gpu.entrypoints=websecure"
+      - "traefik.http.routers.ollama-gpu.tls=true"
+      - "traefik.http.routers.ollama-gpu.tls.certresolver=myresolver"
+      - "traefik.http.routers.ollama-gpu.middlewares=security-headers@file,admin-auth@file"
+      - "traefik.http.services.ollama-gpu.loadbalancer.server.port=11434"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # rStar2-Agent VLLM with GPU acceleration
+  rstar-vllm-gpu:
+    build:
+      context: ../services/rstar2-agent
+      dockerfile: Dockerfile.vllm-gpu
+    restart: unless-stopped
+    profiles: [gpu, rstar-gpu]
+    <<: *nvidia-gpu-config
+    environment:
+      - CUDA_VISIBLE_DEVICES=all
+      - MODEL_NAME=microsoft/rStar-Math-7B
+      - MODEL_PATH=/app/models/rStar-Math-7B
+      - TENSOR_PARALLEL_SIZE=1
+      - GPU_MEMORY_UTILIZATION=0.9
+      - MAX_MODEL_LEN=4096
+      - WORKER_USE_RAY=false
+      - VLLM_ATTENTION_BACKEND=FLASHINFER
+      - VLLM_USE_MODELSCOPE=false
+    ports:
+      - "8001:8000"
+    volumes:
+      - rstar_models_gpu:/app/models
+      - rstar_cache_gpu:/app/cache
+    networks:
+      - backend
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 120s
+
+  # GPU monitoring service
+  gpu-monitor:
+    image: mindprobe/nvidia_gpu_prometheus_exporter:latest
+    restart: unless-stopped
+    profiles: [gpu, monitoring-gpu]
+    <<: *nvidia-gpu-config
+    ports:
+      - "9445:9445"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    networks:
+      - monitoring
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gpu-monitor.rule=Host(`gpu-monitor.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.gpu-monitor.entrypoints=websecure"
+      - "traefik.http.routers.gpu-monitor.tls=true"
+      - "traefik.http.routers.gpu-monitor.tls.certresolver=myresolver"
+      - "traefik.http.routers.gpu-monitor.middlewares=security-headers@file,admin-auth@file"
+      - "traefik.http.services.gpu-monitor.loadbalancer.server.port=9445"
+
+  # LightRAG with GPU acceleration for enhanced graph processing
+  lightrag-gpu:
+    build:
+      context: ../services/lightrag
+      dockerfile: Dockerfile.gpu
+    restart: unless-stopped
+    profiles: [gpu, developer-gpu]
+    <<: *nvidia-gpu-config
+    environment:
+      - CUDA_VISIBLE_DEVICES=all
+      - USE_GPU=true
+      - GPU_MEMORY_FRACTION=0.7
+      - EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+      - LLM_MODEL=microsoft/DialoGPT-medium
+      - GRAPH_STORAGE_TYPE=neo4j
+      - NEO4J_URI=bolt://neo4j-gpu:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+    volumes:
+      - lightrag_data_gpu:/app/data
+      - lightrag_models_gpu:/app/models
+    networks:
+      - backend
+      - database
+    depends_on:
+      - neo4j-gpu
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lightrag-gpu.rule=Host(`lightrag-gpu.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.lightrag-gpu.entrypoints=websecure"
+      - "traefik.http.routers.lightrag-gpu.tls=true"
+      - "traefik.http.routers.lightrag-gpu.tls.certresolver=myresolver"
+      - "traefik.http.routers.lightrag-gpu.middlewares=security-headers@file,admin-auth@file"
+      - "traefik.http.services.lightrag-gpu.loadbalancer.server.port=8000"
+
+  # Neo4j with GPU-optimized configuration
+  neo4j-gpu:
+    image: neo4j:5.13-community
+    restart: unless-stopped
+    profiles: [gpu, developer-gpu]
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
+      - NEO4J_dbms_memory_heap_initial__size=2G
+      - NEO4J_dbms_memory_heap_max__size=4G
+      - NEO4J_dbms_memory_pagecache_size=2G
+      - NEO4J_dbms_default__listen__address=0.0.0.0
+      - NEO4J_dbms_connector_bolt_listen__address=0.0.0.0:7687
+      - NEO4J_dbms_connector_http_listen__address=0.0.0.0:7474
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data_gpu:/data
+      - neo4j_logs_gpu:/logs
+      - neo4j_import_gpu:/var/lib/neo4j/import
+      - neo4j_plugins_gpu:/plugins
+    networks:
+      - database
+      - backend
+      - frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.neo4j-gpu.rule=Host(`neo4j-gpu.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.neo4j-gpu.entrypoints=websecure"
+      - "traefik.http.routers.neo4j-gpu.tls=true"
+      - "traefik.http.routers.neo4j-gpu.tls.certresolver=myresolver"
+      - "traefik.http.routers.neo4j-gpu.middlewares=security-headers@file,admin-auth@file"
+      - "traefik.http.services.neo4j-gpu.loadbalancer.server.port=7474"
+
+volumes:
+  # GPU-specific volumes for model caching and data storage
+  gpu_models_cache:
+    driver: local
+  document_processor_data:
+    driver: local
+  ollama_models_gpu:
+    driver: local
+  ollama_data_gpu:
+    driver: local
+  rstar_models_gpu:
+    driver: local
+  rstar_cache_gpu:
+    driver: local
+  lightrag_data_gpu:
+    driver: local
+  lightrag_models_gpu:
+    driver: local
+  neo4j_data_gpu:
+    driver: local
+  neo4j_logs_gpu:
+    driver: local
+  neo4j_import_gpu:
+    driver: local
+  neo4j_plugins_gpu:
+    driver: local
+
+networks:
+  monitoring:
+    external: true

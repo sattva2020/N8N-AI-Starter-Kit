@@ -67,8 +67,12 @@ fix_env_file() {
     log "📝 Проверка и исправление .env файла..."
     
     if [ ! -f ".env" ]; then
-        warning ".env файл не найден, копирую из template.env"
-        cp template.env .env
+        warning ".env файл не найден, генерируем с помощью setup.sh --generate-only"
+        if [ -x "./scripts/setup.sh" ]; then
+            ./scripts/setup.sh --generate-only
+        else
+            warning "Не найден ./scripts/setup.sh — создайте .env вручную"
+        fi
     fi
     
     # Исправить POSTGRES_USER если неправильный
@@ -122,12 +126,12 @@ fix_services_step_by_step() {
     docker compose rm -f n8n x-service-n8n ollama 2>/dev/null || true
     
     # Запуск базовых сервисов
-    log "Запуск базовых сервисов (traefik, postgres, minio)..."
-    docker compose up -d traefik postgres minio
+    log "Запуск базовых сервисов (traefik, postgres)..."
+    docker compose up -d traefik postgres
     sleep 10
     
     # Проверить базовые сервисы
-    if ! docker compose ps | grep -E "(traefik|postgres|minio)" | grep -q "Up"; then
+    if ! docker compose ps | grep -E "(traefik|postgres)" | grep -q "Up"; then
         error "Базовые сервисы не запустились"
         return 1
     fi

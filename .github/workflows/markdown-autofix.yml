@@ -1,0 +1,43 @@
+name: markdown-format-autofix
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [ test2 ]
+
+jobs:
+  format-markdown:
+    name: Format Markdown and Auto-commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install prettier
+        run: |
+          npm ci --silent || true
+          npm install -g prettier@2.8.8
+
+      - name: Run Prettier for Markdown
+        run: |
+          # Format all markdown files in the repository
+          prettier --write "**/*.md"
+
+      - name: Commit formatted files
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "chore(ci): format markdown files"
+          branch: ${{ github.head_ref || github.ref_name }}
+          file_pattern: "**/*.md"
+          author_name: "github-actions[bot]"
+          author_email: "41898282+github-actions[bot]@users.noreply.github.com"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

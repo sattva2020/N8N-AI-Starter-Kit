@@ -1,0 +1,181 @@
+# =============================================================================
+# PRE-COMMIT CLEANUP CONFIGURATION
+# =============================================================================
+# Конфигурация для автоматической проверки перед коммитом
+# Редактируйте этот файл для настройки правил проверки
+
+# ФАЙЛЫ ТОЛЬКО ДЛЯ РАЗРАБОТКИ
+# Паттерны файлов, которые не должны попадать в публичный репозиторий
+dev_only_patterns:
+  # Временные и отладочные файлы
+  - "*_COMPLETE.md"
+  - "*_TEST*.md"
+  - "*_DEBUG*.md"
+  - "*_TRACE*.md"
+  - "test_*.sh"
+  - "debug_*.sh"
+  - "*.tmp"
+  - "*.temp"
+  - "*.bak"
+
+  # Файлы разработчика
+  - "*TODO*.md"
+  - "*NOTES*.md"
+  - "*DRAFT*.md"
+  - "LOCAL_*.md"
+  - "MY_*.md"
+  - "*_local.*"
+  - "*_temp.*"
+  - "*_draft.*"
+
+  # Отчеты и логи разработки
+  - "*_v[0-9]*.md"
+  - "*SUCCESS*.md"
+  - "*FINAL*.md"
+  - "*REPORT*.md"
+  - "*STAGE*.md"
+  - "*PLAN*.md"
+  - "*COMPLETION*.md"
+  - "*ACCOMPLISHED*.md"
+  - "*RESOLVED*.md"
+  - "MISSION_*.md"
+  - "CRITICAL_*.md"
+
+  # Логи и трассировки
+  - "*.log"
+  - "*trace*.log"
+  - "setup_trace.log"
+  - "placeholders.log"
+  - "replacements.txt"
+
+  # Инструкции разработчика
+  - "copilot-instructions.md"
+  - "AI_AGENT_GUIDE.md"
+  - "frontend_analysis_prompt.md"
+
+  # Внутренние скрипты и конфигурации
+  - "bfg.jar"
+  - "*.ppk"
+  - "plink.exe"
+  - "puttygen.exe"
+
+  # Backup файлы
+  - "*.yml.bak*"
+  - "*.yaml.bak*"
+  - "*.json.bak*"
+  - "*.md.backup"
+
+  # PowerShell scripts для локального использования
+  - "scripts/fix-*.ps1"
+  - "scripts/publish-*.ps1"
+  - "scripts/*-local.ps1"
+
+# ДИРЕКТОРИИ ТОЛЬКО ДЛЯ РАЗРАБОТКИ
+dev_only_directories:
+  - "backup/"
+  - "backups/"
+  - ".internal/"
+  - "logs/"
+  - "tests/"
+  - "ai-instructions/"
+  - ".github/instructions/"
+  - "volumes/"
+  - "data/"
+  - "n8n/"
+  - "qdrant_data/"
+
+# ЧУВСТВИТЕЛЬНЫЕ ДАННЫЕ
+# Паттерны файлов с чувствительными данными
+sensitive_patterns:
+  - ".env"
+  - ".env.*"
+  - "*.ppk"
+  - "*password*"
+  - "*secret*"
+  - "*key*.pem"
+  - "*credentials*"
+
+# ПРОВЕРКА СОДЕРЖИМОГО ФАЙЛОВ
+# Ключевые слова для поиска в содержимом файлов
+sensitive_keywords:
+  - "password.*="
+  - "secret.*="
+  - "key.*="
+  - "token.*="
+  - "api_key.*="
+  - "localhost"
+  - "127.0.0.1"
+
+development_keywords:
+  - "TODO:"
+  - "FIXME:"
+  - "DEBUG:"
+  - "HACK:"
+  - "TEMP:"
+
+# АВТОМАТИЧЕСКИЕ ИСПРАВЛЕНИЯ
+# Паттерны для автоматического добавления в .gitignore
+auto_gitignore_patterns:
+  - "*.log"
+  - "*.tmp"
+  - "*.temp"
+  - "*.bak"
+  - "*_local.*"
+  - "*_temp.*"
+  - "*_draft.*"
+  - "*TODO*.md"
+  - "*NOTES*.md"
+  - "*DRAFT*.md"
+  - "LOCAL_*.md"
+  - "copilot-instructions.md"
+  - "ai-instructions/"
+  - "backup/"
+  - ".internal/"
+  - "tests/"
+  - "*.ppk"
+  - ".env"
+  - ".env.*"
+  - "!.env.example"
+
+# НАСТРОЙКИ ПРОВЕРКИ
+check_settings:
+  # Строгий режим - блокирует коммит при найденных проблемах
+  strict_mode: false
+
+  # Проверять содержимое файлов на чувствительные данные
+  check_file_content: true
+
+  # Автоматически обновлять .gitignore
+  auto_update_gitignore: true
+
+  # Создавать отчеты о проверке
+  generate_reports: true
+
+  # Максимальное количество файлов для проверки
+  max_files_to_check: 100
+
+  # Типы файлов для проверки содержимого
+  content_check_extensions:
+    - ".md"
+    - ".yml"
+    - ".yaml"
+    - ".json"
+    - ".sh"
+    - ".ps1"
+    - ".env"
+
+# ИСКЛЮЧЕНИЯ
+# Файлы и директории, которые игнорируются при проверке
+exceptions:
+  files:
+    - "README.md"
+    - "LICENSE"
+    - "CHANGELOG.md"
+    - "CONTRIBUTING.md"
+    - "docker-compose.yml"
+    - ".env.example"
+
+  directories:
+    - ".git/"
+    - "node_modules/"
+    - "__pycache__/"

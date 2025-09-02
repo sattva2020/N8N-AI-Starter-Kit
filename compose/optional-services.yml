@@ -204,3 +204,71 @@
   #     - "traefik.http.routers.wandb.entrypoints=websecure"
   #     - "traefik.http.routers.wandb.tls.certresolver=myresolver"
   #     - "traefik.http.services.wandb.loadbalancer.server.port=8080"
+
+# Optional n8n-importer service (developer profile). Enable when you want the
+# importer to run in docker-compose. Paths are relative to the compose/ folder.
+services:
+  # Optional LightRAG service (developer profile)
+  # To enable:
+  # - Clone the LightRAG repo into `services/lightrag` or set `image: <registry>/lightrag:tag`
+  # - Adjust environment variables (see services/lightrag/README.md)
+  lightrag:
+    # Use the official GHCR image for LightRAG (example tag shown below).
+    # If you prefer to build locally, restore the `build:` line and remove `image:`.
+    container_name: lightrag
+    image: ghcr.io/hkuds/lightrag:latest
+    restart: unless-stopped
+  profiles: [developer, cpu, gpu, reasoning]
+    # Expose a single configurable host port (default 9621). The container listens on 9621 by default in this stack.
+    ports:
+      - "${PORT:-9621}:9621"
+    depends_on:
+      - qdrant
+    environment:
+      - PORT=${PORT:-9621}
+      - LIGHRAG_WORKDIR=/data/lightrag
+      - LIGHRAG_ENV=production
+      # Set LIGHRAG_DOMAIN in the root .env to enable Traefik routing (example: lightrag.example.com)
+      # Do NOT leave this empty — Traefik will not match SNI and may serve the default cert.
+      - LIGHRAG_DOMAIN=${LIGHRAG_DOMAIN}
+      # Protect the service by setting these secrets in your .env. Do NOT commit real secrets.
+      # We intentionally do not provide "change_me" defaults here so missing values are explicit.
+      - LIGHTRAG_API_KEY=${LIGHTRAG_API_KEY}
+      - TOKEN_SECRET=${TOKEN_SECRET}
+      # Default Qdrant URL when qdrant service is available in the stack
+      - QDRANT_URL=${QDRANT_URL:-http://qdrant:6333}
+      # Disallow anonymous/public access by default; application should honour these vars
+      - ALLOW_ANONYMOUS_ACCESS=${ALLOW_ANONYMOUS_ACCESS:-false}
+    volumes:
+      # Only mount persistent data; the application code is provided by the GHCR image
+      - ../lightrag_data:/data/lightrag:rw
+    networks:
+      - backend
+      - frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lightrag-http.rule=Host(`${LIGHRAG_DOMAIN}`)"
+      - "traefik.http.routers.lightrag-http.entrypoints=web"
+      - "traefik.http.routers.lightrag-http.middlewares=https-redirect@file"
+      - "traefik.http.routers.lightrag.rule=Host(`${LIGHRAG_DOMAIN}`)"
+      - "traefik.http.routers.lightrag.entrypoints=websecure"
+      - "traefik.http.routers.lightrag.tls=true"
+      - "traefik.http.routers.lightrag.tls.certresolver=myresolver"
+      - "traefik.http.routers.lightrag.middlewares=security-headers@file,admin-auth@file,rate-limit@file"
+      - "traefik.http.services.lightrag.loadbalancer.server.port=9621"
+
+  n8n-importer:
+    build: ../services/n8n-importer
+    image: n8n-importer:local
+    restart: "no"
+    profiles: [developer]
+    environment:
+      - ALLOW_RUNTIME_CLONE=false
+      - N8N_AUTO_IMPORT=false
+    volumes:
+      - ../services/n8n-importer/n8n-workflows:/opt/n8n-workflows:ro
+      - ../logs/n8n-importer:/var/log/n8n-importer:rw
+    networks:
+      - backend
+    # Run manually:
+    # docker compose -f docker-compose.yml -f compose/optional-services.yml run --rm n8n-importer

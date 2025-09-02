@@ -1,0 +1,36 @@
+
+# Traefik dynamic configuration: middlewares used by docker labels
+# Keep the file concise and valid YAML. Replace placeholders with production
+# secrets or mount htpasswd via file/secret where required.
+
+http:
+  middlewares:
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+    admin-auth:
+      basicAuth:
+        # Replace the user entry with a properly generated htpasswd entry in production
+        users:
+          - "admin:$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"
+        realm: "Traefik Dashboard"
+
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 200
+
+    security-headers:
+      headers:
+        frameDeny: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: "no-referrer"
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+
+# Keep this file minimal. For any long multiline values use folded scalars (>) in YAML.
+

@@ -55,14 +55,18 @@ read -p "Ваш выбор (1-4): " choice
 case $choice in
     1)
         echo -e "\n${BLUE}Запуск загрузки всех моделей...${NC}"
-        docker run --rm -v "$(pwd)/config/ollama-models.txt:/models.txt" \
-                   -v ollama_data:/root/.ollama \
-                   ollama/ollama:latest sh -c '
-                       for model in $(grep -v "^#" /models.txt | sed "/^\s*$/d"); do
-                           echo "Загрузка модели: $model"
-                           ollama pull "$model"
-                       done
-                   '
+        # Используем локальный HTTP API Ollama (порт 11434), так как сервер должен быть запущен в контейнере
+    if ! curl -s --head http://localhost:11434/ >/dev/null 2>&1; then
+            echo -e "${YELLOW}Ollama server не доступен на http://localhost:11434. Пожалуйста, запустите ollama.{NC}"
+            exit 1
+        fi
+
+    # читаем модели из хост-файла CONFIG_FILE
+    for model in $(grep -v "^#" "$CONFIG_FILE" | sed "/^\s*$/d"); do
+            echo "Загрузка модели: $model"
+            curl -s -X POST "http://localhost:11434/api/pull" -H "Content-Type: application/json" -d "{\"name\":\"$model\"}" --max-time 3600 || echo "Ошибка при загрузке модели $model"
+            echo ""
+        done
         ;;
     2)
         models=()
@@ -93,13 +97,16 @@ case $choice in
         done
         
         echo -e "\n${BLUE}Загрузка выбранных моделей: $selected_models${NC}"
-        docker run --rm -v "ollama_data:/root/.ollama" \
-                   ollama/ollama:latest sh -c "
-                       for model in $selected_models; do
-                           echo \"Загрузка модели: \$model\"
-                           ollama pull \"\$model\"
-                       done
-                   "
+    if ! curl -s --head http://localhost:11434/ >/dev/null 2>&1; then
+            echo -e "${YELLOW}Ollama server не доступен на http://localhost:11434. Пожалуйста, запустите ollama.{NC}"
+            exit 1
+        fi
+
+    for model in $selected_models; do
+            echo "Загрузка модели: $model"
+            curl -s -X POST "http://localhost:11434/api/pull" -H "Content-Type: application/json" -d "{\"name\":\"$model\"}" --max-time 3600 || echo "Ошибка при загрузке модели $model"
+            echo ""
+        done
         ;;
     3)
         if command -v nano &> /dev/null; then
