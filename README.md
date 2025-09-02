@@ -70,11 +70,11 @@ cp env.schema .env
 Откройте `.env` и заполните **обязательные** поля:
 
 ```bash
-# Обязательно измените эти значения:
-DOMAIN_NAME=your-domain.com
-N8N_ENCRYPTION_KEY=your_32_char_encryption_key_here_
-POSTGRES_PASSWORD=your_secure_password_here
-ACME_EMAIL=your-email@example.com
+# Обязательно измените эти значения (вставьте реальные значения в ваш .env):
+# DOMAIN_NAME=your-domain.com
+# N8N_ENCRYPTION_KEY=<32-char-encryption-key>
+# POSTGRES_PASSWORD=<secure-password>
+# ACME_EMAIL=your-email@example.com
 ```
 
 ### 3. Запуск
@@ -93,7 +93,7 @@ docker-compose --profile default up -d
 
 - **n8n**: `https://n8n.your-domain.com`
 - **Grafana**: `https://grafana.your-domain.com`
-- **Traefik Dashboard**: `http://localhost:8080`
+- **Traefik Dashboard**: обычно доступна на порту `8080` на хосте (например, `http://<host>:8080`)
 
 ## 🏗️ Архитектура
 
@@ -187,7 +187,7 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 
 - Поддерживаются два типа аутентификации:
   - Bearer-токен администратора (Personal Access Token) для REST: передайте `--token` или переменную `N8N_ADMIN_TOKEN`.
-  - Публичный API-ключ для Public API: передайте `--api-key` или `N8N_API_KEY` (требуется `N8N_PUBLIC_API_DISABLED=false`).
+    - Публичный API-ключ для Public API: передайте соответствующий флаг или переменную окружения (см. `env.schema`) при необходимости (не вставляйте реальные ключи в коммиты).
 - Для массового импорта используйте файл `config/samples/credentials-bulk.json`.
 - Если в JSON встречаются плейсхолдеры вида `${VAR}` или `${VAR:-default}`, добавьте флаг `--expand-env` и (опционально) `--env-file .env` — значения будут подставлены из окружения.
 - Требуется `python3` для работы `--expand-env` и разбора CSV в bulk-режиме (при отсутствии — используйте JSON).
@@ -300,6 +300,13 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 - Git
 - Node.js (для некоторых скриптов)
 - Python 3.8+ (для тестов)
+
+### Что нового в этой ветке / релизе
+
+- Автоматическое форматирование YAML-файлов: добавлен `scripts/format-yaml.py` и соответствующая интеграция в pre-commit.
+- Добавлен `requirements.txt` с `PyYAML>=6.0` и workflow CI для установки зависимостей и `shellcheck` на раннерах.
+- Обновлён скрипт `scripts/pre-commit-check.sh` чтобы корректно работать на Windows (fallback `python`) и избегать ложных срабатываний для скриптов.
+
 
 ### Работа с кодом
 
