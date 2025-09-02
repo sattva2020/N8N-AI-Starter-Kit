@@ -1,0 +1,54 @@
+x-amd-gpu-config:
+  deploy: &id001
+    resources:
+      reservations:
+        devices:
+        - driver: amd-gpu
+          count: all
+          capabilities:
+          - gpu
+  device_cgroup_rules: &id002
+  - c 226:* rmw
+  - c 89:* rmw
+  devices: &id003
+  - /dev/kfd:/dev/kfd
+  - /dev/dri:/dev/dri
+services:
+  document-processor-gpu:
+    deploy: *id001
+    device_cgroup_rules: *id002
+    devices: *id003
+    environment:
+    - GPU_TYPE=amd
+    - ROC_VISIBLE_DEVICES=all
+    - HIP_VISIBLE_DEVICES=all
+    - CUDA_VISIBLE_DEVICES=
+  ollama-gpu:
+    deploy: *id001
+    device_cgroup_rules: *id002
+    devices: *id003
+    environment:
+    - GPU_TYPE=amd
+    - ROC_VISIBLE_DEVICES=all
+    - HIP_VISIBLE_DEVICES=all
+    - CUDA_VISIBLE_DEVICES=
+  rstar-vllm-gpu:
+    deploy: *id001
+    device_cgroup_rules: *id002
+    devices: *id003
+    environment:
+    - ROC_VISIBLE_DEVICES=all
+    - HIP_VISIBLE_DEVICES=all
+    - CUDA_VISIBLE_DEVICES=
+  lightrag-gpu:
+    deploy: *id001
+    device_cgroup_rules: *id002
+    devices: *id003
+    environment:
+    - GPU_TYPE=amd
+    - ROC_VISIBLE_DEVICES=all
+    - HIP_VISIBLE_DEVICES=all
+    - CUDA_VISIBLE_DEVICES=
+  gpu-monitor:
+    environment:
+    - NVIDIA_VISIBLE_DEVICES=

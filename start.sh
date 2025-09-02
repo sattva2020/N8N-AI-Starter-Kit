@@ -150,6 +150,9 @@ elif [ "$CLI_NO_IMPORT_PROMPT" = "true" ]; then
 fi
 
 # Автоматическое определение оптимального профиля
+# При обнаружении AMD/ROCm дополнительно активируем overlay-файл compose/gpu-amd.override.yml
+# чтобы сохранить единый профиль "gpu" без отдельных профилей под вендоров
+AMD_OVERRIDE=0
 detect_optimal_profile() {
     local memory=$(free -m 2>/dev/null | awk 'NR==2{printf "%.0f", $2/1024}' || echo "0")
     local cpu_cores=$(nproc 2>/dev/null || echo "1")
@@ -192,11 +195,12 @@ detect_optimal_profile() {
         fi
     elif command -v rocm-smi &> /dev/null && rocm-smi &> /dev/null; then
         echo -e "  ${EMOJI_GPU} GPU: AMD ROCm обнаружен" >&2
-        echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: gpu,gpu-amd${NC}" >&2
-        echo "gpu,gpu-amd"
+        echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: gpu${NC}" >&2
+        AMD_OVERRIDE=1
+        echo "gpu"
     elif [ "$memory" -gt 32 ] && [ "$cpu_cores" -gt 16 ]; then
-        echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: developer,rstar-cpu${NC}" >&2
-        echo "developer,rstar-cpu"
+        echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: cpu,reasoning,developer${NC}" >&2
+        echo "cpu,reasoning,developer"
     elif [ "$memory" -gt 16 ] && [ "$cpu_cores" -gt 8 ]; then
         echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: developer${NC}" >&2
         echo "developer"
@@ -735,8 +739,19 @@ if [ -f .env ]; then
     ENV_FILE_ARG="--env-file .env"
 fi
 
-echo -e "${BLUE}Команда запуска:${NC} $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} --profile $PROFILE up -d"
-$DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} --profile $PROFILE up -d
+COMPOSE_FILES_ARGS=""
+if [ "$AMD_OVERRIDE" -eq 1 ] && [ -f "./compose/gpu-amd.override.yml" ]; then
+    echo -e "${CYAN}Обнаружен AMD/ROCm — применяем overlay compose/gpu-amd.override.yml${NC}"
+    COMPOSE_FILES_ARGS="-f docker-compose.yml -f compose/gpu-amd.override.yml"
+fi
+
+if [ -n "$COMPOSE_FILES_ARGS" ]; then
+    echo -e "${BLUE}Команда запуска:${NC} $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} --profile $PROFILE up -d"
+    $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} --profile $PROFILE up -d
+else
+    echo -e "${BLUE}Команда запуска:${NC} $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} --profile $PROFILE up -d"
+    $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} --profile $PROFILE up -d
+fi
 
 # Проверка результата запуска
 if [ $? -eq 0 ]; then

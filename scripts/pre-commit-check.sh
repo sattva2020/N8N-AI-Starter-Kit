@@ -37,6 +37,13 @@ print_banner() {
     echo
 }
 
+# Паттерны пустых файлов, которые допускаются (плейсхолдеры)
+declare -a EMPTY_FILE_EXCLUSIONS=(
+    ".gitkeep"
+    ".keep"
+    ".placeholder"
+)
+
 # Определение рабочего Python интерпретатора. Устанавливает PYTHON_CMD и PYTHON_ARGS.
 detect_python_cmd() {
     PYTHON_CMD=""
@@ -204,6 +211,50 @@ declare -a SENSITIVE_PATTERNS=(
     "*key*.pem"
     "*credentials*"
 )
+
+# Проверка на пустые файлы
+check_empty_files() {
+    print_header "🧹 Поиск пустых файлов"
+
+    local staged_files
+    staged_files=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || echo "")
+    if [[ -z "$staged_files" ]]; then
+        staged_files=$(git diff --name-only --diff-filter=ACM 2>/dev/null || echo "")
+    fi
+
+    if [[ -z "$staged_files" ]]; then
+        print_info "Нет файлов для проверки на пустоту"
+        return 0
+    fi
+
+    local found=0
+    echo "$staged_files" | while read -r file; do
+        [[ -z "$file" ]] && continue
+        # пропускаем явные исключения
+        for ex in "${EMPTY_FILE_EXCLUSIONS[@]}"; do
+            if [[ "$(basename -- "$file")" == "$ex" ]]; then
+                continue 2
+            fi
+        done
+        if [[ -f "$file" && ! -s "$file" ]]; then
+            print_warning "Пустой файл: $file"
+            ((FILES_TO_DELETE++))
+            ((ISSUES_FOUND++))
+            found=1
+        fi
+    done
+
+    if [[ $found -eq 0 ]]; then
+        print_success "Пустых файлов не обнаружено"
+    else
+        mkdir -p .internal
+        # Сохраним список пустых файлов для удобства
+        git ls-files -z | xargs -0 -I{} bash -c '[[ -f "{}" && ! -s "{}" ]] && echo "{}"' \
+            | grep -v -E "($(IFS='|'; echo "${EMPTY_FILE_EXCLUSIONS[*]//./\\.}"))$" \
+            > .internal/empty-files.txt 2>/dev/null || true
+        print_info "Список пустых файлов (если есть) записан в .internal/empty-files.txt"
+    fi
+}
 
 # Функция проверки файлов для разработки
 check_dev_only_files() {
@@ -647,6 +698,7 @@ main() {
     # Проверки
     format_yaml_files
     check_dev_only_files
+    check_empty_files
     check_sensitive_files
     check_file_content
 

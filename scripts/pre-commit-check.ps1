@@ -24,6 +24,7 @@ function Write-Header { param($Message) Write-Host $Message -ForegroundColor $Cy
 # Счетчики
 $script:IssuesFound = 0
 $script:FilesToIgnore = 0
+$script:FilesToDelete = 0
 
 Write-Header "============================================================================="
 Write-Header "                    PRE-COMMIT CLEANUP & VALIDATION"
@@ -103,6 +104,58 @@ $SensitivePatterns = @(
     "*key*.pem",
     "*credentials*"
 )
+
+# Исключения для пустых файлов (плейсхолдеры)
+$EmptyFileExclusions = @(
+    ".gitkeep",
+    ".keep",
+    ".placeholder"
+)
+
+function Test-EmptyFiles {
+    Write-Header "🧹 Поиск пустых файлов"
+
+    try {
+        $staged = git diff --cached --name-only --diff-filter=ACM 2>$null
+        if (-not $staged) { $staged = git diff --name-only --diff-filter=ACM 2>$null }
+    }
+    catch {
+        $staged = @()
+    }
+
+    if (-not $staged -or $staged.Count -eq 0) {
+        Write-Info "Нет файлов для проверки на пустоту"
+        return
+    }
+
+    $found = $false
+    foreach ($file in $staged) {
+        if (-not $file) { continue }
+        $base = [System.IO.Path]::GetFileName($file)
+        if ($EmptyFileExclusions -contains $base) { continue }
+        if (Test-Path $file -PathType Leaf) {
+            $len = (Get-Item $file).Length
+            if ($len -eq 0) {
+                Write-Warning "Пустой файл: $file"
+                $script:FilesToDelete++
+                $script:IssuesFound++
+                $found = $true
+            }
+        }
+    }
+
+    if (-not $found) {
+        Write-Success "Пустых файлов не обнаружено"
+    } else {
+        $dir = ".internal"
+        if (-not (Test-Path $dir)) { New-Item $dir -ItemType Directory | Out-Null }
+        # Заполнить список пустых файлов во всем индексе для удобства
+        $empty = git ls-files 2>$null | Where-Object { Test-Path $_ -PathType Leaf -and (Get-Item $_).Length -eq 0 } |
+            Where-Object { $EmptyFileExclusions -notcontains ([System.IO.Path]::GetFileName($_)) }
+        $empty | Out-File "$dir/empty-files.txt" -Encoding UTF8
+        Write-Info "Список пустых файлов (если есть) записан в .internal/empty-files.txt"
+    }
+}
 
 function Test-DevOnlyFiles {
     Write-Header "🔍 Проверка файлов только для разработки"
@@ -260,6 +313,7 @@ function New-Report {
 ## Статистика
 - Найдено проблем: $($script:IssuesFound)
 - Файлов для игнорирования: $($script:FilesToIgnore)
+- Файлов для удаления: $($script:FilesToDelete)
 
 ## Рекомендации
 $(if ($script:IssuesFound -gt 0) {
@@ -332,6 +386,7 @@ function Start-InteractiveFix {
 
 # Основная логика
 Test-DevOnlyFiles
+Test-EmptyFiles
 Test-SensitiveFiles
 New-Report
 

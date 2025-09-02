@@ -23,6 +23,7 @@
 11. [Проблемы с обновлением и миграцией](#проблемы-с-обновлением-и-миграцией)
 12. [Использование тега latest для Docker-образов](#использование-тега-latest-для-docker-образов)
 13. [Автоматическое исправление распространенных ошибок](#автоматическое-исправление-распространенных-ошибок)
+14. [Диагностика AMD ROCm (GPU)](#диагностика-amd-rocm-gpu)
 
 > [!TIP]
 > Для быстрого решения распространенных проблем смотрите [Распространенные проблемы и их решения](./docs/COMMON_ISSUES.md)
@@ -700,3 +701,129 @@ N8N AI Starter Kit включает набор автоматизированн�
 
 > [!WARNING]
 > Скрипт clean-docker.sh удаляет неиспользуемые ресурсы Docker. Убедитесь, что у вас есть резервные копии данных перед его запуском.
+
+## Диагностика AMD ROCm (GPU)
+
+Единый профиль `gpu` активируется автоматически. При обнаружении AMD/ROCm `start.sh` добавляет оверлей `compose/gpu-amd.override.yml` (монтирует `/dev/kfd`, `/dev/dri`, задаёт HIP/ROCm переменные и очищает CUDA). Ниже — короткий чек-лист диагностики и типовые ошибки.
+
+### Быстрая проверка на хосте (Linux)
+
+1. Видеокарта и драйвер:
+
+   ```bash
+    lspci -nn | grep -E "AMD|ATI"
+    lsmod | grep amdgpu || echo "amdgpu модуль не загружен"
+    test -e /dev/kfd && echo "/dev/kfd OK" || echo "/dev/kfd отсутствует"
+    test -e /dev/dri && echo "/dev/dri OK" || echo "/dev/dri отсутствует"
+    ```
+
+2. ROCm утилиты (если установлены):
+
+   ```bash
+    rocm-smi || echo "rocm-smi недоступен"
+    rocminfo || echo "rocminfo недоступен"
+    ```
+
+
+> Примечание: ROCm официально поддерживается на Linux. Для Windows используйте нативный Linux-хост. WSL2/Rootless Docker с AMD, как правило, не работают для ROCm.
+
+### Проверка, что оверлей применён
+
+- Windows PowerShell:
+
+   ```powershell
+   docker compose config | Select-String 'amd-gpu'
+   ```
+
+- Linux/macOS:
+
+   ```bash
+   docker compose config | grep amd-gpu || echo "AMD оверлей, похоже, не применён"
+   ```
+
+
+### Проверки в контейнерах
+
+1. Переменные окружения и устройства:
+
+   ```bash
+    docker compose exec ollama-gpu bash -lc "printenv | egrep 'HIP|ROCM|CUDA|GPU_TYPE' || true; ls -l /dev/kfd /dev/dri || true; id"
+    ```
+
+    Ожидается: `HIP_VISIBLE_DEVICES=all`, `ROC_VISIBLE_DEVICES=all`, пустой `CUDA_VISIBLE_DEVICES`, наличие `/dev/kfd` и `/dev/dri`.
+2. Быстрый тест ROCm (через временной контейнер):
+
+   ```bash
+    docker run --rm \
+       --device=/dev/kfd --device=/dev/dri \
+       -v /dev/dri:/dev/dri \
+       rocm/rocm-terminal:latest bash -lc "rocminfo || rocm-smi || true"
+    ```
+
+
+### Частые ошибки и решения
+
+- Нет `/dev/kfd` или `/dev/dri` в контейнере
+   - Причина: не применён AMD-оверлей или rootless Docker.
+   - Решения: запуск Docker в rootful-режиме; старт через `./start.sh` (оверлей добавляется автоматически); проверить `docker compose config`.
+
+- `Permission denied` к `/dev/kfd`/`/dev/dri`
+   - Причина: права/группы.
+   - Решения: на хосте добавить пользователя в группы `video, render`, перезайти в сессию:
+
+   ```bash
+      sudo usermod -a -G video,render "$USER" && newgrp render
+      ```
+      Обновить udev-правила и триггер:
+
+   ```bash
+      sudo udevadm control --reload-rules && sudo udevadm trigger
+      ```
+
+- `HSA_STATUS_ERROR` / `failed to initialize HIP runtime`
+   - Причина: несовместимость ядра/драйвера и версии ROCm или модуль `amdgpu` не загружен.
+   - Решения: обновить ROCm до поддерживаемой версии; убедиться, что `amdgpu` загружен; проверить `dmesg | grep -i amdgpu`.
+
+- Приложение пытается использовать CUDA вместо ROCm
+   - Симптом: логи про CUDA, ошибки `CUDA not found`.
+   - Решения: убедиться, что `CUDA_VISIBLE_DEVICES` пуст (оверлей очищает); внутри контейнера `unset CUDA_VISIBLE_DEVICES` и перезапуск сервиса.
+
+- vLLM/Пакеты ИИ жалуются на CUDA на AMD
+   - Решения (по ситуации): задать переменные среды для ROCm-режима сервиса:
+
+   ```yaml
+      services:
+         rstar-vllm-gpu:
+            environment:
+               - VLLM_USE_ROCM=1
+               - HIP_VISIBLE_DEVICES=all
+      ```
+      Применяйте как временный override, если в логах явная привязка к CUDA.
+
+- Низкая производительность / нестабильность
+   - Проверьте в BIOS: включены ли Above 4G Decoding и Resizable BAR (если доступны).
+   - Убедитесь, что используется свежая версия ядра/драйверов и ROCm.
+
+### Что приложить в Issue
+
+Соберите и приложите выводы:
+
+```bash
+uname -a
+docker info | grep -i rootless || true
+docker compose config | sed -n '/gpu-amd.override.yml/,+40p' || true
+rocm-smi || true
+rocminfo || true
+docker compose logs --no-color ollama-gpu | tail -n 200 || true
+docker compose logs --no-color rstar-vllm-gpu | tail -n 200 || true
+```
+
+Также укажите модели/настройки, при которых воспроизводится ошибка, и версию контейнеров.
+
+Быстрая альтернатива: соберите полный отчёт одной командой (файл попадёт в `logs/diagnostics/`):
+
+```bash
+./scripts/diagnose-rocm.sh --temp-container
+```
+
+В self-hosted Linux окружении можно запустить диагностику через GitHub Actions вручную: Workflow "ROCm Diagnostics (self-hosted)" (требует раннер с лейблами `self-hosted, linux, rocm`).

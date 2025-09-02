@@ -41,6 +41,14 @@ print_banner() {
   echo -e "📋 ${YELLOW}Этот скрипт настроит все необходимое для работы N8N AI Starter Kit${NC}\n"
 }
 
+# Разделитель с заголовком
+print_section() {
+  local title="$1"
+  echo -e "${BLUE}===============================================${NC}"
+  echo -e "${BOLD}${title}${NC}"
+  echo -e "${BLUE}===============================================${NC}"
+}
+
 print_success() {
   echo -e "${GREEN}✅ $1${NC}"
 }
@@ -2258,8 +2266,8 @@ ensure_qdrant_snapshots_volume || print_warning "Проблемы с подго�
 print_info "\nДополнительные команды для разных профилей:"
 print_info "${BOLD}$DC_CMD --profile cpu up -d${NC} - Запуск с процессорными AI-сервисами"
 print_info "${BOLD}$DC_CMD --profile gpu up -d${NC} - Запуск с GPU AI-сервисами"
-print_info "${BOLD}$DC_CMD --profile gpu-amd up -d${NC} - Запуск с AMD GPU AI-сервисами"
 print_info "${BOLD}$DC_CMD --profile developer up -d${NC} - Полный набор инструментов разработчика"
+print_info "Примечание: для AMD/ROCm overlay compose/gpu-amd.override.yml применяется автоматически при запуске ./start.sh"
 
 print_info "\nИли используйте улучшенный скрипт запуска:"
 print_info "${BOLD}./start.sh${NC} - Автоматический выбор оптимального профиля"
@@ -2554,4 +2562,149 @@ if [ -n "$DOMAIN_NAME" ] && [ "$DOMAIN_NAME" != "localhost" ]; then
   if [ -f "${ROOT_DIR}/config/gpu.env" ]; then
     echo "  🎮 GPU Monitor: https://gpu-monitor.${DOMAIN_NAME}"
   fi
+fi
+
+# -----------------------------------------------------------------------------
+# Генерация пост-установочного отчёта о публичных сервисах (MD + HTML)
+# -----------------------------------------------------------------------------
+generate_service_summary() {
+  # Загрузим .env для доменных имён, если доступен
+  if [ -f .env ]; then
+    # shellcheck disable=SC1091
+    set -a; . ./.env 2>/dev/null || true; set +a
+  fi
+
+  local domain
+  domain=${DOMAIN_NAME:-example.com}
+  local now ts out_dir md_file html_file profile
+
+  echo ""
+  print_section "Пост-установочный отчёт о публичных сервисах"
+  echo "Профили влияют на список доступных снаружи сервисов."
+  echo "Доступные варианты: cpu, gpu, developer, reasoning"
+  read -p "Укажите профиль для отчёта (по умолчанию: cpu): " profile
+  profile=${profile:-cpu}
+
+  now=$(date '+%Y-%m-%d %H:%M:%S')
+  ts=$(date '+%Y%m%d_%H%M%S')
+  out_dir="${ROOT_DIR}/docs/services-summary"
+  mkdir -p "$out_dir"
+  md_file="${out_dir}/services-${profile}-${ts}.md"
+  html_file="${out_dir}/services-${profile}-${ts}.html"
+
+  # Сформируем список сервисов с URL и кратким описанием
+  # Базовые домены с fallback из .env
+  local n8n_d qdrant_d ollama_d graphiti_d traefik_d pgadmin_d jupyter_d lightrag_d grafana_d
+  n8n_d=${N8N_DOMAIN:-n8n.${domain}}
+  qdrant_d=${QDRANT_DOMAIN:-qdrant.${domain}}
+  ollama_d=${OLLAMA_DOMAIN:-ollama.${domain}}
+  graphiti_d=${GRAPHITI_DOMAIN:-graphiti.${domain}}
+  traefik_d=${TRAEFIK_DASHBOARD_DOMAIN:-traefik.${domain}}
+  pgadmin_d=${PGADMIN_DOMAIN:-pgadmin.${domain}}
+  jupyter_d=${JUPYTER_DOMAIN:-jupyter.${domain}}
+  lightrag_d=${LIGHRAG_DOMAIN:-lightrag.${domain}}
+  grafana_d=${GRAFANA_DOMAIN:-grafana.${domain}}
+
+  # GPU домены (из compose/gpu-compose.yml меток)
+  local docgpu_d ollamagpu_d lightraggpu_d neo4jgpu_d gpumon_d
+  docgpu_d="docs-gpu.${domain}"
+  ollamagpu_d="ollama-gpu.${domain}"
+  lightraggpu_d="lightrag-gpu.${domain}"
+  neo4jgpu_d="neo4j-gpu.${domain}"
+  gpumon_d="gpu-monitor.${domain}"
+
+  # Markdown
+  {
+    echo "# Публичные сервисы — профиль: ${profile}"
+    echo ""
+    echo "Создано: ${now}"
+    echo "Домен: ${domain}"
+    echo ""
+    echo "## Основные сервисы"
+    echo "- N8N: https://${n8n_d} — автоматизация, сценарии"
+    echo "- Qdrant: https://${qdrant_d} — векторная БД"
+    echo "- Ollama: https://${ollama_d} — локальный LLM API"
+    echo "- Graphiti: http://${graphiti_d} — графовая ИИ-платформа"
+    echo "- Traefik Dashboard: http://${traefik_d} — панель reverse‑proxy"
+
+    if [ "$profile" = "developer" ] || [ "$profile" = "cpu" ] || [ "$profile" = "reasoning" ]; then
+      echo ""
+      echo "## Дополнительно (по профилю)"
+      echo "- PgAdmin: https://${pgadmin_d} — администрирование Postgres"
+      echo "- JupyterLab: https://${jupyter_d} — ноутбуки для разработки"
+      echo "- LightRAG: https://${lightrag_d} — RAG сервис"
+    fi
+
+    if [ "$profile" = "gpu" ] || [ "$profile" = "developer-gpu" ]; then
+      echo ""
+      echo "## GPU сервисы"
+      echo "- Document Processor (GPU): https://${docgpu_d} — ускоренная обработка документов"
+      echo "- Ollama (GPU): https://${ollamagpu_d} — LLM на GPU"
+      echo "- LightRAG (GPU): https://${lightraggpu_d} — ускоренный RAG"
+      echo "- Neo4j (GPU): https://${neo4jgpu_d} — БД графов"
+      echo "- GPU Monitor: https://${gpumon_d} — мониторинг GPU"
+    fi
+
+    echo ""
+    echo "## Мониторинг (если стек мониторинга запущен)"
+    echo "- Grafana: https://${grafana_d} — метрики и дашборды"
+  } > "$md_file"
+
+  # HTML (простейшая разметка без внешних зависимостей)
+  {
+    echo "<!doctype html>"
+    echo "<html lang=\"ru\">"
+    echo "<head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+    echo "<title>Сервисы — ${profile}</title>"
+    echo "<style>body{font-family:Segoe UI,Arial,sans-serif;max-width:840px;margin:24px auto;padding:0 12px;line-height:1.5}h1,h2{color:#0b5cab}code{background:#f4f6f8;padding:2px 4px;border-radius:4px}</style>"
+    echo "</head><body>"
+    echo "<h1>Публичные сервисы — профиль: ${profile}</h1>"
+    echo "<p>Создано: ${now}<br>Домен: <strong>${domain}</strong></p>"
+    echo "<h2>Основные сервисы</h2>"
+    echo "<ul>"
+    echo "<li><a href=\"https://${n8n_d}\">N8N</a> — автоматизация, сценарии</li>"
+    echo "<li><a href=\"https://${qdrant_d}\">Qdrant</a> — векторная БД</li>"
+    echo "<li><a href=\"https://${ollama_d}\">Ollama</a> — локальный LLM API</li>"
+    echo "<li><a href=\"http://${graphiti_d}\">Graphiti</a> — графовая ИИ‑платформа</li>"
+    echo "<li><a href=\"http://${traefik_d}\">Traefik Dashboard</a> — панель reverse‑proxy</li>"
+    echo "</ul>"
+
+    if [ "$profile" = "developer" ] || [ "$profile" = "cpu" ] || [ "$profile" = "reasoning" ]; then
+      echo "<h2>Дополнительно (по профилю)</h2>"
+      echo "<ul>"
+      echo "<li><a href=\"https://${pgadmin_d}\">PgAdmin</a> — администрирование Postgres</li>"
+      echo "<li><a href=\"https://${jupyter_d}\">JupyterLab</a> — ноутбуки для разработки</li>"
+      echo "<li><a href=\"https://${lightrag_d}\">LightRAG</a> — RAG сервис</li>"
+      echo "</ul>"
+    fi
+
+    if [ "$profile" = "gpu" ] || [ "$profile" = "developer-gpu" ]; then
+      echo "<h2>GPU сервисы</h2>"
+      echo "<ul>"
+      echo "<li><a href=\"https://${docgpu_d}\">Document Processor (GPU)</a> — ускоренная обработка документов</li>"
+      echo "<li><a href=\"https://${ollamagpu_d}\">Ollama (GPU)</a> — LLM на GPU</li>"
+      echo "<li><a href=\"https://${lightraggpu_d}\">LightRAG (GPU)</a> — ускоренный RAG</li>"
+      echo "<li><a href=\"https://${neo4jgpu_d}\">Neo4j (GPU)</a> — БД графов</li>"
+      echo "<li><a href=\"https://${gpumon_d}\">GPU Monitor</a> — мониторинг GPU</li>"
+      echo "</ul>"
+    fi
+
+    echo "<h2>Мониторинг (если запущен)</h2>"
+    echo "<ul>"
+    echo "<li><a href=\"https://${grafana_d}\">Grafana</a> — метрики и дашборды</li>"
+    echo "</ul>"
+    echo "</body></html>"
+  } > "$html_file"
+
+  print_success "Отчёт создан:"
+  echo "  MD:   ${md_file}"
+  echo "  HTML: ${html_file}"
+}
+
+# Предложим сформировать отчёт прямо сейчас
+read -p $'\nСформировать список публичных сервисов и сохранить MD/HTML? (Y/n): ' _make_sum
+if [[ -z "$_make_sum" || "$_make_sum" =~ ^[Yy]$ ]]; then
+  generate_service_summary || print_warning "Не удалось создать отчёт. Проверьте .env и повторите."
+else
+  print_info "Пропущено создание отчёта. Позже запустите scripts/setup.sh снова."
 fi

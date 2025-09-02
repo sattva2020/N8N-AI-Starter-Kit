@@ -104,6 +104,16 @@ docker-compose --profile default up -d
 - **Grafana**: `https://grafana.your-domain.com`
 - **Traefik Dashboard**: обычно доступна на порту `8080` на хосте (например, `http://<host>:8080`)
 
+### GPU: единый профиль и авто‑определение
+
+- Используйте единый профиль `gpu` — он подходит и для NVIDIA, и для AMD.
+- Запускайте через `./start.sh`: скрипт автоматически определит доступный GPU.
+    - NVIDIA (CUDA): профиль `gpu` запустится с нужными настройками.
+    - AMD (ROCm): `./start.sh` автоматически подключит overlay `compose/gpu-amd.override.yml`.
+- Если GPU недоступен или не сконфигурирован в Docker, будет выбран CPU‑стек (fallback).
+
+Подробнее о диагностике AMD ROCm: см. раздел "Диагностика AMD ROCm (GPU)" в [TROUBLESHOOTING.md](./TROUBLESHOOTING.md#диагностика-amd-rocm-gpu).
+
 ## 🏗️ Архитектура
 
 ```mermaid
