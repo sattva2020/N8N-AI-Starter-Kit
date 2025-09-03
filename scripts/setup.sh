@@ -1511,11 +1511,17 @@ EOF
   } >> .env
 
   print_success ".env сгенерирован встроенным генератором (полный набор переменных)"
-  echo "  PostgreSQL: ${postgres_pwd}"
-  echo "  N8N Encryption Key: ${n8n_encryption_key}"
-  echo "  N8N API Key: ${n8n_api_key}"
-  echo "  Traefik dashboard password (plain): ${traefik_pwd} (hash stored in TRAEFIK_PASSWORD_HASHED)"
-  # Попытка автоматического создания внешнего тома Traefik (если включено)
+  # For non-interactive generation we do NOT print plaintext secrets to stdout.
+  # Save the .env with strict permissions and inform the operator where it is stored.
+  if [ -f .env ]; then
+    chmod 600 .env 2>/dev/null || true
+    print_info ".env сохранён в ./ .env с правами 600 (секреты не отображаются в выводе)."
+  fi
+
+  # Ensure Traefik ACME volume is created for non-interactive runs. Enable
+  # auto-create behaviour specifically for --generate-only so operators don't
+  # have to create the volume manually after destructive cleanups.
+  AUTO_CREATE_TRAEFIK_VOLUME=true
   if ! ensure_traefik_volume_exists; then
     print_warning "Проблемы при проверке/создании docker volume traefik_letsencrypt — проверьте вручную"
   fi

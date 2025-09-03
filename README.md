@@ -5,6 +5,8 @@
 - В `scripts/setup.sh` убран двойной запрос пароля для Traefik. Теперь один пароль используется и для Dashboard, и для admin basic-auth.
 - Хэш admin basic-auth генерируется автоматически: при наличии `htpasswd` — bcrypt; иначе fallback через `openssl -apr1`; в крайнем случае — безопасный дефолт с предупреждением. Конфиг `middlewares.yml` обновляется автоматически.
 
+- Update 2025-09-03 (patch): `scripts/setup.sh` now suppresses printing plaintext secrets during `--generate-only`, saves the generated `.env` with restrictive permissions (600), and will auto-create the `traefik_letsencrypt` Docker volume during non-interactive generation to avoid manual volume recreation after cleanups.
+
 ## Update 2025-09-02: Windows bootstrap and YAML validator
 
 The repository now includes a hardened Windows bootstrap and automatic YAML validation/formatting:
