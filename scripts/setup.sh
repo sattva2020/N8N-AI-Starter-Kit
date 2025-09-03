@@ -709,46 +709,29 @@ create_env_from_template() {
   pgadmin_pwd=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
   traefik_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
   traefik_pwd_hash=$(echo -n "${traefik_pwd}" | md5sum | cut -d' ' -f1)
-
-  # rStar2-Agent secrets
-  rstar_api_key=$(openssl rand -base64 48 | tr -cd '[:alnum:]' | cut -c1-40)
-  redis_password=$(openssl rand -base64 32 | tr -cd '[:alnum:]' | cut -c1-16)
-
-  # Создаём .env напрямую
-# Write full .env based on env.schema (preferred) or env.schema.md (legacy) with generated secrets and sensible placeholders
-  cat > .env <<EOF
-# Generated .env - N8N AI Starter Kit
-  DOMAIN_NAME=${DOMAIN_NAME:-example.com}
-
-# POSTGRES
-POSTGRES_USER=${POSTGRES_USER:-n8n}
-POSTGRES_PASSWORD=${postgres_pwd}
-POSTGRES_DB=${POSTGRES_DB:-n8n}
-POSTGRES_HOST=${POSTGRES_HOST:-postgres}
-POSTGRES_PORT=${POSTGRES_PORT:-5432}
-
-# N8N
-N8N_ENCRYPTION_KEY=${n8n_encryption_key}
-N8N_USER_MANAGEMENT_JWT_SECRET=${n8n_jwt_secret}
-N8N_DEFAULT_BINARY_DATA_MODE=filesystem
-  N8N_HOST=n8n.${DOMAIN_NAME:-example.com}
-N8N_PORT=5678
-N8N_PROTOCOL=http
-N8N_SECURE_COOKIE=false
-  WEBHOOK_URL=http://n8n.${DOMAIN_NAME:-example.com}/
-N8N_API_KEY=${n8n_api_key}
-N8N_API_AUTH_ACTIVE=true
-N8N_PUBLIC_API_DISABLED=${N8N_PUBLIC_API_DISABLED:-false}
-N8N_ADMIN_TOKEN=${n8n_admin_token}
-N8N_ADMIN_TOKEN=${N8N_ADMIN_TOKEN:-${n8n_admin_token}}
-N8N_PUBLIC_API_DISABLED=${N8N_PUBLIC_API_DISABLED:-false}
-
-# PGADMIN
-PGADMIN_DEFAULT_EMAIL=admin@example.com
-PGADMIN_DEFAULT_PASSWORD=${pgadmin_pwd}
-  PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-example.com}}
-
-# TRAEFIK
+  # Генерация хэша для admin-auth Traefik (используем тот же пароль, что и для Dashboard)
+  # Предпочитаем bcrypt через htpasswd; если недоступен — пробуем OpenSSL apr1; иначе fallback
+  admin_auth_hash=""
+  if command -v htpasswd &> /dev/null; then
+    print_info "Генерация bcrypt-хэша для admin-auth (через htpasswd)..."
+    if admin_hash_val=$(htpasswd -nbB admin "$traefik_pwd" 2>/dev/null | cut -d: -f2); then
+      admin_auth_hash="admin:${admin_hash_val}"
+      print_success "bcrypt-хэш для admin сгенерирован"
+    fi
+  fi
+  if [ -z "$admin_auth_hash" ] && command -v openssl >/dev/null 2>&1; then
+    # OpenSSL apr1 (Apache MD5) — полностью совместим с Traefik basicAuth
+    print_info "htpasswd недоступен/не сработал — генерируем apr1-хэш через OpenSSL"
+    if admin_hash_val=$(openssl passwd -apr1 "$traefik_pwd" 2>/dev/null); then
+      admin_auth_hash="admin:${admin_hash_val}"
+      print_success "apr1-хэш для admin сгенерирован"
+    fi
+  fi
+  if [ -z "$admin_auth_hash" ]; then
+    print_warning "Не удалось сгенерировать хэш admin-auth автоматически. Будет использован стандартный bcrypt-хэш для 'admin:password'."
+    print_info "Установите apache2-utils (htpasswd) и выполните замену в config/traefik/dynamic/middlewares.yml вручную."
+    admin_auth_hash="admin:\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"
+  fi
   ACME_EMAIL=admin@example.com
 TRAEFIK_USERNAME=admin
 TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
@@ -1968,44 +1951,24 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
   fi
   print_info "Сгенерированный хэш пароля: $traefik_pwd_hash"
 
-  # Проверка и установка htpasswd для генерации bcrypt-хэша admin-auth
-  print_info "Проверка установки htpasswd (apache2-utils) для генерации bcrypt-хэша..."
-  if ! command -v htpasswd &> /dev/null; then
-    print_warning "htpasswd не найден. Пытаемся установить apache2-utils..."
-    if [[ "$OS_TYPE" == *"Ubuntu"* ]] || [[ "$OS_TYPE" == *"Debian"* ]]; then
-      run_with_spinner "sudo apt-get update" "Обновление списка пакетов"
-      run_with_spinner "sudo apt-get install -y apache2-utils" "Установка apache2-utils"
-    elif [[ "$OS_TYPE" == *"CentOS"* ]] || [[ "$OS_TYPE" == *"RHEL"* ]]; then
-      run_with_spinner "sudo yum install -y httpd-tools" "Установка httpd-tools"
-    elif [[ "$OS_TYPE" == *"Fedora"* ]]; then
-      run_with_spinner "sudo dnf install -y httpd-tools" "Установка httpd-tools"
-    else
-      print_error "Не удалось автоматически установить htpasswd. Установите apache2-utils или httpd-tools вручную."
-      print_info "После установки повторите: htpasswd -nbB admin 'ваш_пароль'"
-      admin_auth_hash="admin:\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"  # fallback
-    fi
-  fi
-
-  # Генерация bcrypt-хэша для admin-auth в Traefik
+  # Генерация admin basic-auth хэша для Traefik, используя тот же пароль, что и для Dashboard
+  admin_auth_hash=""
   if command -v htpasswd &> /dev/null; then
-    print_info "Генерация bcrypt-хэша для admin-auth..."
-    read -p "Введите пароль для admin-пользователя Traefik (оставьте пустым для автогенерации): " admin_pwd
-    if [ -z "$admin_pwd" ]; then
-      admin_pwd=$(openssl rand -base64 16 | tr -cd '[:alnum:]' | cut -c1-12)
-      print_info "Сгенерирован случайный пароль для admin: ${BOLD}$admin_pwd${NC} (сохраните его в безопасном месте)"
-    fi
-
-    # Генерация bcrypt-хэша с помощью htpasswd
-    admin_auth_hash=$(htpasswd -nbB admin "$admin_pwd" 2>/dev/null | cut -d: -f2)
-    if [ -z "$admin_auth_hash" ]; then
-      print_warning "Не удалось сгенерировать bcrypt-хэш. Используем fallback-хэш."
-      admin_auth_hash="\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"
-    else
-      admin_auth_hash="admin:$admin_auth_hash"
+    print_info "Генерация bcrypt-хэша для admin-auth (через htpasswd)"
+    if admin_hash_val=$(htpasswd -nbB admin "$traefik_pwd" 2>/dev/null | cut -d: -f2); then
+      admin_auth_hash="admin:${admin_hash_val}"
       print_success "bcrypt-хэш для admin сгенерирован"
     fi
-  else
-    print_warning "htpasswd недоступен. Используем предустановленный bcrypt-хэш для admin:password"
+  fi
+  if [ -z "$admin_auth_hash" ] && command -v openssl >/dev/null 2>&1; then
+    print_info "htpasswd недоступен/не сработал — генерируем apr1-хэш через OpenSSL"
+    if admin_hash_val=$(openssl passwd -apr1 "$traefik_pwd" 2>/dev/null); then
+      admin_auth_hash="admin:${admin_hash_val}"
+      print_success "apr1-хэш для admin сгенерирован"
+    fi
+  fi
+  if [ -z "$admin_auth_hash" ]; then
+    print_warning "Не удалось сгенерировать admin-auth хэш автоматически. Используется стандартный bcrypt-хэш для 'admin:password'."
     admin_auth_hash="admin:\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"
   fi
 
@@ -2121,9 +2084,7 @@ EOF
   echo -e "${BOLD}Важная информация о паролях и ключах:${NC}"
   echo -e "${BLUE}===============================================${NC}"
   echo -e "${YELLOW}Traefik Dashboard пароль:${NC} ${BOLD}$traefik_pwd${NC}"
-  if [ -n "${admin_pwd:-}" ]; then
-    echo -e "${YELLOW}Admin пароль (bcrypt):${NC} ${BOLD}$admin_pwd${NC}"
-  fi
+  echo -e "${YELLOW}Admin пароль (basic-auth):${NC} ${BOLD}совпадает с паролем Traefik Dashboard${NC}"
   echo -e "${YELLOW}PgAdmin пароль:${NC} ${BOLD}$pgadmin_pwd${NC}"
   echo -e "${YELLOW}Grafana пароль:${NC} ${BOLD}$grafana_pwd${NC}"
   echo -e "${YELLOW}Jupyter Token:${NC} ${BOLD}$jupyter_ds_token${NC}"

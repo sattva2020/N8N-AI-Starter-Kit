@@ -1,5 +1,10 @@
 # N8N AI Starter Kit
 
+## Update 2025-09-03: Traefik — единый пароль и упрощённая настройка
+
+- В `scripts/setup.sh` убран двойной запрос пароля для Traefik. Теперь один пароль используется и для Dashboard, и для admin basic-auth.
+- Хэш admin basic-auth генерируется автоматически: при наличии `htpasswd` — bcrypt; иначе fallback через `openssl -apr1`; в крайнем случае — безопасный дефолт с предупреждением. Конфиг `middlewares.yml` обновляется автоматически.
+
 ## Update 2025-09-02: Windows bootstrap and YAML validator
 
 The repository now includes a hardened Windows bootstrap and automatic YAML validation/formatting:
