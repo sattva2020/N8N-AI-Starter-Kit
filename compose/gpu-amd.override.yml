@@ -24,6 +24,7 @@ services:
     - HIP_VISIBLE_DEVICES=all
     - CUDA_VISIBLE_DEVICES=
   ollama-gpu:
+    image: ollama/ollama:rocm
     deploy: *id001
     device_cgroup_rules: *id002
     devices: *id003

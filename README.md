@@ -16,20 +16,13 @@ The repository now includes a hardened Windows bootstrap and automatic YAML vali
 
 Pre-commit on Windows will offer to run the bootstrap when required tools are missing.
 
-<!-- test branch note: infra fixes made in test/v1.0-2025-09-01 -->
-<!-- Note: Traefik dynamic config mount fixed in test branch -->
-
 > NOTE: Для временной отладки в тестовой ветке может быть включен DEBUG-лог Traefik (описано в PR/branch). Не оставляйте этот режим в production.
-
-<!-- docs s## 📄 Лицензия
-
-Этот проект распространяется под лицензией MIT. Подробности в файле [LICENSE](./LICENSE).
 
 ## 📚 Дополнительная документация
 
 - **[rStar2-Agent Integration](./docs/rstar2-agent-integration.md)** — полное руководство по интеграции Microsoft rStar2-Agent
 - **[Project Documentation](./docs/)** — полная документация проекта
-- **[N8N Workflows](./n8n/workflows/)** — готовые рабочие процессы для импорта: quick note added to satisfy pre-commit docs check -->
+- **[N8N Workflows](./n8n/workflows/)** — готовые рабочие процессы для импорта
 
 [![CI/CD](https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/sattva2020/N8N-AI-Starter-Kit/actions/workflows/pre-commit.yml)
 
@@ -119,6 +112,19 @@ docker-compose --profile default up -d
     - AMD (ROCm): `./start.sh` автоматически подключит overlay `compose/gpu-amd.override.yml`.
 - Если GPU недоступен или не сконфигурирован в Docker, будет выбран CPU‑стек (fallback).
 
+Ручное принуждение вендора (если авто‑детект не подходит):
+
+- Установите переменную окружения `GPU_VENDOR` перед запуском:
+    - `GPU_VENDOR=nvidia` — принудительно NVIDIA/CUDA (экспортируется `GPU_TYPE=nvidia`).
+    - `GPU_VENDOR=amd` — принудительно AMD/ROCm (экспортируется `GPU_TYPE=amd`, подключается overlay `compose/gpu-amd.override.yml`).
+    - `GPU_VENDOR=auto` (по умолчанию) — автоопределение.
+
+Пример:
+
+```bash
+GPU_VENDOR=amd ./start.sh
+```
+
 Подробнее о диагностике AMD ROCm: см. раздел "Диагностика AMD ROCm (GPU)" в [TROUBLESHOOTING.md](./TROUBLESHOOTING.md#диагностика-amd-rocm-gpu).
 
 ## 🏗️ Архитектура
@@ -180,6 +186,14 @@ graph TD
 # Пример: запуск с мониторингом
 COMPOSE_PROFILES=default,monitoring ./start.sh
 ```
+
+### Проверка конфигурации без запуска
+
+Для быстрой валидации Docker Compose-конфигурации и списка активных сервисов без скачивания образов и запуска контейнеров используйте флаг:
+
+- `./start.sh --config-check` — сохранит итоговый merge-файл в `.internal/compose_config_<profiles>.yml` и список сервисов в `.internal/services_<profiles>.txt`.
+
+Примечание: скрипт активирует профили через переменную окружения `COMPOSE_PROFILES` (а не флаг `--profile`), что гарантирует совместимость с разными версиями Docker Compose.
 
 ## 🔧 Конфигурация
 
@@ -290,7 +304,7 @@ COMPOSE_PROFILES=default,monitoring ./start.sh
 - в bulk-режиме: пропустит такую запись с сообщением;
 - в одиночном режиме: завершится с ошибкой и покажет проблемное содержимое.
 
-## � Документация
+## Документация
 
 | Раздел                                                      | Описание                             |
 | ----------------------------------------------------------- | ------------------------------------ |
@@ -374,7 +388,7 @@ pre-commit run --all-files
 └── .github/           # CI/CD и GitHub настройки
 ```
 
-## � Лицензия
+## Лицензия
 
 Этот проект распространяется под лицензией MIT. Подробности в файле [LICENSE](./LICENSE).
 

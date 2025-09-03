@@ -1,3 +1,7 @@
+# Project-local ignores
+.internal/
+.internal*
+*.log
 # Чувствительные данные
 .env
 .env.*

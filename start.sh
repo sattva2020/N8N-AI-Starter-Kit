@@ -9,6 +9,9 @@
 #                        не будет записывать это значение в .env — действие временно.
 #  --no-import-prompt    Подавить все запросы об импорте workflows для этой сессии
 #                        (эквивалент N8N_AUTO_IMPORT=false во время выполнения). Не изменяет .env.
+#  --config-check        Вывести и сохранить итоговую конфигурацию Docker Compose и список сервисов
+#                        (в .internal/compose_config_<profile>.yml и .internal/services_<profile>.txt),
+#                        ничего не pull/up (только проверка и рендер)
 #
 # Примеры:
 #   ./start.sh --auto-import
@@ -70,6 +73,7 @@ CLI_AUTO_IMPORT=false
 CLI_NO_IMPORT_PROMPT=false
 
 # Parse optional CLI flags (they are allowed before the optional profile positional arg)
+CONFIG_CHECK=false
 while [[ "$#" -gt 0 ]]; do
     case "$1" in
         --auto-import)
@@ -80,12 +84,17 @@ while [[ "$#" -gt 0 ]]; do
             CLI_NO_IMPORT_PROMPT=true
             shift
             ;;
+        --config-check)
+            CONFIG_CHECK=true
+            shift
+            ;;
         --help|-h)
             echo "Usage: $0 [--auto-import] [--no-import-prompt] [profile]"
             echo ""
             echo "OPTIONS:"
             echo "  --auto-import        enable automatic import of workflows (equivalent to N8N_AUTO_IMPORT=true)"
             echo "  --no-import-prompt   never prompt about importing workflows; skip import prompts (equivalent to N8N_AUTO_IMPORT=false)"
+            echo "  --config-check       render merged Docker Compose config and services (no pull/up)"
             echo ""
             echo "PROFILES:"
             echo "  default              Core services (Traefik, N8N, PostgreSQL)"
@@ -156,10 +165,47 @@ AMD_OVERRIDE=0
 detect_optimal_profile() {
     local memory=$(free -m 2>/dev/null | awk 'NR==2{printf "%.0f", $2/1024}' || echo "0")
     local cpu_cores=$(nproc 2>/dev/null || echo "1")
+    local vendor_override="${GPU_VENDOR:-auto}"
+    vendor_override=$(echo "$vendor_override" | tr 'A-Z' 'a-z')
 
     echo -e "${BLUE}Анализ системы:${NC}" >&2
     echo -e "  ${EMOJI_CHART} Память: ${memory}GB" >&2
     echo -e "  ${EMOJI_CPU}  CPU ядер: ${cpu_cores}" >&2
+
+    # Manual override for GPU vendor if provided
+    if [ "$vendor_override" = "nvidia" ]; then
+        echo -e "  ${EMOJI_GPU} GPU_VENDOR override: NVIDIA${NC}" >&2
+        export GPU_TYPE="nvidia"
+        AMD_OVERRIDE=0
+        # Best effort check Docker GPU support to inform user
+        docker_gpu_ok=0
+        if docker info >/dev/null 2>&1 && docker info 2>/dev/null | grep -i -E 'Runtimes:.*nvidia|Default Runtime:.*nvidia|nvidia' >/dev/null 2>&1; then
+            docker_gpu_ok=1
+        elif docker run --rm --gpus all nvidia/cuda:12.1.1-runtime-ubuntu22.04 nvidia-smi >/dev/null 2>&1; then
+            docker_gpu_ok=1
+        fi
+        if [ "$docker_gpu_ok" -eq 1 ]; then
+            echo -e "  ${GREEN}${EMOJI_OK} Docker GPU support: Работает${NC}" >&2
+        else
+            echo -e "  ${YELLOW}${EMOJI_WARN} Docker GPU support: Не настроен (override всё равно применён)${NC}" >&2
+        fi
+        echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: gpu${NC}" >&2
+        echo "gpu"
+        return 0
+    elif [ "$vendor_override" = "amd" ]; then
+        echo -e "  ${EMOJI_GPU} GPU_VENDOR override: AMD/ROCm${NC}" >&2
+        export GPU_TYPE="amd"
+        AMD_OVERRIDE=1
+        # Best effort ROCm-in-docker hint (do not block on failure)
+        if docker run --rm --device=/dev/kfd --device=/dev/dri rocm/rocm-terminal:latest bash -lc 'rocm-smi >/dev/null 2>&1 || rocminfo >/dev/null 2>&1' >/dev/null 2>&1; then
+            echo -e "  ${GREEN}${EMOJI_OK} Docker ROCm support: Предположительно работает${NC}" >&2
+        else
+            echo -e "  ${YELLOW}${EMOJI_WARN} Docker ROCm support: Не подтверждён (override всё равно применён)${NC}" >&2
+        fi
+        echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: gpu${NC}" >&2
+        echo "gpu"
+        return 0
+    fi
 
     # Расширенная проверка GPU
     if command -v nvidia-smi &> /dev/null && nvidia-smi &> /dev/null; then
@@ -171,8 +217,28 @@ detect_optimal_profile() {
         echo -e "  ${EMOJI_GPU} GPU: ${gpu_name} (${gpu_memory_gb}GB)" >&2
 
         # Docker GPU support check
-        if docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi &>/dev/null; then
+        # Prefer probing the Docker daemon for an NVIDIA runtime/devices instead of
+        # immediately running a container (this avoids unnecessary large image pulls).
+        docker_gpu_ok=0
+        if docker info >/dev/null 2>&1; then
+            # If docker info mentions 'nvidia' (runtimes or default runtime), assume GPU support
+            if docker info 2>/dev/null | grep -i -E 'Runtimes:.*nvidia|Default Runtime:.*nvidia|nvidia' >/dev/null 2>&1; then
+                docker_gpu_ok=1
+            fi
+        fi
+
+        # If the daemon check was inconclusive, perform a lightweight runtime probe
+        # by attempting to run nvidia-smi inside a CUDA runtime container. This may
+        # pull a small image if missing; failure is treated as no Docker GPU support.
+        if [ "$docker_gpu_ok" -eq 0 ]; then
+            if docker run --rm --gpus all nvidia/cuda:12.1.1-runtime-ubuntu22.04 nvidia-smi >/dev/null 2>&1; then
+                docker_gpu_ok=1
+            fi
+        fi
+
+        if [ "$docker_gpu_ok" -eq 1 ]; then
             echo -e "  ${GREEN}${EMOJI_OK} Docker GPU support: Работает${NC}" >&2
+            export GPU_TYPE="nvidia"
 
             # Рекомендации на основе VRAM
             if [ "$gpu_memory_gb" -ge 24 ]; then
@@ -197,6 +263,7 @@ detect_optimal_profile() {
         echo -e "  ${EMOJI_GPU} GPU: AMD ROCm обнаружен" >&2
         echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: gpu${NC}" >&2
         AMD_OVERRIDE=1
+        export GPU_TYPE="amd"
         echo "gpu"
     elif [ "$memory" -gt 32 ] && [ "$cpu_cores" -gt 16 ]; then
         echo -e "${GREEN}${EMOJI_ROCKET} Рекомендуемый профиль: cpu,reasoning,developer${NC}" >&2
@@ -452,14 +519,124 @@ check_critical_components() {
 }
 
 # Основная логика запуска
+PROFILE_SPECIFIED=0
 if [ -n "$1" ]; then
     PROFILE="$1"
+    PROFILE_SPECIFIED=1
     echo ""
     echo -e "${BLUE}Выбранный профиль: ${YELLOW}$PROFILE${NC}"
 else
     PROFILE=$(detect_optimal_profile)
     echo ""
     echo -e "${BLUE}Выбранный профиль: ${YELLOW}$PROFILE${NC}"
+fi
+
+# Если оператор явно передал список профилей — убедимся, что 'default' присутствует
+if [ "$PROFILE_SPECIFIED" -eq 1 ]; then
+    if ! echo ",$PROFILE," | grep -q ",default,"; then
+        PROFILE="default,$PROFILE"
+        echo -e "${YELLOW}${EMOJI_NOTE} Автоматически добавлен профиль 'default' к списку профилей: ${PROFILE}${NC}"
+    fi
+fi
+
+# Неявно включаем мониторинг GPU только по явному флагу окружения,
+# чтобы избежать приватных образов по умолчанию
+if [ "${GPU_ENABLE_MONITORING:-}" = "true" ]; then
+    if ! echo ",$PROFILE," | grep -q ",monitoring-gpu,"; then
+        PROFILE="$PROFILE,monitoring-gpu"
+        echo -e "${CYAN}GPU_ENABLE_MONITORING=true — добавлен профиль 'monitoring-gpu'.${NC}"
+    fi
+fi
+
+# Если профиль задан явно и указан GPU_VENDOR, применим оверлей AMD и установим GPU_TYPE
+case "${GPU_VENDOR:-auto}" in
+    amd|AMD)
+        AMD_OVERRIDE=1
+        export GPU_TYPE="amd"
+        ;;
+    nvidia|NVIDIA)
+        AMD_OVERRIDE=0
+        export GPU_TYPE="nvidia"
+        ;;
+    *)
+        :
+        ;;
+esac
+
+# Ранний режим: --config-check (без интерактива, без pre-pull/up/stop)
+if [ "$CONFIG_CHECK" = "true" ]; then
+    # Определяем docker compose команду
+    if docker compose version &> /dev/null; then
+        DOCKER_COMPOSE_CMD="docker compose"
+    elif command -v docker-compose &> /dev/null; then
+        DOCKER_COMPOSE_CMD="docker-compose"
+    else
+        DOCKER_COMPOSE_CMD="docker compose"
+    fi
+
+    # Используем --env-file только если .env существует (ничего не экспортируем)
+    ENV_FILE_ARG=""
+    if [ -f .env ]; then
+        ENV_FILE_ARG="--env-file .env"
+    fi
+
+    # Собираем список compose-файлов и оверлеев как в обычном запуске
+    COMPOSE_FILES_ARGS=""
+    compose_files=("docker-compose.yml")
+
+    base_includes=()
+    if [ -f "docker-compose.yml" ]; then
+        mapfile -t base_includes < <(grep -Eo 'path:\s*\.?/?[A-Za-z0-9_./-]+\.(yml|yaml)' docker-compose.yml | awk '{print $2}' | sed 's#^\./##g' | sort -u)
+    fi
+
+    IFS=',' read -ra _profs <<< "$PROFILE"
+    for _p in "${_profs[@]}"; do
+        _p_trim=$(echo "$_p" | xargs)
+        [ -z "$_p_trim" ] && continue
+        for _f in "compose/${_p_trim}.yml" "compose/${_p_trim}-compose.yml" compose/*"${_p_trim}"*.yml; do
+            if [ -f "$_f" ]; then
+                skip_inc=0
+                for inc in "${base_includes[@]}"; do
+                    inc_norm=$(echo "$inc" | sed 's#^\./##')
+                    f_norm=$(echo "$_f" | sed 's#^\./##')
+                    if [ "$inc_norm" = "$f_norm" ]; then
+                        skip_inc=1; break
+                    fi
+                done
+                [ $skip_inc -eq 0 ] && compose_files+=("$_f")
+            fi
+        done
+    done
+
+    if [ "$AMD_OVERRIDE" -eq 1 ] && [ -f "./compose/gpu-amd.override.yml" ]; then
+        compose_files+=("compose/gpu-amd.override.yml")
+    fi
+
+    unique_files=()
+    for _f in "${compose_files[@]}"; do
+        skip=0
+        for _u in "${unique_files[@]}"; do
+            [ "$_u" = "$_f" ] && { skip=1; break; }
+        done
+        [ $skip -eq 0 ] && unique_files+=("$_f")
+    done
+
+    if [ ${#unique_files[@]} -gt 0 ]; then
+        COMPOSE_FILES_ARGS=""
+        for _f in "${unique_files[@]}"; do
+            COMPOSE_FILES_ARGS="$COMPOSE_FILES_ARGS -f $_f"
+        done
+        COMPOSE_FILES_ARGS=$(echo "$COMPOSE_FILES_ARGS" | sed -E 's/^ //')
+    fi
+
+    mkdir -p .internal
+    slug=$(echo "$PROFILE" | tr ' ,' '__' | tr -s '_' | sed -E 's/^_+//; s/_+$//')
+    COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} config > ".internal/compose_config_${slug}.yml" || true
+    COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} config --services > ".internal/services_${slug}.txt" || true
+    echo -e "${GREEN}${EMOJI_OK} Итоговая конфигурация сохранена: .internal/compose_config_${slug}.yml${NC}"
+    echo -e "${GREEN}${EMOJI_OK} Список сервисов сохранён: .internal/services_${slug}.txt${NC}"
+    echo -e "${BLUE}Режим проверки завершён. Запуск контейнеров не выполнялся.${NC}"
+    exit 0
 fi
 
 # Проверка критических компонентов
@@ -541,7 +718,7 @@ if [ -f .env ]; then
         tmpl_status=$?
         if [ "$tmpl_status" -eq 0 ]; then
             echo ""
-            echo -e "${CYAN}Файл .env соответствует схеме ${template_file} — продолжаю без запроса.${NC}"
+            echo -e "${CYAN}Файл .env соответствует схеме ${schema_file} — продолжаю без запроса.${NC}"
             env_choice=3
         elif [ "$tmpl_status" -eq 2 ]; then
             # No template — fall back to interactive prompt
@@ -740,17 +917,403 @@ if [ -f .env ]; then
 fi
 
 COMPOSE_FILES_ARGS=""
-if [ "$AMD_OVERRIDE" -eq 1 ] && [ -f "./compose/gpu-amd.override.yml" ]; then
-    echo -e "${CYAN}Обнаружен AMD/ROCm — применяем overlay compose/gpu-amd.override.yml${NC}"
-    COMPOSE_FILES_ARGS="-f docker-compose.yml -f compose/gpu-amd.override.yml"
+# Build COMPOSE_FILES_ARGS dynamically: include base docker-compose.yml and
+# any overlay files in ./compose/ that match the selected profile names
+# (this ensures overlays like compose/gpu-compose.yml are included when the
+# user requests the gpu profile).
+compose_files=()
+# Always include base compose file so default services are present
+compose_files+=("docker-compose.yml")
+
+# Collect include: paths already referenced by the base compose to avoid
+# duplicates when we also add overlays via -f flags.
+base_includes=()
+if [ -f "docker-compose.yml" ]; then
+    # Extract lines with "path: <file>" under any include block
+    mapfile -t base_includes < <(grep -Eo 'path:\s*\.?/?[A-Za-z0-9_./-]+\.(yml|yaml)' docker-compose.yml | awk '{print $2}' | sed 's#^\./##g' | sort -u)
 fi
 
+# Split PROFILE (comma-separated) into array and search for matching files
+IFS=',' read -ra _profs <<< "$PROFILE"
+for _p in "${_profs[@]}"; do
+    # trim whitespace
+    _p_trim=$(echo "$_p" | xargs)
+    if [ -z "$_p_trim" ]; then
+        continue
+    fi
+    # check several common naming patterns
+    for _f in "compose/${_p_trim}.yml" "compose/${_p_trim}-compose.yml" compose/*"${_p_trim}"*.yml; do
+        if [ -f "$_f" ]; then
+            # Skip if already included from the base compose include:
+            skip_inc=0
+            for inc in "${base_includes[@]}"; do
+                # Normalize both paths for comparison
+                inc_norm=$(echo "$inc" | sed 's#^\./##')
+                f_norm=$(echo "$_f" | sed 's#^\./##')
+                if [ "$inc_norm" = "$f_norm" ]; then
+                    skip_inc=1
+                    break
+                fi
+            done
+            if [ $skip_inc -eq 0 ]; then
+                compose_files+=("$_f")
+            fi
+        fi
+    done
+done
+
+# AMD specific overlay should still be applied when detected
+if [ "$AMD_OVERRIDE" -eq 1 ] && [ -f "./compose/gpu-amd.override.yml" ]; then
+    compose_files+=("compose/gpu-amd.override.yml")
+fi
+
+# Deduplicate while preserving order
+unique_files=()
+for _f in "${compose_files[@]}"; do
+    skip=0
+    for _u in "${unique_files[@]}"; do
+        if [ "$_u" = "$_f" ]; then
+            skip=1
+            break
+        fi
+    done
+    if [ $skip -eq 0 ]; then
+        unique_files+=("$_f")
+    fi
+done
+
+if [ ${#unique_files[@]} -gt 0 ]; then
+    COMPOSE_FILES_ARGS=""
+    for _f in "${unique_files[@]}"; do
+        COMPOSE_FILES_ARGS="$COMPOSE_FILES_ARGS -f $_f"
+    done
+    # trim leading space
+    COMPOSE_FILES_ARGS=$(echo "$COMPOSE_FILES_ARGS" | sed -E 's/^ //')
+    echo -e "${CYAN}Compose overlay files: ${COMPOSE_FILES_ARGS}${NC}"
+fi
+
+# Helper: attempt to run `docker compose config --services`, and if it fails
+# due to undefined dependent services (e.g. "depends on undefined service \"redis\""),
+# try to locate compose files under ./compose/ that define the missing service(s),
+# add them to the compose file list and retry (up to a few attempts).
+resolve_compose_services_with_auto_includes() {
+    local attempts=0
+    local max_attempts=3
+    while [ $attempts -lt $max_attempts ]; do
+        attempts=$((attempts + 1))
+    echo "${CYAN}Попытка выполнить: COMPOSE_PROFILES=\"$PROFILE\" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} config --services (попытка $attempts)${NC}"
+    svc_out=$(COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} config --services 2>&1)
+        rc=$?
+        if [ $rc -eq 0 ]; then
+            echo "$svc_out"
+            return 0
+        fi
+
+        # If docker compose returns a 'depends on undefined service' error, try to auto-include files
+        missing=$(echo "$svc_out" | grep -oE 'depends on undefined service "[^"]+"' | sed -E 's/.*"([^"]+)"/\1/' | sort -u | tr '\n' ' ')
+        if [ -z "$missing" ]; then
+            # Not the specific error we can auto-resolve — print and return failure
+            echo "$svc_out"
+            return $rc
+        fi
+
+    echo -e "${YELLOW}Найдены отсутствующие сервисы в конфигурации: ${missing} — пытаюсь найти определяющие файлы в ./compose/...${NC}"
+
+        # For each missing service, search compose/ and root docker-compose.* files for a service definition
+        for svc in $missing; do
+            # Look for lines like '  redis:' or '^redis:' in yaml files under compose/
+            matches=$(grep -R -nE "^[[:space:]]*${svc}:" compose/ 2>/dev/null || true)
+            # Also check top-level docker-compose.yml and any other yml in workspace root
+            if [ -z "$matches" ]; then
+                matches=$(grep -R -nE "^[[:space:]]*${svc}:" docker-compose.yml 2>/dev/null || true)
+            fi
+
+            if [ -n "$matches" ]; then
+                # Extract unique filenames and add them to unique_files if not present
+                while IFS= read -r mf; do
+                    skip=0
+                    # Skip if already in unique_files
+                    for _u in "${unique_files[@]}"; do
+                        if [ "$_u" = "$mf" ]; then
+                            skip=1; break
+                        fi
+                    done
+                    # Skip if the file is already included by base docker-compose.yml include:
+                    if [ $skip -eq 0 ] && [ ${#base_includes[@]} -gt 0 ]; then
+                        for inc in "${base_includes[@]}"; do
+                            inc_norm=$(echo "$inc" | sed 's#^\./##')
+                            mf_norm=$(echo "$mf" | sed 's#^\./##')
+                            if [ "$inc_norm" = "$mf_norm" ]; then
+                                skip=1; break
+                            fi
+                        done
+                    fi
+                    if [ $skip -eq 0 ]; then
+                        echo -e "  ${CYAN}Автоматически включаю файл: $mf${NC}"
+                        unique_files+=("$mf")
+                    fi
+                done < <(echo "$matches" | cut -d: -f1 | sort -u)
+            else
+                echo -e "  ${YELLOW}Не найден файл с определением сервиса '$svc' в ./compose/ или docker-compose.yml${NC}"
+            fi
+        done
+
+        # Rebuild COMPOSE_FILES_ARGS from updated unique_files
+        COMPOSE_FILES_ARGS=""
+        for _f in "${unique_files[@]}"; do
+            COMPOSE_FILES_ARGS="$COMPOSE_FILES_ARGS -f $_f"
+        done
+        COMPOSE_FILES_ARGS=$(echo "$COMPOSE_FILES_ARGS" | sed -E 's/^ //')
+        echo -e "${CYAN}Новый список Compose overlay файлов: ${COMPOSE_FILES_ARGS}${NC}"
+        # Loop will retry
+    done
+
+    # if we reach here, attempts exhausted — run once more to show final error
+    echo "$svc_out"
+    return 1
+}
+
+# Ensure traefik ACME volume exists and contains acme.json with proper perms
+ensure_traefik_volume() {
+    local base_name="traefik_letsencrypt"
+    # look for any existing volume that ends with traefik_letsencrypt (project-scoped or global)
+    local found_vol
+    found_vol=$(docker volume ls --format '{{.Name}}' 2>/dev/null | grep -E '(^|_)traefik_letsencrypt$' | head -n1 || true)
+    if [ -z "$found_vol" ]; then
+        echo -e "${CYAN}Том для Traefik ACME не найден — создаю docker volume ${base_name}...${NC}"
+        docker volume create "$base_name" >/dev/null 2>&1 || {
+            echo -e "${YELLOW}${EMOJI_WARN} Не удалось создать том $base_name напрямую — продолжу, Docker Compose может создать project-scoped том.${NC}"
+        }
+        # find again (either newly created global or project-scoped will be created by compose)
+        found_vol=$(docker volume ls --format '{{.Name}}' 2>/dev/null | grep -E '(^|_)traefik_letsencrypt$' | head -n1 || true)
+    fi
+
+    if [ -n "$found_vol" ]; then
+        # Ensure acme.json exists and has 600 permissions inside the volume
+        echo -e "${CYAN}Проверяю /acme.json в томе $found_vol...${NC}"
+        docker run --rm -v "$found_vol":/data alpine sh -c 'touch /data/acme.json && chmod 600 /data/acme.json' >/dev/null 2>&1 || true
+        echo -e "${GREEN}${EMOJI_OK} Том $found_vol готов (acme.json присутствует с правами 600).${NC}"
+    else
+        echo -e "${YELLOW}${EMOJI_WARN} Том traefik_letsencrypt не обнаружен и не удалось создать — Docker Compose при старте может создать project-scoped том автоматически.${NC}"
+    fi
+}
+
+# create traefik volume proactively to avoid interactive prompts
+ensure_traefik_volume
+
+
+
+# Собираем список образов из результата `docker compose config` и подтягиваем их заранее
+pull_required_images() {
+    # Allow operator to skip pre-pull with env var
+    if [ "${SKIP_PRE_PULL:-}" = "true" ]; then
+        echo -e "${YELLOW}SKIP_PRE_PULL=true — пропускаю предварительную загрузку образов.${NC}"
+        return 0
+    fi
+
+    echo -e "${CYAN}Анализируем конфигурацию Compose и подтягиваем нужные образы (pre-pull)...${NC}"
+
+    # Используем COMPOSE_PROFILES для активации профилей во всех вызовах docker compose
+
+    # Try the simple and robust path first: let docker compose resolve and pull
+    # images for the selected profiles. This respects env-file and compose logic.
+    # Honor PREFERRED_COMPOSE_PULL env var: if explicitly set to "false", skip this
+    # automated compose pull attempt and use manual extraction instead. If set to
+    # "true" or unset, attempt compose pull and fall back on error.
+    if [ "${PREFERRED_COMPOSE_PULL:-}" != "false" ]; then
+    pull_cmd="COMPOSE_PROFILES=\"$PROFILE\" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} pull"
+        echo -e "${CYAN}Попытка: ${pull_cmd}${NC}"
+        # Execute and capture both output and real exit code
+        tmp_pull_out=$(mktemp 2>/dev/null || echo "/tmp/pull.$$.$RANDOM.out")
+    if COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} pull >"$tmp_pull_out" 2>&1; then
+            pull_rc=0
+        else
+            pull_rc=$?
+        fi
+        pull_output=$(cat "$tmp_pull_out" 2>/dev/null || true)
+        rm -f "$tmp_pull_out" 2>/dev/null || true
+
+        # Show the raw output to the operator for transparency
+        if [ -n "$pull_output" ]; then
+            echo "$pull_output"
+        fi
+
+        # Parse the output for known failure patterns regardless of exit code
+        FAILED_PULLS=()
+        # 1) explicit 'pull access denied for <image>' lines
+        mapfile -t _f1 < <(printf '%s\n' "$pull_output" | grep -Eo 'pull access denied for [^, ]+' | awk '{print $4}' | sort -u)
+        if [ ${#_f1[@]} -gt 0 ]; then
+            for i in "${_f1[@]}"; do FAILED_PULLS+=("$i"); done
+        fi
+        # 2) common daemon error lines containing a registry/image reference
+        mapfile -t _f2 < <(printf '%s\n' "$pull_output" | grep -Eo '([a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+)(:[a-zA-Z0-9._-]+)?' | sort -u)
+        if [ ${#_f2[@]} -gt 0 ]; then
+            for i in "${_f2[@]}"; do
+                skip=false
+                for existing in "${FAILED_PULLS[@]}"; do
+                    if [ "$existing" = "$i" ]; then skip=true; break; fi
+                done
+                if [ "$skip" = false ] && echo "$pull_output" | grep -i -qE "denied|not found|repository does not exist|access is denied|unauthorized|forbidden|manifest unknown"; then
+                    FAILED_PULLS+=("$i")
+                fi
+            done
+        fi
+
+        if [ ${#FAILED_PULLS[@]} -gt 0 ]; then
+            echo -e "\n${RED}${EMOJI_ERROR} Обнаружены ошибки при предварительной загрузке образов (docker compose pull):${NC}"
+            for f in "${FAILED_PULLS[@]}"; do
+                echo -e "  - ${f}"
+            done
+            if [ "${CONTINUE_ON_PULL_FAILURE:-}" != "true" ]; then
+                echo -e "\n${YELLOW}Запуск остановлён до docker compose up из-за неудачных загрузок образов.\nЕсли вы хотите продолжить несмотря на ошибки, установите: ${CYAN}export CONTINUE_ON_PULL_FAILURE=true${NC}"
+                return 1
+            else
+                echo -e "${YELLOW}CONTINUE_ON_PULL_FAILURE=true — продолжаю, несмотря на ошибки предварительной загрузки образов.${NC}"
+            fi
+        fi
+
+        if [ $pull_rc -eq 0 ]; then
+            echo -e "${GREEN}docker compose pull успешно завершён для профилей:${NC} ${PROFILE}"
+            return 0
+        fi
+
+        echo -e "${YELLOW}docker compose pull вернул ошибку или не поддерживается в этой версии — откат к ручному извлечению образов.${NC}"
+    else
+        echo -e "${YELLOW}PREFERRED_COMPOSE_PULL=false — пропускаю автоматический 'docker compose pull' и перехожу к ручному извлечению образов.${NC}"
+    fi
+
+    images=""
+
+    # Prefer JSON output if supported (newer compose releases)
+    config_json=$(COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} config --format json 2>/dev/null || true)
+    if [ -n "$config_json" ]; then
+        # Prefer jq for robust JSON parsing
+        if command -v jq >/dev/null 2>&1; then
+            images=$(printf '%s' "$config_json" | jq -r '.services[]?.image // empty' | sort -u)
+        elif command -v python3 >/dev/null 2>&1 || command -v python >/dev/null 2>&1; then
+            py=$(command -v python3 >/dev/null 2>&1 && echo python3 || echo python)
+            images=$(printf '%s' "$config_json" | $py - <<'PY' 2>/dev/null
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    imgs = []
+    for s in data.get('services', {}).values():
+        img = s.get('image')
+        if img:
+            imgs.append(img)
+    for i in sorted(set(imgs)):
+        print(i)
+except Exception:
+    sys.exit(0)
+PY
+)
+        else
+            # Fallback: parse YAML-ish output for lines with "image:"
+            config_txt=$(COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} config 2>/dev/null || true)
+            if [ -n "$config_txt" ]; then
+                images=$(echo "$config_txt" | grep -E '^[[:space:]]*image:[[:space:]]*' | sed -E 's/^[[:space:]]*image:[[:space:]]*(.*)/\1/' | sed 's/^"//;s/"$//' | sort -u)
+            fi
+        fi
+    else
+        # If JSON not available, fallback to YAML-ish parsing
+    config_txt=$(COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} config 2>/dev/null || true)
+        if [ -n "$config_txt" ]; then
+            images=$(echo "$config_txt" | grep -E '^[[:space:]]*image:[[:space:]]*' | sed -E 's/^[[:space:]]*image:[[:space:]]*(.*)/\1/' | sed 's/^"//;s/"$//' | sort -u)
+        fi
+    fi
+
+    if [ -z "$images" ]; then
+        echo -e "${YELLOW}Не найдено явных образов в конфигурации Compose — пропускаю pre-pull.${NC}"
+        return 0
+    fi
+
+    echo -e "${BLUE}Найденные образы для подтягивания (до подстановки переменных):${NC}"
+    echo "$images" | sed 's/^/  - /'
+
+    # Pull images one by one, resolving env vars like ${MY_IMAGE} or $MY_IMAGE
+    FAILED_PULLS=()
+    for img in $images; do
+        # Skip empty lines
+        if [ -z "$img" ]; then
+            continue
+        fi
+
+        resolved="$img"
+
+        # If image contains env var patterns, attempt substitution using envsubst or eval
+        if echo "$img" | grep -q '\$\{|\$[A-Za-z_]'; then
+            # Prefer envsubst if available (safer than eval for simple substitutions)
+            if command -v envsubst >/dev/null 2>&1; then
+                # envsubst only substitutes $VAR or ${VAR} for variables present in the environment
+                resolved=$(printf '%s' "$img" | envsubst 2>/dev/null || echo "$img")
+            else
+                # Fallback to eval echo — note: this evaluates shell expansions, so only use
+                # after minimal validation. We wrap in printf and suppress errors.
+                resolved=$(eval "echo \"$img\"" 2>/dev/null || echo "$img")
+            fi
+
+            # If substitution left an unsubstituted ${...} token, warn and skip
+            if echo "$resolved" | grep -q '\$\{'; then
+                echo -e "${YELLOW}Не удалось полностью разрешить переменные в образе: $img -> $resolved — пропускаю.${NC}"
+                continue
+            fi
+
+            # If resolved changed, show it
+            if [ "$resolved" != "$img" ]; then
+                echo -e "${CYAN}Разрешён: ${img} -> ${resolved}${NC}"
+            fi
+        fi
+
+        echo -e "${CYAN}Подтягиваю образ: ${resolved}${NC}"
+        if docker pull "$resolved"; then
+            echo -e "${GREEN}Образ $resolved успешно загружен${NC}"
+        else
+            echo -e "${YELLOW}Не удалось загрузить $resolved — продолжу, но запуск может завершиться ожиданием загрузки образа при docker compose up${NC}"
+            FAILED_PULLS+=("$resolved")
+        fi
+    done
+
+    # If any pulls failed, summarize and suggest actions
+    if [ ${#FAILED_PULLS[@]} -gt 0 ]; then
+        echo -e "\n${RED}${EMOJI_ERROR} Не удалось загрузить некоторые образы:${NC}"
+        for f in "${FAILED_PULLS[@]}"; do
+            echo -e "  - ${f}"
+        done
+        echo -e "\n${YELLOW}Возможные действия: ${NC}"
+        echo -e "  - Войти в приватный реестр: ${CYAN}docker login <registry>${NC}"
+        echo -e "  - Повторить попытку: ${CYAN}docker pull <image>${NC}"
+        echo -e "  - Пропустить предварительную загрузку, установив: ${CYAN}export SKIP_PRE_PULL=true${NC}"
+    fi
+
+    return 0
+}
+
 if [ -n "$COMPOSE_FILES_ARGS" ]; then
-    echo -e "${BLUE}Команда запуска:${NC} $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} --profile $PROFILE up -d"
-    $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} --profile $PROFILE up -d
+    echo -e "${BLUE}Команда запуска:${NC} COMPOSE_PROFILES=\"$PROFILE\" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} up -d"
+    echo -e "${BLUE}Services that compose will consider (config --services):${NC}"
+    if ! resolve_compose_services_with_auto_includes; then
+        echo -e "${RED}${EMOJI_ERROR} Не удалось получить список сервисов из docker compose (ошибка конфигурации).${NC}"
+    fi
+    # Pre-pull images required by the compose stack to reduce long image-pull time during up
+    if ! pull_required_images; then
+        echo -e "${RED}${EMOJI_ERROR} Предварительная загрузка образов завершилась с ошибками. Останавливаю запуск до устранения проблем.${NC}"
+        echo -e "${YELLOW}Подсказка: установите ${CYAN}export CONTINUE_ON_PULL_FAILURE=true${NC}, чтобы продолжить запуск несмотря на ошибки (не рекомендуется).${NC}"
+        exit 1
+    fi
+    COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} up -d
 else
-    echo -e "${BLUE}Команда запуска:${NC} $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} --profile $PROFILE up -d"
-    $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} --profile $PROFILE up -d
+    echo -e "${BLUE}Команда запуска:${NC} COMPOSE_PROFILES=\"$PROFILE\" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} up -d"
+    echo -e "${BLUE}Services that compose will consider (config --services):${NC}"
+    if ! resolve_compose_services_with_auto_includes; then
+        echo -e "${RED}${EMOJI_ERROR} Не удалось получить список сервисов из docker compose (ошибка конфигурации).${NC}"
+    fi
+    # Pre-pull images required by the compose stack to reduce long image-pull time during up
+    if ! pull_required_images; then
+        echo -e "${RED}${EMOJI_ERROR} Предварительная загрузка образов завершилась с ошибками. Останавливаю запуск до устранения проблем.${NC}"
+        echo -e "${YELLOW}Подсказка: установите ${CYAN}export CONTINUE_ON_PULL_FAILURE=true${NC}, чтобы продолжить запуск несмотря на ошибки (не рекомендуется).${NC}"
+        exit 1
+    fi
+    COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} up -d
 fi
 
 # Проверка результата запуска
@@ -807,7 +1370,7 @@ if [ $? -eq 0 ]; then
         fi
 
         # List all services and their published ports (if any)
-        services=$(docker compose config --services 2>/dev/null || echo "")
+    services=$(COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} config --services 2>/dev/null || echo "")
 
         # If Traefik API returned a response, extract exposed services from its JSON
         exposed_services=""
@@ -950,7 +1513,7 @@ while [ "$waited" -lt "$max_wait" ]; do
                         else
                             echo -e "${RED}${EMOJI_ERROR} Ошибка во время импорта workflows (локально, код=$rc).${NC}"
                         fi
-                    elif $DOCKER_COMPOSE_CMD config --services 2>/dev/null | grep -q '^n8n-importer$'; then
+                    elif COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} config --services 2>/dev/null | grep -q '^n8n-importer$'; then
                         echo -e "${BLUE}${EMOJI_SETUP} Запуск n8n-importer...${NC}"
                         $DOCKER_COMPOSE_CMD run --rm n8n-importer
                         if [ $? -eq 0 ]; then
@@ -968,7 +1531,7 @@ while [ "$waited" -lt "$max_wait" ]; do
                 echo -e "${YELLOW}${EMOJI_NOTE} Автоматический импорт отключён (N8N_AUTO_IMPORT!=true). Пропускаем (неинтерактивный режим).${NC}"
             fi
         else
-            if $DOCKER_COMPOSE_CMD config --services 2>/dev/null | grep -q '^n8n-importer$'; then
+            if COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} config --services 2>/dev/null | grep -q '^n8n-importer$'; then
                 echo -e "${BLUE}${EMOJI_SETUP} Запуск n8n-importer...${NC}"
                 $DOCKER_COMPOSE_CMD run --rm n8n-importer
                 if [ $? -eq 0 ]; then
@@ -1011,7 +1574,7 @@ while [ "$waited" -lt "$max_wait" ]; do
                             else
                                 echo -e "${RED}${EMOJI_ERROR} Ошибка во время импорта workflows (локально, код=$rc).${NC}"
                             fi
-                        elif $DOCKER_COMPOSE_CMD config --services 2>/dev/null | grep -q '^n8n-importer$'; then
+                        elif COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} config --services 2>/dev/null | grep -q '^n8n-importer$'; then
                             echo -e "${BLUE}${EMOJI_SETUP} Запуск n8n-importer...${NC}"
                             $DOCKER_COMPOSE_CMD run --rm n8n-importer
                             if [ $? -eq 0 ]; then
@@ -1042,7 +1605,7 @@ while [ "$waited" -lt "$max_wait" ]; do
                         else
                             echo -e "${RED}${EMOJI_ERROR} Ошибка во время импорта workflows (локально, код=$rc).${NC}"
                         fi
-                    elif $DOCKER_COMPOSE_CMD config --services 2>/dev/null | grep -q '^n8n-importer$'; then
+                    elif COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} config --services 2>/dev/null | grep -q '^n8n-importer$'; then
                         echo -e "${BLUE}${EMOJI_SETUP} Запуск n8n-importer...${NC}"
                         $DOCKER_COMPOSE_CMD run --rm n8n-importer
                         if [ $? -eq 0 ]; then
