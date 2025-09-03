@@ -26,11 +26,11 @@ services:
   document-processor-gpu:
     deploy: *id001
     build:
-      context: ../services/document-processor
+      context: ${COMPOSE_PROJECT_DIR}/services/document-processor
       dockerfile: Dockerfile.gpu
     restart: unless-stopped
     profiles:
-    - gpu
+    - developer-gpu
     environment:
     - GPU_ENABLED=true
     - GPU_TYPE=${GPU_TYPE:-nvidia}
@@ -114,11 +114,11 @@ services:
   rstar-vllm-gpu:
     deploy: *id001
     build:
-      context: ../services/rstar2-agent
+      context: ${COMPOSE_PROJECT_DIR}/services/rstar2-agent
       dockerfile: Dockerfile.vllm-gpu
     restart: unless-stopped
     profiles:
-    - gpu
+    - developer-gpu
     - rstar-gpu
     environment:
     - CUDA_VISIBLE_DEVICES=all
@@ -139,16 +139,15 @@ services:
     - backend
     depends_on:
     - redis
-    healthcheck:
-      test:
-      - CMD
-      - curl
-      - -f
-      - http://localhost:8000/health
-      interval: 30s
-      timeout: 15s
-      retries: 3
-      start_period: 120s
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    profiles:
+    - gpu
+    - developer-gpu
+    - rstar-gpu
+    networks:
+    - backend
   gpu-monitor:
     deploy: *id001
     image: mindprobe/nvidia_gpu_prometheus_exporter:latest
@@ -173,11 +172,10 @@ services:
   lightrag-gpu:
     deploy: *id001
     build:
-      context: ../services/lightrag
+      context: ${COMPOSE_PROJECT_DIR}/services/lightrag
       dockerfile: Dockerfile.gpu
     restart: unless-stopped
     profiles:
-    - gpu
     - developer-gpu
     environment:
     - CUDA_VISIBLE_DEVICES=all
@@ -209,7 +207,6 @@ services:
     image: neo4j:5.13-community
     restart: unless-stopped
     profiles:
-    - gpu
     - developer-gpu
     environment:
     - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}

@@ -4,7 +4,7 @@
 # High-performance graph-based RAG with NVIDIA GPU acceleration
 # Optimized for large-scale knowledge graph processing
 
-FROM nvidia/cuda:11.8-devel-ubuntu22.04
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
 
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -20,6 +20,9 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libffi-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Ensure modern packaging tooling to avoid sdist metadata issues
+RUN python3 -m pip install --upgrade pip setuptools wheel
 
 # Set working directory
 WORKDIR /app
@@ -41,13 +44,13 @@ RUN pip3 install --no-cache-dir \
     torchaudio==2.1.0+cu118 \
     --index-url https://download.pytorch.org/whl/cu118
 
-# Install GPU-accelerated ML libraries
+# Install GPU-accelerated ML libraries (pinned to be compatible with torch 2.1.0+cu118)
 RUN pip3 install --no-cache-dir \
-    transformers[torch] \
-    sentence-transformers \
-    accelerate \
-    optimum \
-    xformers
+    transformers==4.36.2 \
+    sentence-transformers==2.2.2 \
+    accelerate==0.24.1 \
+    optimum==1.16.1 \
+    xformers==0.0.22.post7
 
 # Install LightRAG (assuming it's available via pip or git)
 RUN pip3 install --no-cache-dir lightrag

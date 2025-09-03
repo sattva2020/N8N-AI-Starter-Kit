@@ -38,7 +38,9 @@ services:
     - traefik.http.routers.lightrag.middlewares=security-headers@file,admin-auth@file,rate-limit@file
     - traefik.http.services.lightrag.loadbalancer.server.port=9621
   n8n-importer:
-    build: ../services/n8n-importer
+    build:
+      context: ${COMPOSE_PROJECT_DIR}/services/n8n-importer
+      dockerfile: Dockerfile
     image: n8n-importer:local
     restart: 'no'
     profiles:

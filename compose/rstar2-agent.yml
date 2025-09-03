@@ -1,147 +1,137 @@
-# rStar2-Agent Composition
-# Agentic reasoning with tool calling for mathematical problems
-# Profile: reasoning
-
 version: '3.8'
-
 services:
-  # rStar2-Agent VLLM Inference Server
   rstar2-vllm:
     image: vllm/vllm-openai:latest
     container_name: ${COMPOSE_PROJECT_NAME:-n8n-ai-starter-kit}_rstar2-vllm
     profiles:
-      - reasoning
-      - gpu-reasoning
+    - reasoning
+    - gpu-reasoning
     deploy:
       resources:
         reservations:
           devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+          - driver: nvidia
+            count: 1
+            capabilities:
+            - gpu
     environment:
-      - CUDA_VISIBLE_DEVICES=0
-      - VLLM_HOST=0.0.0.0
-      - VLLM_PORT=${RSTAR2_VLLM_PORT:-8001}
-    command: >
-      --model ${RSTAR2_MODEL_PATH:-microsoft/rStar2-Agent-14B}
-      --host 0.0.0.0
-      --port ${RSTAR2_VLLM_PORT:-8001}
-      --enable-auto-tool-choice
-      --tool-call-parser hermes
-      --max-model-len ${RSTAR2_MAX_MODEL_LEN:-8192}
-      --gpu-memory-utilization ${RSTAR2_GPU_MEMORY:-0.8}
+    - CUDA_VISIBLE_DEVICES=0
+    - VLLM_HOST=0.0.0.0
+    - VLLM_PORT=${RSTAR2_VLLM_PORT:-8001}
+    command: '--model ${RSTAR2_MODEL_PATH:-microsoft/rStar2-Agent-14B} --host 0.0.0.0
+      --port ${RSTAR2_VLLM_PORT:-8001} --enable-auto-tool-choice --tool-call-parser
+      hermes --max-model-len ${RSTAR2_MAX_MODEL_LEN:-8192} --gpu-memory-utilization
+      ${RSTAR2_GPU_MEMORY:-0.8}
+
+      '
     volumes:
-      - ${RSTAR2_MODEL_CACHE_PATH:-./data/models/rstar2}:/root/.cache/huggingface
-      - /tmp:/tmp
+    - ${RSTAR2_MODEL_CACHE_PATH:-./data/models/rstar2}:/root/.cache/huggingface
+    - /tmp:/tmp
     ports:
-      - "${RSTAR2_VLLM_PORT:-8001}:${RSTAR2_VLLM_PORT:-8001}"
+    - ${RSTAR2_VLLM_PORT:-8001}:${RSTAR2_VLLM_PORT:-8001}
     networks:
-      - n8n-ai-network
+    - n8n-ai-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${RSTAR2_VLLM_PORT:-8001}/v1/models"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:${RSTAR2_VLLM_PORT:-8001}/v1/models
       interval: 30s
       timeout: 10s
       retries: 3
     restart: unless-stopped
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.rstar2-vllm.rule=Host(`rstar2.${DOMAIN_NAME:-localhost}`)"
-      - "traefik.http.routers.rstar2-vllm.entrypoints=websecure"
-      - "traefik.http.routers.rstar2-vllm.tls.certresolver=letsencrypt"
-      - "traefik.http.services.rstar2-vllm.loadbalancer.server.port=${RSTAR2_VLLM_PORT:-8001}"
-      - "traefik.http.routers.rstar2-vllm.middlewares=admin-auth,security-headers"
-
-  # Code Judge - Secure Python code execution
+    - traefik.enable=true
+    - traefik.http.routers.rstar2-vllm.rule=Host(`rstar2.${DOMAIN_NAME:-localhost}`)
+    - traefik.http.routers.rstar2-vllm.entrypoints=websecure
+    - traefik.http.routers.rstar2-vllm.tls.certresolver=letsencrypt
+    - traefik.http.services.rstar2-vllm.loadbalancer.server.port=${RSTAR2_VLLM_PORT:-8001}
+    - traefik.http.routers.rstar2-vllm.middlewares=admin-auth,security-headers
   rstar2-code-judge:
     build:
-      context: ./services/rstar2-agent
+      context: ${COMPOSE_PROJECT_DIR}/services/rstar2-agent
       dockerfile: Dockerfile.code-judge
     container_name: ${COMPOSE_PROJECT_NAME:-n8n-ai-starter-kit}_rstar2-code-judge
     profiles:
-      - reasoning
-      - gpu-reasoning
+    - reasoning
+    - gpu-reasoning
     environment:
-      - REDIS_URI=redis://rstar2-redis:6379
-      - MAX_EXECUTION_TIME=${RSTAR2_MAX_EXECUTION_TIME:-30}
-      - RUN_WORKERS=0
-      - CODE_JUDGE_PORT=${RSTAR2_CODE_JUDGE_PORT:-8088}
-    command: >
-      uvicorn app.main:app
-      --host 0.0.0.0
-      --port ${RSTAR2_CODE_JUDGE_PORT:-8088}
+    - REDIS_URI=redis://rstar2-redis:6379
+    - MAX_EXECUTION_TIME=${RSTAR2_MAX_EXECUTION_TIME:-30}
+    - RUN_WORKERS=0
+    - CODE_JUDGE_PORT=${RSTAR2_CODE_JUDGE_PORT:-8088}
+    command: 'uvicorn app.main:app --host 0.0.0.0 --port ${RSTAR2_CODE_JUDGE_PORT:-8088}
       --workers ${RSTAR2_CODE_JUDGE_WORKERS:-4}
+
+      '
     volumes:
-      - /tmp/code-judge:/tmp:rw
-      - ./logs/rstar2:/app/logs
+    - /tmp/code-judge:/tmp:rw
+    - ./logs/rstar2:/app/logs
     ports:
-      - "${RSTAR2_CODE_JUDGE_PORT:-8088}:${RSTAR2_CODE_JUDGE_PORT:-8088}"
+    - ${RSTAR2_CODE_JUDGE_PORT:-8088}:${RSTAR2_CODE_JUDGE_PORT:-8088}
     networks:
-      - n8n-ai-network
+    - n8n-ai-network
     depends_on:
-      - rstar2-redis
+    - rstar2-redis
     security_opt:
-      - no-new-privileges:true
-    user: "1000:1000"
+    - no-new-privileges:true
+    user: 1000:1000
     read_only: true
     tmpfs:
-      - /tmp:exec,size=1G
+    - /tmp:exec,size=1G
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${RSTAR2_CODE_JUDGE_PORT:-8088}/health"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:${RSTAR2_CODE_JUDGE_PORT:-8088}/health
       interval: 30s
       timeout: 10s
       retries: 3
     restart: unless-stopped
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.rstar2-judge.rule=Host(`code-judge.${DOMAIN_NAME:-localhost}`)"
-      - "traefik.http.routers.rstar2-judge.entrypoints=websecure"
-      - "traefik.http.routers.rstar2-judge.tls.certresolver=letsencrypt"
-      - "traefik.http.services.rstar2-judge.loadbalancer.server.port=${RSTAR2_CODE_JUDGE_PORT:-8088}"
-      - "traefik.http.routers.rstar2-judge.middlewares=admin-auth,security-headers"
-
-  # Code Judge Workers
-  # Background workers for long-running tasks
+    - traefik.enable=true
+    - traefik.http.routers.rstar2-judge.rule=Host(`code-judge.${DOMAIN_NAME:-localhost}`)
+    - traefik.http.routers.rstar2-judge.entrypoints=websecure
+    - traefik.http.routers.rstar2-judge.tls.certresolver=letsencrypt
+    - traefik.http.services.rstar2-judge.loadbalancer.server.port=${RSTAR2_CODE_JUDGE_PORT:-8088}
+    - traefik.http.routers.rstar2-judge.middlewares=admin-auth,security-headers
   rstar2-workers:
     build:
-      context: ./services/rstar2-agent
+      context: ${COMPOSE_PROJECT_DIR}/services/rstar2-agent
       dockerfile: Dockerfile.workers
     container_name: ${COMPOSE_PROJECT_NAME:-n8n-ai-starter-kit}_rstar2-workers
     profiles:
-      - reasoning
-      - gpu-reasoning
-    environment:
-
-  # Redis for rStar2-Agent coordination
+    - reasoning
+    - gpu-reasoning
+  environment: {}
   rstar2-redis:
     image: redis:7-alpine
     container_name: ${COMPOSE_PROJECT_NAME:-n8n-ai-starter-kit}_rstar2-redis
     profiles:
-      - reasoning
-      - gpu-reasoning
-    command: >
-      redis-server
-      --appendonly yes
-      --appendfsync everysec
-      --maxmemory ${RSTAR2_REDIS_MAXMEMORY:-256mb}
-      --maxmemory-policy allkeys-lru
-      --bind 0.0.0.0
-      --protected-mode no
+    - reasoning
+    - gpu-reasoning
+    command: 'redis-server --appendonly yes --appendfsync everysec --maxmemory ${RSTAR2_REDIS_MAXMEMORY:-256mb}
+      --maxmemory-policy allkeys-lru --bind 0.0.0.0 --protected-mode no
+
+      '
     volumes:
-      - rstar2_redis_data:/data
+    - rstar2_redis_data:/data
     networks:
-      - n8n-ai-network
+    - n8n-ai-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test:
+      - CMD
+      - redis-cli
+      - ping
       interval: 30s
       timeout: 10s
       retries: 3
     restart: unless-stopped
-
 volumes:
   rstar2_redis_data:
     driver: local
-
 networks:
   n8n-ai-network:
     external: true

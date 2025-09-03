@@ -68,6 +68,12 @@ echo -e "${BLUE}=== Интеллектуальный запуск N8N AI Starter
 # This prevents re-prompting the user later in the script when .env was just generated.
 ENV_CREATED_BY_SETUP=0
 
+# Ensure COMPOSE_PROJECT_DIR is set to the repository root to make build contexts
+# OS-agnostic (important for Windows path resolution in Docker Buildx).
+if [ -z "${COMPOSE_PROJECT_DIR}" ]; then
+    export COMPOSE_PROJECT_DIR="$(pwd)"
+fi
+
 # CLI flags to control import prompt behavior without editing .env
 CLI_AUTO_IMPORT=false
 CLI_NO_IMPORT_PROMPT=false

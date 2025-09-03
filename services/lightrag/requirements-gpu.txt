@@ -13,7 +13,8 @@ httpx==0.25.2
 # lightrag (installed separately)
 networkx==3.2.1
 igraph==0.11.2
-graph-tool==2.45  # May require additional system dependencies
+# graph-tool is not available as a manylinux wheel; omit to keep image buildable
+# graph-tool==2.45
 
 # GPU-accelerated ML libraries (installed separately with CUDA)
 # torch
@@ -28,12 +29,14 @@ graph-tool==2.45  # May require additional system dependencies
 # Vector databases
 qdrant-client==1.6.9
 chromadb==0.4.18
-faiss-gpu==1.7.4
+# Use CPU Faiss to avoid GPU wheel availability issues during build
+faiss-cpu==1.7.4
 weaviate-client==3.25.3
 
 # Graph databases
-neo4j==5.13.0
-py2neo==2021.2.3
+# Use a wheel-available version to avoid sdist metadata edge cases in constrained environments
+neo4j==5.14.1
+py2neo==2021.2.4
 
 # Text processing and NLP
 spacy==3.7.2
@@ -65,11 +68,11 @@ GPUtil==1.4.0
 # Async and concurrency
 asyncio==3.4.3
 aiofiles==23.2.1
-anyio==4.1.0
+anyio==3.7.1
 
 # Utilities
 tqdm==4.66.1
 click==8.1.7
 jinja2==3.1.2
 requests==2.31.0
-networkx==3.2.1
+# duplicate removed above

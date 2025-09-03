@@ -66,7 +66,7 @@ GPUtil==1.4.0
 # Async and concurrency
 asyncio==3.4.3
 aiofiles==23.2.1
-anyio==4.1.0
+anyio==3.7.1
 
 # Utilities
 tqdm==4.66.1
