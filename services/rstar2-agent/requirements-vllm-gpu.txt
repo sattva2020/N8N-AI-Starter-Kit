@@ -1,0 +1,55 @@
+# =============================================================================
+# rStar2-Agent VLLM - GPU REQUIREMENTS
+# =============================================================================
+# Python dependencies for GPU-accelerated VLLM inference
+
+# Core VLLM and inference
+# vllm (installed separately with specific version)
+ray[default]==2.8.0
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+
+# GPU acceleration libraries
+# torch, torchvision, torchaudio (installed separately with CUDA)
+# flash-attn (installed separately)
+# xformers (installed separately)
+# bitsandbytes (installed separately)
+# accelerate (installed separately)
+
+# Model and tokenization
+# transformers (installed separately)
+# tokenizers (installed separately)
+huggingface-hub==0.19.4
+safetensors==0.4.1
+
+# HTTP and networking
+httpx==0.25.2
+aiohttp==3.9.1
+requests==2.31.0
+
+# Async and concurrency
+asyncio==3.4.3
+aiofiles==23.2.1
+anyio==3.7.1
+
+# Monitoring and metrics
+prometheus-client==0.19.0
+py-cpuinfo==9.0.0
+psutil==5.9.6
+GPUtil==1.4.0
+nvidia-ml-py3==7.352.0
+
+# Configuration and logging
+python-dotenv==1.0.0
+pyyaml==6.0.1
+loguru==0.7.2
+
+# Data processing
+numpy==1.24.4
+pandas==2.1.4
+
+# Utilities
+tqdm==4.66.1
+click==8.1.7
+typing-extensions==4.8.0

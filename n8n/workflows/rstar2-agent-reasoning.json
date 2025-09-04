@@ -1,0 +1,287 @@
+{
+  "name": "rStar2-Agent Reasoning Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "b1c5c8f0-5e67-4a8c-8b5d-8c5a3e4d6f5e",
+      "name": "When clicking 'Test workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare rStar2-Agent reasoning request\nconst reasoningTask = {\n  \"model\": \"microsoft/rStar2-Agent-14B\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are rStar2-Agent, an advanced reasoning model. Think step by step and provide detailed analysis.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": $input.first().json.query || \"Explain the concept of artificial intelligence and its applications in modern technology.\"\n    }\n  ],\n  \"max_tokens\": 2048,\n  \"temperature\": 0.7,\n  \"stream\": false\n};\n\nreturn {\n  json: {\n    requestPayload: reasoningTask,\n    timestamp: new Date().toISOString(),\n    taskId: $randomString(10)\n  }\n};"
+      },
+      "id": "a2c5c8f0-6e67-4a8c-8b5d-8c5a3e4d6f5e",
+      "name": "Prepare Reasoning Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://rstar2-vllm:8000/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$credentials.rstar_api_key.token}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={{ $json.requestPayload }}",
+        "options": {
+          "timeout": 300000,
+          "retry": {
+            "enabled": true,
+            "maxTries": 3
+          }
+        }
+      },
+      "id": "c3c5c8f0-7e67-4a8c-8b5d-8c5a3e4d6f5e",
+      "name": "Call rStar2-Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        680,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "rstar_api_key",
+          "name": "rStar2-Agent API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process rStar2-Agent response\nconst response = $input.first().json;\n\n// Extract reasoning content\nlet reasoningResult = {};\n\nif (response.choices && response.choices.length > 0) {\n  const choice = response.choices[0];\n  \n  reasoningResult = {\n    content: choice.message.content,\n    finishReason: choice.finish_reason,\n    usage: response.usage || {},\n    model: response.model,\n    timestamp: new Date().toISOString(),\n    success: true\n  };\n  \n  // Extract reasoning steps if available\n  const content = choice.message.content;\n  const steps = content.split(/\\n\\d+\\.|Step \\d+:|## Step \\d+/).filter(step => step.trim().length > 0);\n  \n  if (steps.length > 1) {\n    reasoningResult.reasoningSteps = steps.map((step, index) => ({\n      step: index + 1,\n      content: step.trim()\n    }));\n  }\n  \n} else {\n  reasoningResult = {\n    error: \"No valid response from rStar2-Agent\",\n    success: false,\n    timestamp: new Date().toISOString()\n  };\n}\n\nreturn {\n  json: reasoningResult\n};"
+      },
+      "id": "d4c5c8f0-8e67-4a8c-8b5d-8c5a3e4d6f5e",
+      "name": "Process Reasoning Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "e5c5c8f0-9e67-4a8c-8b5d-8c5a3e4d6f5e",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        },
+        "combineOperation": "all"
+      },
+      "id": "f6c5c8f0-ae67-4a8c-8b5d-8c5a3e4d6f5e",
+      "name": "Check Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO reasoning_tasks (task_id, query, response, reasoning_steps, model, usage_tokens, created_at) VALUES ($1, $2, $3, $4, $5, $6, NOW())",
+        "additionalFields": {
+          "valuesUi": {
+            "values": [
+              {
+                "column": "$1",
+                "value": "={{ $('Prepare Reasoning Request').first().json.taskId }}"
+              },
+              {
+                "column": "$2",
+                "value": "={{ $('Prepare Reasoning Request').first().json.requestPayload.messages[1].content }}"
+              },
+              {
+                "column": "$3",
+                "value": "={{ $json.content }}"
+              },
+              {
+                "column": "$4",
+                "value": "={{ JSON.stringify($json.reasoningSteps || []) }}"
+              },
+              {
+                "column": "$5",
+                "value": "={{ $json.model }}"
+              },
+              {
+                "column": "$6",
+                "value": "={{ $json.usage.total_tokens || 0 }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "g7c5c8f0-be67-4a8c-8b5d-8c5a3e4d6f5e",
+      "name": "Save to Database",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        1340,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "postgres_default",
+          "name": "PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "message": "=rStar2-Agent Reasoning Error:\\n{{ $json.error }}\\n\\nTimestamp: {{ $json.timestamp }}",
+        "options": {
+          "logLevel": "error"
+        }
+      },
+      "id": "h8c5c8f0-ce67-4a8c-8b5d-8c5a3e4d6f5e",
+      "name": "Log Error",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format final output for webhook or further processing\nconst result = $input.first().json;\n\nreturn {\n  json: {\n    status: \"success\",\n    reasoning: {\n      taskId: $('Prepare Reasoning Request').first().json.taskId,\n      query: $('Prepare Reasoning Request').first().json.requestPayload.messages[1].content,\n      response: result.content,\n      steps: result.reasoningSteps || [],\n      metadata: {\n        model: result.model,\n        usage: result.usage,\n        timestamp: result.timestamp\n      }\n    }\n  }\n};"
+      },
+      "id": "i9c5c8f0-de67-4a8c-8b5d-8c5a3e4d6f5e",
+      "name": "Format Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        220
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking 'Test workflow'": {
+      "main": [
+        [
+          {
+            "node": "Prepare Reasoning Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Reasoning Request": {
+      "main": [
+        [
+          {
+            "node": "Call rStar2-Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call rStar2-Agent": {
+      "main": [
+        [
+          {
+            "node": "Process Reasoning Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Reasoning Result": {
+      "main": [
+        [
+          {
+            "node": "Check Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Success": {
+      "main": [
+        [
+          {
+            "node": "Save to Database",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Database": {
+      "main": [
+        [
+          {
+            "node": "Format Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-01-15T10:00:00.000Z",
+      "updatedAt": "2024-01-15T10:00:00.000Z",
+      "id": "rstar-agent",
+      "name": "rStar2-Agent"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-15T10:00:00.000Z",
+  "versionId": "1"
+}

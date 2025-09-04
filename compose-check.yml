@@ -1,0 +1,32 @@
+name: n8n-ai-starter-kit-check
+
+# Minimal sanitized compose-like file for CI validation and tests.
+# This file intentionally contains placeholders (example.com, admin@example.com)
+# and no real secrets. It's used only by CI to validate compose fragments
+# and to run lightweight checks in PRs.
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    environment:
+      N8N_HOST: n8n.example.com
+      N8N_PORT: "5678"
+      N8N_PROTOCOL: http
+    labels:
+      traefik.http.routers.n8n.rule: Host(`n8n.example.com`)
+    ports:
+      - "5678:5678"
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: n8n
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: change_this_secure_password
+
+  jupyterlab:
+    image: jupyter/minimal-notebook:latest
+    environment:
+      JUPYTER_TOKEN: ""
+
+# volumes and networks intentionally omitted for CI sanity checks

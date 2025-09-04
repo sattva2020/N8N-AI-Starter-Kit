@@ -1,0 +1,61 @@
+# Elasticsearch configuration for N8N AI Starter Kit logging
+cluster.name: n8n-logging-cluster
+node.name: elasticsearch-node
+
+# Network settings
+network.host: 0.0.0.0
+http.port: 9200
+transport.port: 9300
+
+# Discovery settings (single node cluster)
+discovery.type: single-node
+cluster.initial_master_nodes: ["elasticsearch-node"]
+
+# Path settings
+path.data: /usr/share/elasticsearch/data
+path.logs: /usr/share/elasticsearch/logs
+
+# Memory settings
+bootstrap.memory_lock: true
+
+# Security settings (disabled for internal use)
+xpack.security.enabled: false
+xpack.security.enrollment.enabled: false
+xpack.security.http.ssl.enabled: false
+xpack.security.transport.ssl.enabled: false
+
+# Monitoring settings
+xpack.monitoring.collection.enabled: false
+
+# Index management
+action.auto_create_index: ".monitoring*,.watches,.triggered_watches,.watcher-history*,.ml*,filebeat-*,logstash-*,n8n-*"
+
+# Performance settings
+indices.query.bool.max_clause_count: 10000
+search.max_buckets: 65536
+
+# Index lifecycle management
+xpack.ilm.enabled: true
+
+# Index templates for different log types
+index.number_of_shards: 1
+index.number_of_replicas: 0
+index.refresh_interval: 30s
+index.max_result_window: 100000
+
+# Logging level
+logger.root: INFO
+logger.org.elasticsearch.deprecation: WARN
+
+# HTTP compression
+http.compression: true
+http.max_content_length: 100mb
+
+# Thread pool settings
+thread_pool.write.queue_size: 1000
+thread_pool.search.queue_size: 1000
+
+# Circuit breaker settings
+indices.breaker.total.limit: 70%
+indices.breaker.fielddata.limit: 40%
+indices.breaker.request.limit: 60%

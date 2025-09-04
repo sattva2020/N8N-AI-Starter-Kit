@@ -1,0 +1,20 @@
+line-length = 120
+target-version = "py311"
+
+[lint]
+select = [
+  "E", # pycodestyle errors
+  "F", # pyflakes
+  "I", # isort
+  "B", # flake8-bugbear
+  "UP", # pyupgrade
+  "SIM", # flake8-simplify
+  "ARG" # flake8-unused-arguments
+]
+fixable = ["ALL"]
+
+[format]
+quote-style = "preserve"
+indent-style = "space"
+line-ending = "lf"
+skip-magic-trailing-comma = false

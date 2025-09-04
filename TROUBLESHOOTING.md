@@ -9,6 +9,7 @@
 </p>
 
 ## Содержание
+
 1. [Проблемы с развертыванием](#проблемы-с-развертыванием)
 2. [Проблемы с Docker](#проблемы-с-docker)
 3. [Проблемы с Ollama](#проблемы-с-ollama)
@@ -22,6 +23,7 @@
 11. [Проблемы с обновлением и миграцией](#проблемы-с-обновлением-и-миграцией)
 12. [Использование тега latest для Docker-образов](#использование-тега-latest-для-docker-образов)
 13. [Автоматическое исправление распространенных ошибок](#автоматическое-исправление-распространенных-ошибок)
+14. [Диагностика AMD ROCm (GPU)](#диагностика-amd-rocm-gpu)
 
 > [!TIP]
 > Для быстрого решения распространенных проблем смотрите [Распространенные проблемы и их решения](./docs/COMMON_ISSUES.md)
@@ -29,10 +31,13 @@
 ## Проблемы с развертыванием
 
 ### Ошибка "No Space Left On Device"
+
 **Симптомы**: Ошибки при запуске контейнеров, особенно при загрузке моделей Ollama
 
 **Решение**:
+
 1. Очистите неиспользуемые Docker ресурсы:
+
    ```bash
    docker system prune --all --volumes
    ```
@@ -43,27 +48,35 @@
    ```
 
 ### Ошибка "fatal error: concurrent map writes" при запуске Docker Compose
+
 **Симптомы**: Docker Compose выдает панику с ошибкой `fatal error: concurrent map writes` при запуске контейнеров
 
 **Решение**:
+
 1. **Обновите Docker и Docker Compose до последней версии**:
+
    ```bash
    sudo apt update
    sudo apt install --only-upgrade docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
    ```
+
    Проверьте версии после обновления:
+
    ```bash
    docker --version
    docker compose version
    ```
 
 2. **Перезапустите службу Docker**:
+
    ```powershell
    Restart-Service docker
    ```
 
 3. **Очистите системные ресурсы Docker**:
+
    > **Предупреждение**: Эта команда удалит все неиспользуемые контейнеры, сети, образы и, возможно, кэш сборки и тома.
+
    ```powershell
    docker system prune -a -f --volumes
    ```
@@ -72,20 +85,24 @@
    Убедитесь, что все необходимые переменные окружения правильно определены. Предупреждения вида `WARN[0000] The "SrhUjW1v" variable is not set` указывают на проблемы с переменными окружения.
 
 5. **Запустите с ограниченным параллелизмом**:
+
    ```powershell
    $env:COMPOSE_PARALLEL_LIMIT=1; docker-compose --profile cpu up -d
    ```
-   
+
    Или используйте скрипт автоматического исправления:
+
    ```powershell
    .\scripts\fix-and-start.ps1
    ```
 
 ### Проблемы с переменными окружения
+
 **Симптомы**: Предупреждения о неопределенных переменных, таких как "JWT_SECRET", "ANON_KEY", "SERVICE_ROLE_KEY"
 
 **Решение**:
 Запустите скрипт для исправления переменных окружения:
+
 ```powershell
 .\scripts\fix-env-vars.ps1
 ```
@@ -93,14 +110,17 @@
 Подробнее см. в разделе [Распространенные проблемы](./docs/COMMON_ISSUES.md).
 
 ### Конфликт сетей в Docker Compose
+
 **Симптомы**: Ошибка "networks.backend conflicts with imported resource"
 
 **Решение**:
 Запустите скрипт для исправления конфликтов сетей:
+
 ```powershell
 .\scripts\fix-and-start.ps1
 ```
-```
+
+````
 
 Подробнее см. в разделе [Конфликты сетей Docker](./docs/COMMON_ISSUES.md#конфликты-сетей-docker).
 
@@ -116,9 +136,10 @@
 1. Убедитесь, что служба Docker запущена:
    ```powershell
    Start-Service docker
-   ```
+````
 
 2. Проверьте статус службы Docker:
+
    ```powershell
    Get-Service docker
    ```
@@ -131,10 +152,12 @@
 ### Ошибки с Docker Compose
 
 **Симптомы:**
+
 - Ошибка "docker-compose command not found" или "docker compose command not found"
 - Ошибки при запуске профилей
 
 **Решения:**
+
 1. Убедитесь, что Docker Compose установлен и обновлен до последней версии.
 
 2. Для Windows проверьте, что Docker Desktop установлен и запущен.
@@ -149,22 +172,26 @@
 ## Проблемы с Ollama
 
 ### Модели не загружаются или загружаются медленно
+
 **Симптомы**: Модели Ollama не загружаются или загрузка занимает очень много времени
 
 **Решение**:
+
 1. Проверьте, что контейнер Ollama имеет доступ к интернету
 2. Увеличьте таймаут для загрузки моделей в `docker-compose.yml`:
    ```yaml
    ollama-pull:
      environment:
-       - DOWNLOAD_TIMEOUT=1800  # Увеличьте до 30 минут (или больше)
+       - DOWNLOAD_TIMEOUT=1800 # Увеличьте до 30 минут (или больше)
    ```
 3. Если вы находитесь в регионе с ограниченным доступом, рассмотрите возможность использования VPN
 
 ### Ошибки при использовании GPU
+
 **Симптомы**: Ollama не может получить доступ к GPU, или возникают ошибки CUDA
 
 **Решение**:
+
 1. Убедитесь, что у вас установлены правильные драйверы NVIDIA
 2. Проверьте установку NVIDIA Container Toolkit:
    ```bash
@@ -180,10 +207,13 @@
 ## Проблемы с n8n
 
 ### Проблема с подключением к локальным сервисам
+
 **Симптомы**: n8n не может подключиться к другим сервисам в сети Docker
 
 **Решение**:
+
 1. Убедитесь, что используете правильные имена хостов (имена сервисов Docker) вместо localhost:
+
    - Для Ollama используйте `ollama:11434`
    - Для Postgres используйте `postgres:5432`
    - Для Qdrant используйте `qdrant:6333`
@@ -191,10 +221,13 @@
 2. Проверьте, что все сервисы находятся в одной Docker-сети
 
 ### Проблемы с импортом демонстрационных данных
+
 **Симптомы**: Демонстрационные данные (credentials, workflows) не импортируются или вызывают ошибки
 
 **Решение**:
+
 1. Проверьте права доступа к директории с демонстрационными данными:
+
    ```bash
    sudo chown -R 1000:1000 ./n8n/demo-data
    ```
@@ -204,9 +237,11 @@
 ## Проблемы с базой данных
 
 ### Ошибка аутентификации PostgreSQL
+
 **Симптомы**: Ошибка "password authentication failed" в логах
 
 **Решение**:
+
 1. Проверьте, совпадают ли учетные данные в `.env` файле с теми, которые использовались при инициализации базы данных.
 2. Если вы изменяли учетные данные после первоначальной настройки, вам может потребоваться удалить существующий том базы данных:
    ```bash
@@ -216,10 +251,13 @@
    ```
 
 ### Ошибка подключения Zep к PostgreSQL
+
 **Симптомы**: В логах `zep-ce-postgres` видны ошибки типа `password authentication failed for user "${ZEP_POSTGRES_USER}"` или `Role "${ZEP_POSTGRES_USER}" does not exist`
 
 **Решение**:
+
 1. Проверьте, что сервис Zep имеет доступ к переменным окружения из файла `.env`. В `zep-compose.yaml` добавьте:
+
    ```yaml
    services:
      zep:
@@ -228,6 +266,7 @@
    ```
 
 2. Убедитесь, что учетные данные в `.env` соответствуют тем, что использовались при инициализации базы данных:
+
    ```properties
    ZEP_POSTGRES_USER=postgres
    ZEP_POSTGRES_PASSWORD=postgres
@@ -243,9 +282,11 @@
 ## Проблемы с SSL-сертификатами
 
 ### Ошибка получения сертификата Let's Encrypt
+
 **Симптомы**: Traefik не может получить сертификаты, ошибки в логах о проверке домена
 
 **Решение**:
+
 1. Убедитесь, что порты 80 и 443 проброшены и доступны из интернета
 2. Проверьте, что указанные домены правильно настроены в DNS и указывают на ваш сервер
 3. Проверьте конфигурацию Traefik:
@@ -259,9 +300,11 @@
    ```
 
 ### Сертификат считается небезопасным
+
 **Симптомы**: Браузер предупреждает о небезопасном соединении
 
 **Решение**:
+
 1. Проверьте, использует ли Traefik правильный эндпоинт для ACME вызовов
 2. Обновите контейнер Traefik и удалите старые сертификаты:
    ```powershell
@@ -275,21 +318,26 @@
 ### Службы недоступны по доменным именам
 
 **Симптомы:**
+
 - Службы запущены, но недоступны по URL
 - Браузер отображает ошибки "Сайт не найден"
 
 **Решения:**
+
 1. Проверьте правильность DNS-записей:
+
    ```powershell
    nslookup n8n.yourdomain.com
    ```
 
 2. Проверьте статус контейнеров:
+
    ```powershell
    docker compose ps
    ```
 
 3. Проверьте сетевые настройки Docker:
+
    ```powershell
    docker network ls
    docker network inspect frontend
@@ -302,13 +350,16 @@
 ### Потеря данных после перезапуска
 
 **Симптомы:**
+
 - Данные исчезают после остановки и запуска контейнеров
 - Настройки сбрасываются
 
 **Решения:**
+
 1. Убедитесь, что все тома правильно настроены в docker-compose.yml.
 
 2. Проверьте, существуют ли каталоги данных:
+
    ```powershell
    Get-ChildItem -Path .\data\
    ```
@@ -325,22 +376,26 @@
 ### Недостаточно места на диске
 
 **Симптомы:**
+
 - Ошибки "No space left on device"
 - Контейнеры останавливаются неожиданно
 
 **Решения:**
+
 1. Проверьте доступное пространство:
+
    ```powershell
    Get-PSDrive -PSProvider FileSystem
    ```
 
 2. Очистите неиспользуемые образы и контейнеры:
+
    ```powershell
    docker system prune -a
    ```
 
 3. Рассмотрите возможность использования внешнего хранилища для данных.
-2. Обновите контейнер Traefik и удалите старые сертификаты:
+4. Обновите контейнер Traefik и удалите старые сертификаты:
    ```bash
    docker compose down traefik
    docker volume rm n8n-ai-starter-kit_traefik_letsencrypt
@@ -350,10 +405,13 @@
 ## Проблемы с производительностью
 
 ### Высокое потребление памяти
+
 **Симптомы**: Система замедляется, OOM-killer завершает процессы
 
 **Решение**:
+
 1. Ограничьте ресурсы для контейнеров в `docker-compose.yml`:
+
    ```yaml
    services:
      ollama:
@@ -364,6 +422,7 @@
    ```
 
 2. Если вы не используете GPU, уменьшите количество потоков, используемых Ollama:
+
    ```bash
    echo 'OLLAMA_NUM_THREADS=4' >> .env
    ```
@@ -374,13 +433,15 @@
    ```
 
 ### Медленный отклик LLM моделей
+
 **Симптомы**: Генерация текста Ollama занимает очень много времени
 
 **Решение**:
+
 1. Используйте более легкие модели (например, llama3:8b вместо llama3)
 2. Если доступна видеокарта, убедитесь что используется профиль GPU:
    ```bash
-   docker compose --profile gpu-nvidia up -d
+   docker compose --profile gpu up -d
    ```
 3. Увеличьте количество ядер CPU, доступных для Ollama:
    ```yaml
@@ -389,13 +450,15 @@
        deploy:
          resources:
            limits:
-             cpus: '4'
+             cpus: "4"
    ```
 
 ### Ошибка при подключении к сервисам через Traefik
+
 **Симптомы**: Сообщения об ошибках подключения на стороне клиента или в логах Traefik
 
 **Решение**:
+
 1. Проверьте, что все сервисы запущены:
    ```bash
    docker compose ps
@@ -414,33 +477,38 @@
 ### Конфликты портов
 
 **Симптомы:**
+
 - Ошибки вида "port is already allocated" или "bind: address already in use"
 - Службы запускаются, но недоступны
 - Некоторые сервисы завершаются с ошибкой
 
 **Решения:**
+
 1. Проверьте, какие порты уже используются в системе:
+
    ```powershell
    # Windows
    netstat -ano | findstr LISTENING
-   
+
    # Linux/macOS
    sudo lsof -i -P -n | grep LISTEN
    ```
 
 2. Измените порты в файле `.env` или соответствующем compose-файле:
+
    ```yaml
    services:
      n8n:
        ports:
-         - "5678:5678"  # Измените на "5679:5678", если порт 5678 занят
+         - "5678:5678" # Измените на "5679:5678", если порт 5678 занят
    ```
 
 3. Остановите конфликтующие сервисы:
+
    ```powershell
    # Windows - найдите PID процесса использующего порт и остановите его
    Get-Process -Id (Get-NetTCPConnection -LocalPort 5678).OwningProcess | Stop-Process -Force
-   
+
    # Linux/macOS
    sudo kill $(sudo lsof -t -i:5678)
    ```
@@ -448,33 +516,38 @@
 ### Порты блокируются брандмауэром
 
 **Симптомы:**
+
 - Службы запущены, но недоступны извне
 - Подключения отбрасываются или таймаут
 
 **Решения:**
+
 1. Проверьте настройки брандмауэра Windows:
+
    ```powershell
    # Проверка правил брандмауэра
    Get-NetFirewallRule | Where-Object { $_.Enabled -eq 'True' } | Format-Table Name, DisplayName, Direction, Action -AutoSize
-   
+
    # Добавление разрешения для порта
    New-NetFirewallRule -DisplayName "Allow N8N" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 5678
    ```
 
 2. Для Linux проверьте настройки UFW или iptables:
+
    ```bash
    # UFW
    sudo ufw allow 5678/tcp
-   
+
    # iptables
    sudo iptables -A INPUT -p tcp --dport 5678 -j ACCEPT
    ```
 
 3. Проверьте сетевую доступность с другого устройства:
+
    ```powershell
    # Windows
    Test-NetConnection -ComputerName your-server-ip -Port 5678
-   
+
    # Linux/macOS
    nc -zv your-server-ip 5678
    ```
@@ -482,11 +555,14 @@
 ### Проблемы с проксированием портов через Traefik
 
 **Симптомы:**
+
 - Сервисы недоступны через Traefik, но работают при прямом подключении к портам
 - Ошибки таймаута или соединения в логах Traefik
 
 **Решения:**
+
 1. Проверьте метки Traefik в docker-compose.yml:
+
    ```yaml
    labels:
      - "traefik.enable=true"
@@ -495,6 +571,7 @@
    ```
 
 2. Убедитесь, что Traefik имеет доступ к Docker сокету:
+
    ```yaml
    services:
      traefik:
@@ -503,6 +580,7 @@
    ```
 
 3. Проверьте логи Traefik на наличие ошибок:
+
    ```bash
    docker logs traefik
    ```
@@ -522,6 +600,7 @@ N8N AI Starter Kit включает набор автоматизированн�
 **Назначение**: Исправляет конфликты сетей Docker и другие распространенные ошибки при запуске.
 
 **Использование**:
+
 ```powershell
 # Windows
 .\scripts\fix-and-start.ps1
@@ -531,6 +610,7 @@ N8N AI Starter Kit включает набор автоматизированн�
 ```
 
 **Что делает скрипт**:
+
 1. Останавливает все контейнеры
 2. Удаляет проблемные сети Docker
 3. Пересоздает сети с правильными настройками
@@ -541,6 +621,7 @@ N8N AI Starter Kit включает набор автоматизированн�
 **Назначение**: Исправляет проблемы с отсутствующими или неправильными переменными окружения.
 
 **Использование**:
+
 ```powershell
 # Windows
 .\scripts\fix-env-vars.ps1
@@ -550,6 +631,7 @@ N8N AI Starter Kit включает набор автоматизированн�
 ```
 
 **Что делает скрипт**:
+
 1. Проверяет наличие файла `.env`
 2. Генерирует отсутствующие переменные с безопасными значениями
 3. Исправляет распространенные ошибки в формате и значениях
@@ -559,6 +641,7 @@ N8N AI Starter Kit включает набор автоматизированн�
 **Назначение**: Запускает систему с ограниченным параллелизмом, что помогает избежать ошибки "concurrent map writes".
 
 **Использование**:
+
 ```powershell
 # Windows
 .\scripts\start-with-limited-parallelism.ps1
@@ -568,6 +651,7 @@ N8N AI Starter Kit включает набор автоматизированн�
 ```
 
 **Что делает скрипт**:
+
 1. Устанавливает переменную `COMPOSE_PARALLEL_LIMIT=1`
 2. Запускает Docker Compose с опцией `--profile`
 3. После запуска проверяет статус контейнеров
@@ -577,6 +661,7 @@ N8N AI Starter Kit включает набор автоматизированн�
 **Назначение**: Собирает информацию о системе и возможных проблемах для диагностики.
 
 **Использование**:
+
 ```powershell
 # Linux/macOS
 ./scripts/diagnose.sh
@@ -586,6 +671,7 @@ N8N AI Starter Kit включает набор автоматизированн�
 ```
 
 **Что делает скрипт**:
+
 1. Проверяет версии Docker и Docker Compose
 2. Собирает конфигурацию и логи всех контейнеров
 3. Проверяет наличие типичных проблем
@@ -596,6 +682,7 @@ N8N AI Starter Kit включает набор автоматизированн�
 **Назначение**: Выполняет глубокую очистку ресурсов Docker для освобождения места и устранения конфликтов.
 
 **Использование**:
+
 ```powershell
 # Linux/macOS
 ./scripts/clean-docker.sh
@@ -606,6 +693,7 @@ N8N AI Starter Kit включает набор автоматизированн�
 ```
 
 **Что делает скрипт**:
+
 1. Останавливает все контейнеры
 2. Удаляет неиспользуемые образы, контейнеры, тома и сети
 3. Очищает кэш сборки
@@ -613,3 +701,129 @@ N8N AI Starter Kit включает набор автоматизированн�
 
 > [!WARNING]
 > Скрипт clean-docker.sh удаляет неиспользуемые ресурсы Docker. Убедитесь, что у вас есть резервные копии данных перед его запуском.
+
+## Диагностика AMD ROCm (GPU)
+
+Единый профиль `gpu` активируется автоматически. При обнаружении AMD/ROCm `start.sh` добавляет оверлей `compose/gpu-amd.override.yml` (монтирует `/dev/kfd`, `/dev/dri`, задаёт HIP/ROCm переменные и очищает CUDA). Ниже — короткий чек-лист диагностики и типовые ошибки.
+
+### Быстрая проверка на хосте (Linux)
+
+1. Видеокарта и драйвер:
+
+   ```bash
+    lspci -nn | grep -E "AMD|ATI"
+    lsmod | grep amdgpu || echo "amdgpu модуль не загружен"
+    test -e /dev/kfd && echo "/dev/kfd OK" || echo "/dev/kfd отсутствует"
+    test -e /dev/dri && echo "/dev/dri OK" || echo "/dev/dri отсутствует"
+    ```
+
+2. ROCm утилиты (если установлены):
+
+   ```bash
+    rocm-smi || echo "rocm-smi недоступен"
+    rocminfo || echo "rocminfo недоступен"
+    ```
+
+
+> Примечание: ROCm официально поддерживается на Linux. Для Windows используйте нативный Linux-хост. WSL2/Rootless Docker с AMD, как правило, не работают для ROCm.
+
+### Проверка, что оверлей применён
+
+- Windows PowerShell:
+
+   ```powershell
+   docker compose config | Select-String 'amd-gpu'
+   ```
+
+- Linux/macOS:
+
+   ```bash
+   docker compose config | grep amd-gpu || echo "AMD оверлей, похоже, не применён"
+   ```
+
+
+### Проверки в контейнерах
+
+1. Переменные окружения и устройства:
+
+   ```bash
+    docker compose exec ollama-gpu bash -lc "printenv | egrep 'HIP|ROCM|CUDA|GPU_TYPE' || true; ls -l /dev/kfd /dev/dri || true; id"
+    ```
+
+    Ожидается: `HIP_VISIBLE_DEVICES=all`, `ROC_VISIBLE_DEVICES=all`, пустой `CUDA_VISIBLE_DEVICES`, наличие `/dev/kfd` и `/dev/dri`.
+2. Быстрый тест ROCm (через временной контейнер):
+
+   ```bash
+    docker run --rm \
+       --device=/dev/kfd --device=/dev/dri \
+       -v /dev/dri:/dev/dri \
+       rocm/rocm-terminal:latest bash -lc "rocminfo || rocm-smi || true"
+    ```
+
+
+### Частые ошибки и решения
+
+- Нет `/dev/kfd` или `/dev/dri` в контейнере
+   - Причина: не применён AMD-оверлей или rootless Docker.
+   - Решения: запуск Docker в rootful-режиме; старт через `./start.sh` (оверлей добавляется автоматически); проверить `docker compose config`.
+
+- `Permission denied` к `/dev/kfd`/`/dev/dri`
+   - Причина: права/группы.
+   - Решения: на хосте добавить пользователя в группы `video, render`, перезайти в сессию:
+
+   ```bash
+      sudo usermod -a -G video,render "$USER" && newgrp render
+      ```
+      Обновить udev-правила и триггер:
+
+   ```bash
+      sudo udevadm control --reload-rules && sudo udevadm trigger
+      ```
+
+- `HSA_STATUS_ERROR` / `failed to initialize HIP runtime`
+   - Причина: несовместимость ядра/драйвера и версии ROCm или модуль `amdgpu` не загружен.
+   - Решения: обновить ROCm до поддерживаемой версии; убедиться, что `amdgpu` загружен; проверить `dmesg | grep -i amdgpu`.
+
+- Приложение пытается использовать CUDA вместо ROCm
+   - Симптом: логи про CUDA, ошибки `CUDA not found`.
+   - Решения: убедиться, что `CUDA_VISIBLE_DEVICES` пуст (оверлей очищает); внутри контейнера `unset CUDA_VISIBLE_DEVICES` и перезапуск сервиса.
+
+- vLLM/Пакеты ИИ жалуются на CUDA на AMD
+   - Решения (по ситуации): задать переменные среды для ROCm-режима сервиса:
+
+   ```yaml
+      services:
+         rstar-vllm-gpu:
+            environment:
+               - VLLM_USE_ROCM=1
+               - HIP_VISIBLE_DEVICES=all
+      ```
+      Применяйте как временный override, если в логах явная привязка к CUDA.
+
+- Низкая производительность / нестабильность
+   - Проверьте в BIOS: включены ли Above 4G Decoding и Resizable BAR (если доступны).
+   - Убедитесь, что используется свежая версия ядра/драйверов и ROCm.
+
+### Что приложить в Issue
+
+Соберите и приложите выводы:
+
+```bash
+uname -a
+docker info | grep -i rootless || true
+docker compose config | sed -n '/gpu-amd.override.yml/,+40p' || true
+rocm-smi || true
+rocminfo || true
+docker compose logs --no-color ollama-gpu | tail -n 200 || true
+docker compose logs --no-color rstar-vllm-gpu | tail -n 200 || true
+```
+
+Также укажите модели/настройки, при которых воспроизводится ошибка, и версию контейнеров.
+
+Быстрая альтернатива: соберите полный отчёт одной командой (файл попадёт в `logs/diagnostics/`):
+
+```bash
+./scripts/diagnose-rocm.sh --temp-container
+```
+
+В self-hosted Linux окружении можно запустить диагностику через GitHub Actions вручную: Workflow "ROCm Diagnostics (self-hosted)" (требует раннер с лейблами `self-hosted, linux, rocm`).

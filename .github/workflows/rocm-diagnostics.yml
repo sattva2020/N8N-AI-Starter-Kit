@@ -1,0 +1,39 @@
+name: ROCm Diagnostics (self-hosted)
+true:
+  workflow_dispatch: {}
+jobs:
+  diagnose:
+    name: Run ROCm diagnostics
+    runs-on:
+    - self-hosted
+    - linux
+    - rocm
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Runner and Docker info
+      shell: bash
+      run: 'uname -a
+
+        echo "Labels: ${{ runner.os }} ${{ runner.arch }}"
+
+        docker --version || true
+
+        docker compose version || docker-compose --version || true
+
+        '
+    - name: Ensure script is executable
+      shell: bash
+      run: chmod +x scripts/diagnose-rocm.sh
+    - name: Run ROCm diagnostics
+      shell: bash
+      run: ./scripts/diagnose-rocm.sh --temp-container
+    - name: Upload diagnostics artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: rocm-diagnostics-${{ github.run_id }}
+        path: 'logs/diagnostics/rocm-diagnose-*.log
+
+          '
+        if-no-files-found: warn
+        retention-days: 14

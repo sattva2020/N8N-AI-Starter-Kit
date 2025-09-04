@@ -3,7 +3,7 @@ data_dir: /var/lib/vector
 sources:
   docker_logs:
     type: docker_logs
-    include_containers: ["supabase-*", "n8n-*", "ollama-*"]
+    include_containers: ["n8n-*", "ollama-*"]
 
 transforms:
   parse_logs:

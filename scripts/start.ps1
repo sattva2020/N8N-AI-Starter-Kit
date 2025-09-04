@@ -1,127 +1,72 @@
-# PowerShell script to start n8n-ai-starter-kit with the specified profile
-# Usage: .\scripts\start.ps1 [cpu|gpu-nvidia|gpu-amd|developer]
-
-param (
-    [Parameter(Mandatory=$true)]
-    [ValidateSet("cpu", "gpu-nvidia", "gpu-amd", "developer")]
-    [string]$Profile
+#requires -Version 5.1
+[CmdletBinding(PositionalBinding = $false)]
+param(
+  [Parameter(ValueFromRemainingArguments = $true)]
+  [string[]] $Args
 )
 
-# Function to display colored console messages
-function Write-ColoredOutput {
-    param (
-        [string]$message,
-        [string]$color = "White"
-    )
-    Write-Host $message -ForegroundColor $color
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+function Convert-ToMsysPath([string]$WindowsPath) {
+  if (-not $WindowsPath) { return '' }
+  $drive = $WindowsPath.Substring(0,1).ToLowerInvariant()
+  $rest = $WindowsPath.Substring(2).Replace('\\','/')
+  if ($rest.StartsWith('/')) { $rest = $rest.Substring(1) }
+  return "/$drive/$rest"
 }
 
-# Check if docker and docker-compose are installed
+function Escape-BashArg([string]$Arg) {
+  if ($null -eq $Arg) { return "''" }
+  $sq = "'"
+  $dq = '"'
+  $repl = $sq + $dq + $sq + $dq + $sq
+  $escaped = $Arg -replace "'", $repl
+  return $sq + $escaped + $sq
+}
+
+function Invoke-WithGitBash([string]$RepoPath, [string]$ArgsLine) {
+  $candidates = @(
+    (Join-Path $env:ProgramFiles 'Git\bin\bash.exe'),
+    (Join-Path $env:ProgramFiles 'Git\usr\bin\bash.exe'),
+    (Join-Path ${env:ProgramFiles(x86)} 'Git\bin\bash.exe'),
+    'bash.exe'
+  )
+  $bash = $candidates | Where-Object { $_ -and (Get-Command $_ -ErrorAction SilentlyContinue) } | Select-Object -First 1
+  if (-not $bash) { return $false }
+
+  $msysPath = Convert-ToMsysPath $RepoPath
+  $cmd = "cd `"$msysPath`" && ./start.sh $ArgsLine"
+  & $bash -lc $cmd
+  exit $LASTEXITCODE
+}
+
+function Invoke-WithWSL([string]$RepoPath, [string]$ArgsLine) {
+  $wsl = Get-Command 'wsl.exe' -ErrorAction SilentlyContinue
+  if (-not $wsl) { return $false }
+
+  # Translate path to WSL path using wslpath
+  $wslRepo = & $wsl.Source wslpath -a $RepoPath 2>$null
+  if (-not $wslRepo) { return $false }
+
+  $cmd = "cd '$wslRepo' && ./start.sh $ArgsLine"
+  & $wsl.Source bash -lc $cmd
+  exit $LASTEXITCODE
+}
+
 try {
-    $null = docker --version
-    Write-ColoredOutput "Docker is installed." "Green"
-} catch {
-    Write-ColoredOutput "Error: docker is not installed. Please install Docker first." "Red"
-    exit 1
+  $repoPath = (Get-Location).Path
+  $argsLine = ($Args | ForEach-Object { Escape-BashArg $_ }) -join ' '
+
+  if (-not (Invoke-WithGitBash -RepoPath $repoPath -ArgsLine $argsLine)) {
+    if (-not (Invoke-WithWSL -RepoPath $repoPath -ArgsLine $argsLine)) {
+      Write-Error 'Не найден Git Bash (bash.exe) и WSL (wsl.exe). Установите Git for Windows или WSL для запуска start.sh из PowerShell.'
+      exit 1
+    }
+  }
+  return
 }
-
-try {
-    $null = docker-compose --version
-    $dockerComposeCmd = "docker-compose"
-    Write-ColoredOutput "Docker Compose is installed." "Green"
-} catch {
-    try {
-        $null = docker compose version
-        $dockerComposeCmd = "docker compose"
-        Write-ColoredOutput "Docker Compose plugin is installed." "Green"
-    } catch {
-        Write-ColoredOutput "Error: docker-compose is not installed. Please install Docker Compose first." "Red"
-        exit 1
-    }
-}
-
-# First run the fix-env-vars script to ensure environment is properly set up
-Write-ColoredOutput "Checking and fixing environment variables..." "Yellow"
-if (Test-Path "./scripts/fix-env-vars.ps1") {
-    & powershell -ExecutionPolicy Bypass -File "./scripts/fix-env-vars.ps1"
-    
-    if ($LASTEXITCODE -ne 0) {
-        Write-ColoredOutput "Error fixing environment variables. Continuing without fixes..." "Red"
-    }
-} else {
-    Write-ColoredOutput "Warning: fix-env-vars.ps1 not found. Continuing without fixing environment variables." "Yellow"
-}
-
-# Stop any existing containers first
-Write-ColoredOutput "Stopping any existing containers..." "Cyan"
-if ($dockerComposeCmd -eq "docker-compose") {
-    & docker-compose down
-} else {
-    & docker compose down
-}
-
-# Start with selected profile
-Write-ColoredOutput "Starting N8N AI Starter Kit with $Profile profile..." "Cyan"
-
-switch ($Profile) {
-    "cpu" {
-        Write-ColoredOutput "Using CPU profile for AI services" "Cyan"
-        if ($dockerComposeCmd -eq "docker-compose") {
-            & docker-compose --profile cpu up -d
-            $success = $?
-        } else {
-            & docker compose --profile cpu up -d
-            $success = $?
-        }
-    }
-    "gpu-nvidia" {
-        Write-ColoredOutput "Using NVIDIA GPU profile for AI services" "Cyan"
-        if ($dockerComposeCmd -eq "docker-compose") {
-            & docker-compose --profile gpu-nvidia up -d
-            $success = $?
-        } else {
-            & docker compose --profile gpu-nvidia up -d
-            $success = $?
-        }
-    }
-    "gpu-amd" {
-        Write-ColoredOutput "Using AMD GPU profile for AI services" "Cyan"
-        if ($dockerComposeCmd -eq "docker-compose") {
-            & docker-compose --profile gpu-amd up -d
-            $success = $?
-        } else {
-            & docker compose --profile gpu-amd up -d
-            $success = $?
-        }
-    }
-    "developer" {
-        Write-ColoredOutput "Using Developer profile with additional tools" "Cyan"
-        if ($dockerComposeCmd -eq "docker-compose") {
-            & docker-compose --profile developer up -d
-            $success = $?
-        } else {
-            & docker compose --profile developer up -d
-            $success = $?
-        }
-    }
-}
-
-if ($success) {
-    Write-ColoredOutput "✅ N8N AI Starter Kit successfully started with $Profile profile!" "Green"
-    Write-ColoredOutput "Access services at:" "Cyan"
-    Write-ColoredOutput "• N8N: http://localhost:5678" "Cyan"
-    Write-ColoredOutput "• Ollama: http://localhost:11434" "Cyan"
-    Write-ColoredOutput "• Traefik Dashboard: http://localhost:8080" "Cyan"
-    
-    # If developer profile, show additional services
-    if ($Profile -eq "developer") {
-        Write-ColoredOutput "• JupyterLab: http://localhost:8888" "Cyan"
-        Write-ColoredOutput "• pgAdmin: http://localhost:5050" "Cyan"
-    }
-    
-    Write-ColoredOutput "To check the logs, run: $dockerComposeCmd logs -f" "Cyan"
-    Write-ColoredOutput "To stop the application, run: $dockerComposeCmd down" "Cyan"
-} else {
-    Write-ColoredOutput "❌ Failed to start N8N AI Starter Kit. Check the docker-compose logs for details." "Red"
-    exit 1
+catch {
+  Write-Error $_
+  exit 1
 }

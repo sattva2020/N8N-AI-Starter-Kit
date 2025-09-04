@@ -17,9 +17,11 @@ print_error() {
   echo -e "\033[31m❌ $1\033[0m"
 }
 
+# CONFIG_FILE is optional documentation only. The script will continue even if
+# the YAML file is not present (the profiles below are hardcoded). This allows
+# the repo to omit the YAML while keeping it available as a helpful reference.
 if [ ! -f "$CONFIG_FILE" ]; then
-  print_error "Файл конфигурации $CONFIG_FILE не найден!"
-  exit 1
+  print_info "Файл конфигурации $CONFIG_FILE не найден — используем встроенные профили. (Опционально)"
 fi
 
 echo "🤖 Выбор профиля моделей Ollama"
