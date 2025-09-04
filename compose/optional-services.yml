@@ -8,14 +8,17 @@ services:
     - cpu
     - gpu
     - reasoning
-    ports:
-    - ${PORT:-9621}:9621
     depends_on:
     - qdrant
     environment:
     - PORT=${PORT:-9621}
     - LIGHRAG_WORKDIR=/data/lightrag
     - LIGHRAG_ENV=production
+    - LLM_BINDING=${LLM_BINDING:-ollama}
+    - EMBEDDING_BINDING=${EMBEDDING_BINDING:-ollama}
+    - LLM_MODEL=${LLM_MODEL:-mistral-nemo:latest}
+    - EMBEDDING_MODEL=${EMBEDDING_MODEL:-bge-m3:latest}
+    - LIGHTRAG_VECTOR_STORAGE=${LIGHTRAG_VECTOR_STORAGE:-NanoVectorDBStorage}
     - LIGHRAG_DOMAIN=${LIGHRAG_DOMAIN}
     - LIGHTRAG_API_KEY=${LIGHTRAG_API_KEY}
     - TOKEN_SECRET=${TOKEN_SECRET}

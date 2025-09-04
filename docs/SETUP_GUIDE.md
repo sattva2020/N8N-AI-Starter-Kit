@@ -18,7 +18,7 @@
 python -m pip install -r requirements.txt
 ```
 
-3. Установите `pre-commit` и активируйте хуки:
+1. Установите `pre-commit` и активируйте хуки:
 
 ```bash
 pip install pre-commit
@@ -29,6 +29,8 @@ pre-commit install --install-hooks
 
 - Если у вас нет `python3` в системе, скрипты используют `python` как fallback.
 - На CI раннерах `shellcheck` устанавливается автоматически; на Windows можно использовать встроенную проверку `bash -n` как fallback для shell-скриптов.
+
+- Добавлено: опциональная передача переменных окружения для `lightrag` (LLM/EMBEDDING/LIGHTRAG_VECTOR_STORAGE) через `compose/optional-services.yml` — можно настроить в `.env`.
 
 ## Контакты
 
