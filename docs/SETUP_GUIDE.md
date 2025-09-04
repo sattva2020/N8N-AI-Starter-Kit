@@ -31,6 +31,7 @@ pre-commit install --install-hooks
 - На CI раннерах `shellcheck` устанавливается автоматически; на Windows можно использовать встроенную проверку `bash -n` как fallback для shell-скриптов.
 
 - Добавлено: опциональная передача переменных окружения для `lightrag` (LLM/EMBEDDING/LIGHTRAG_VECTOR_STORAGE) через `compose/optional-services.yml` — можно настроить в `.env`.
+- Обновлено: генератор `.env` теперь включает параметры `LLM_BINDING`, `EMBEDDING_BINDING`, `LLM_MODEL`, `EMBEDDING_MODEL`, `LIGHTRAG_VECTOR_STORAGE` для автоматической настройки LightRAG (см. `scripts/setup.sh`).
 
 ## Контакты
 

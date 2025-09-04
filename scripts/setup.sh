@@ -740,6 +740,11 @@ TRAEFIK_PASSWORD_HASHED=${traefik_pwd_hash}
 LIGHRAG_DOMAIN=${LIGHRAG_DOMAIN:-lightrag.${DOMAIN_NAME:-example.com}}
 PORT=${PORT:-9621}
 QDRANT_URL=${QDRANT_URL:-http://qdrant:6333}
+LLM_BINDING=${LLM_BINDING:-ollama}
+EMBEDDING_BINDING=${EMBEDDING_BINDING:-ollama}
+LLM_MODEL=${LLM_MODEL:-mistral-nemo:latest}
+EMBEDDING_MODEL=${EMBEDDING_MODEL:-bge-m3:latest}
+LIGHTRAG_VECTOR_STORAGE=${LIGHTRAG_VECTOR_STORAGE:-NanoVectorDBStorage}
 LIGHTRAG_API_KEY=${LIGHTRAG_API_KEY:-${lightrag_api_key}}
 TOKEN_SECRET=${TOKEN_SECRET:-${lightrag_token_secret}}
 ALLOW_ANONYMOUS_ACCESS=${ALLOW_ANONYMOUS_ACCESS:-false}
@@ -759,7 +764,6 @@ GENERIC_TIMEZONE=UTC
 NODE_ENV=production
 COMPOSE_PROJECT_NAME=n8n-ai-starter-kit
 
-EOF
 
   # Add optional NEO4J defaults for setups that expect graphiti/neo4j to be present.
   # These are safe defaults for local development and satisfy validate_required_envs().
@@ -971,6 +975,11 @@ ensure_profile_defaults() {
   "GRAFANA_DOMAIN=grafana.${domain_name}"
   "GRAFANA_URL=https://grafana.${domain_name}"
     "OLLAMA_DOMAIN=ollama.${domain_name}"
+  "LLM_BINDING=ollama"
+  "EMBEDDING_BINDING=ollama"
+  "LLM_MODEL=mistral-nemo:latest"
+  "EMBEDDING_MODEL=bge-m3:latest"
+  "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage"
     "N8N_DOMAIN=n8n.${domain_name}"
     "N8N_HOST=n8n.${domain_name}"
     "N8N_PORT=5678"
@@ -1452,6 +1461,11 @@ GRAPHITI_DOMAIN=graphiti.${DOMAIN_NAME:-example.com}
 LIGHRAG_DOMAIN=lightrag.${DOMAIN_NAME:-example.com}
 PORT=9621
 QDRANT_URL=http://qdrant:6333
+LLM_BINDING=${LLM_BINDING:-ollama}
+EMBEDDING_BINDING=${EMBEDDING_BINDING:-ollama}
+LLM_MODEL=${LLM_MODEL:-mistral-nemo:latest}
+EMBEDDING_MODEL=${EMBEDDING_MODEL:-bge-m3:latest}
+LIGHTRAG_VECTOR_STORAGE=${LIGHTRAG_VECTOR_STORAGE:-NanoVectorDBStorage}
 LIGHTRAG_API_KEY=${lightrag_api_key}
 TOKEN_SECRET=${lightrag_token_secret}
 ALLOW_ANONYMOUS_ACCESS=false
