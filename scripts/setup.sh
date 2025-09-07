@@ -744,6 +744,8 @@ LLM_BINDING=${LLM_BINDING:-ollama}
 EMBEDDING_BINDING=${EMBEDDING_BINDING:-ollama}
 LLM_MODEL=${LLM_MODEL:-mistral-nemo:latest}
 EMBEDDING_MODEL=${EMBEDDING_MODEL:-bge-m3:latest}
+LLM_BINDING_HOST=${LLM_BINDING_HOST:-http://ollama:11434}
+EMBEDDING_BINDING_HOST=${EMBEDDING_BINDING_HOST:-http://ollama:11434}
 LIGHTRAG_VECTOR_STORAGE=${LIGHTRAG_VECTOR_STORAGE:-NanoVectorDBStorage}
 LIGHTRAG_API_KEY=${LIGHTRAG_API_KEY:-${lightrag_api_key}}
 TOKEN_SECRET=${TOKEN_SECRET:-${lightrag_token_secret}}
@@ -1287,6 +1289,10 @@ update_template_with_user_settings() {
     print_info "Обновляем .env"
 
     sed -i "s/^DOMAIN_NAME=.*/DOMAIN_NAME=${domain_name}/g" .env || true
+    # Если строка DOMAIN_NAME отсутствует в .env (шаблон старый), добaвим её
+    if ! grep -q "^DOMAIN_NAME=" .env 2>/dev/null; then
+      echo "DOMAIN_NAME=${domain_name}" >> .env
+    fi
     sed -i "s/^N8N_HOST=.*/N8N_HOST=n8n.${domain_name}/g" .env || true
     sed -i "s/^N8N_DOMAIN=.*/N8N_DOMAIN=n8n.${domain_name}/g" .env || true
     sed -i "s/^TRAEFIK_DASHBOARD_DOMAIN=.*/TRAEFIK_DASHBOARD_DOMAIN=traefik.${domain_name}/g" .env || true
@@ -1319,6 +1325,16 @@ update_template_with_user_settings() {
     # Если .env отсутствует — генерируем его встроенным генератором
     if [ ! -f ".env" ]; then
       print_info ".env отсутствует — генерируем .env встроенным генератором"
+      # Экспортируем значения, чтобы встроенный генератор увидел интерактивно введённые параметры
+      if [ -n "${domain_name:-}" ]; then
+        export DOMAIN_NAME="${domain_name}"
+      fi
+      if [ -n "${acme_email:-}" ]; then
+        export ACME_EMAIL="${acme_email}"
+      fi
+      if [ -n "${openai_api_key:-}" ]; then
+        export OPENAI_API_KEY="${openai_api_key}"
+      fi
       create_env_from_template
       print_success ".env сгенерирован"
     fi
@@ -1469,6 +1485,10 @@ LIGHTRAG_VECTOR_STORAGE=${LIGHTRAG_VECTOR_STORAGE:-NanoVectorDBStorage}
 LIGHTRAG_API_KEY=${lightrag_api_key}
 TOKEN_SECRET=${lightrag_token_secret}
 ALLOW_ANONYMOUS_ACCESS=false
+LLM_BINDING_HOST=${LLM_BINDING_HOST:-http://ollama:11434}
+EMBEDDING_BINDING_HOST=${EMBEDDING_BINDING_HOST:-http://ollama:11434}
+OLLAMA_API_BASE_URL=${OLLAMA_API_BASE_URL:-http://ollama:11434}
+OLLAMA_HOST=${OLLAMA_HOST:-ollama}
 
 # Optional defaults to avoid docker-compose warnings
 PGADMIN_DOMAIN=${PGADMIN_DOMAIN:-pgadmin.${DOMAIN_NAME:-example.com}}
@@ -2019,6 +2039,12 @@ QDRANT_URL=http://qdrant:6333
 LIGHTRAG_API_KEY=${lightrag_api_key}
 TOKEN_SECRET=${lightrag_token_secret}
 ALLOW_ANONYMOUS_ACCESS=false
+LLM_BINDING=${LLM_BINDING:-ollama}
+EMBEDDING_BINDING=${EMBEDDING_BINDING:-ollama}
+LLM_BINDING_HOST=${LLM_BINDING_HOST:-http://ollama:11434}
+EMBEDDING_BINDING_HOST=${EMBEDDING_BINDING_HOST:-http://ollama:11434}
+OLLAMA_API_BASE_URL=${OLLAMA_API_BASE_URL:-http://ollama:11434}
+OLLAMA_HOST=${OLLAMA_HOST:-ollama}
 EOF
 
   # Ensure Grafana variables exist for monitoring and n8n credential imports
