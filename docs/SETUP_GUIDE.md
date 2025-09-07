@@ -20,6 +20,12 @@ python -m pip install -r requirements.txt
 
 1. Установите `pre-commit` и активируйте хуки:
 
+## Изменение конфигурации Prometheus
+
+В этой ветке целевой адрес для самого Prometheus в `config/prometheus/prometheus.yml` был обновлён на `prometheus:9090` — это использует сетевое имя контейнера внутри Docker Compose.
+
+Если вы разворачиваете систему вне Docker и вам нужно другое значение хоста/порта, измените целевой адрес в конфигурации по необходимости.
+
 ```bash
 pip install pre-commit
 pre-commit install --install-hooks
