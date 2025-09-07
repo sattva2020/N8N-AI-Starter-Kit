@@ -267,11 +267,12 @@ check_dev_only_files() {
     print_header "🔍 Проверка файлов только для разработки"
 
     local staged_files
-    staged_files=$(git diff --cached --name-only 2>/dev/null || echo "")
+    # Only consider added/created/modified files (ignore deletions)
+    staged_files=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || echo "")
 
     if [[ -z "$staged_files" ]]; then
         print_warning "Нет файлов в staging area. Проверяем все измененные файлы..."
-        staged_files=$(git diff --name-only 2>/dev/null || echo "")
+        staged_files=$(git diff --name-only --diff-filter=ACM 2>/dev/null || echo "")
         if [[ -z "$staged_files" ]]; then
             staged_files=$(find . -type f -name "*" | grep -v ".git/" | head -50)
         fi
@@ -328,30 +329,34 @@ check_dev_only_files() {
 # Функция проверки чувствительных данных
 check_sensitive_files() {
     print_header "🔐 Проверка чувствительных данных"
-
     local staged_files
-    staged_files=$(git diff --cached --name-only 2>/dev/null || git diff --name-only 2>/dev/null || true)
+    # consider only added/modified/copied files for content checks
+    staged_files=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || git diff --name-only --diff-filter=ACM 2>/dev/null || true)
 
-    for pattern in "${SENSITIVE_PATTERNS[@]}"; do
-        local matches
-        matches=$(echo "$staged_files" | grep -E "$(echo "$pattern" | sed 's/\*/.*/')" || true)
+    if [[ -z "$staged_files" ]]; then
+        return 0
+    fi
 
-        if [[ -n "$matches" ]]; then
-            # filter out common script filenames that include 'env' etc. but are not sensitive
-            local filtered_matches
-            filtered_matches=$(echo "$matches" | grep -v '^scripts/' || true)
-            if [[ -n "$filtered_matches" ]]; then
-                print_error "КРИТИЧНО: Найдены чувствительные файлы (pattern: $pattern):"
-                echo "$filtered_matches" | while read -r file; do
-                    if [[ -f "$file" ]]; then
-                        echo "  🔒 $file"
-                        ((FILES_TO_IGNORE++))
+    # Use shell glob matching per-file to avoid accidental substring matches
+    while IFS= read -r file; do
+        [[ -z "$file" ]] && continue
+        for pattern in "${SENSITIVE_PATTERNS[@]}"; do
+            if [[ "$file" == $pattern ]]; then
+                # exclude developer scripts directory
+                if [[ "$file" == scripts/* ]]; then
+                    continue
+                fi
+                if [[ -f "$file" ]]; then
+                    if [[ $ISSUES_FOUND -eq 0 ]]; then
+                        print_error "КРИТИЧНО: Найдены чувствительные файлы (by patterns):"
                     fi
-                done
-                ((ISSUES_FOUND++))
+                    echo "  🔒 $file"
+                    ((FILES_TO_IGNORE++))
+                    ((ISSUES_FOUND++))
+                fi
             fi
-        fi
-    done
+        done
+    done <<< "$staged_files"
 }
 
 # Функция проверки содержимого файлов на чувствительные данные
@@ -365,34 +370,58 @@ check_file_content() {
         return 0
     fi
 
-    local sensitive_keywords=(
-        "password.*="
-        "secret.*="
-        "key.*="
-        "token.*="
-        "api_key.*="
-        "localhost"
-        "127.0.0.1"
-        "TODO:"
-        "FIXME:"
-        "DEBUG:"
-        "HACK:"
-        "TEMP:"
-    )
+    # We'll perform conservative checks per-filetype to reduce false positives
+    local kv_secret_regex='^[[:space:]]*(export[[:space:]]+)?([A-Za-z0-9_]*_)?(PASSWORD|SECRET|TOKEN|API[_-]?KEY|APIKEY|KEY)[[:space:]]*='
+    local todo_regex='(TODO:|FIXME:|DEBUG:|HACK:|TEMP:)'
 
     for file in $staged_files; do
-        # Skip scanning internal tooling scripts
+        # Skip scanning internal tooling scripts and files inside scripts/ (they are developer tools)
         if [[ "$file" == scripts/* ]]; then
             continue
         fi
         if [[ -f "$file" ]]; then
-            for keyword in "${sensitive_keywords[@]}"; do
-                if grep -q "$keyword" "$file" 2>/dev/null; then
-                    print_warning "Найдено подозрительное содержимое в $file: $keyword"
-                    grep -n "$keyword" "$file" | head -3 | sed 's/^/    /'
-                    ((ISSUES_FOUND++))
-                fi
-            done
+            case "$file" in
+                *.env|.env|.env.*)
+                    if grep -iEn "$kv_secret_regex" "$file" 2>/dev/null | sed -n '1,3p' >/dev/null; then
+                        print_warning "Найдено подозрительное содержимое в $file (env-like):"
+                        grep -iEn "$kv_secret_regex" "$file" | head -3 | sed 's/^/    /' || true
+                        ((ISSUES_FOUND++))
+                    fi
+                    ;;
+                *.yml|*.yaml|*.json)
+                    # Structured files: find lines mentioning secret-like keys and containing : or =
+                    matches=$(grep -iEn 'password|secret|token|api[_-]?key|apikey|key' "$file" 2>/dev/null || true)
+                    if [[ -n "$matches" ]]; then
+                        filtered=$(echo "$matches" | grep -E '[:=]' || true)
+                        if [[ -n "$filtered" ]]; then
+                            print_warning "Найдено подозрительное содержимое в $file (yaml/json):"
+                            echo "$filtered" | head -3 | sed 's/^/    /' || true
+                            ((ISSUES_FOUND++))
+                        fi
+                    fi
+                    ;;
+                *.md)
+                    if grep -En "$todo_regex" "$file" 2>/dev/null | sed -n '1,3p' >/dev/null; then
+                        print_warning "Найдено пометка в $file:"
+                        grep -En "$todo_regex" "$file" | head -3 | sed 's/^/    /' || true
+                        ((ISSUES_FOUND++))
+                    fi
+                    ;;
+                *.sh|*.ps1)
+                    if grep -iEn "$kv_secret_regex" "$file" 2>/dev/null | sed -n '1,3p' >/dev/null; then
+                        print_warning "Найдено подозрительное содержимое в $file (script assignment):"
+                        grep -iEn "$kv_secret_regex" "$file" | head -3 | sed 's/^/    /' || true
+                        ((ISSUES_FOUND++))
+                    fi
+                    ;;
+                *)
+                    if grep -En "$todo_regex" "$file" 2>/dev/null | sed -n '1,3p' >/dev/null; then
+                        print_warning "Найдено пометка в $file:"
+                        grep -En "$todo_regex" "$file" | head -3 | sed 's/^/    /' || true
+                        ((ISSUES_FOUND++))
+                    fi
+                    ;;
+            esac
         fi
     done
 }

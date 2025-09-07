@@ -1,0 +1,38 @@
+--- docker ps all ---
+CONTAINER ID                                                       NAMES                          IMAGE                           STATUS                  PORTS
+6e28028cf5f9d278849c73833407c3ad63bb9493e4d442939b1bee7b7a41467d   lightrag                       ghcr.io/hkuds/lightrag:latest   Up About a minute       9621/tcp
+118d7c713afaa5ab27d637b7cafe9de6cb9a25dd043425dd2fe2554fd44ac3a7   ollama                         ollama/ollama:latest            Up 9 hours              0.0.0.0:11434->11434/tcp, [::]:11434->11434/tcp
+942046517b427c9c2934d6870dc27e675c9eec2dc44034780a792f5104b7f30a   n8n-ai-starter-kit-traefik-1   traefik:latest                  Up 10 hours             0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp, 127.0.0.1:8080->8080/tcp
+b428a3e690333e7263780da31f17fbd012ca9ddead4c61ee6f86dd4d2a87c138   graphiti                       zepai/graphiti:0.3              Up 10 hours             0.0.0.0:8003->8001/tcp, [::]:8003->8001/tcp
+61cac9988e6d65422d9f109bf9346c84c93d73baa7831fe488262a0728d105d5   qdrant                         qdrant/qdrant:latest            Up 10 hours             0.0.0.0:6333-6334->6333-6334/tcp, [::]:6333-6334->6333-6334/tcp
+f840d7ce84a0658a6a80a82fda9599e0ddb2965d7cb9e55f7ccebe7444460525   neo4j-graphiti                 neo4j:5.22.0                    Up 10 hours (healthy)   7473/tcp, 0.0.0.0:8474->7474/tcp, [::]:8474->7474/tcp, 0.0.0.0:8687->7687/tcp, [::]:8687->7687/tcp
+\n--- docker network ls ---
+NETWORK ID     NAME                          DRIVER    SCOPE
+12b26e719dc5   bridge                        bridge    local
+0e128da6b1c3   host                          host      local
+2087319b9250   n8n-ai-starter-kit_backend    bridge    local
+4a31356d9df5   n8n-ai-starter-kit_database   bridge    local
+8a6f2dedab3d   n8n-ai-starter-kit_frontend   bridge    local
+ce3f9d2a43e5   none                          null      local
+\n--- inspect each container networks ---
+\n=== 6e28028cf5f9 ===
+/lightrag
+\n=== 118d7c713afa ===
+/ollama
+\n=== 942046517b42 ===
+/n8n-ai-starter-kit-traefik-1
+\n=== b428a3e69033 ===
+/graphiti
+\n=== 61cac9988e6d ===
+/qdrant
+\n=== f840d7ce84a0 ===
+/neo4j-graphiti
+\n--- /etc/hosts inside lightrag ---
+127.0.0.1	localhost
+::1	localhost ip6-localhost ip6-loopback
+fe00::	ip6-localnet
+ff00::	ip6-mcastprefix
+ff02::1	ip6-allnodes
+ff02::2	ip6-allrouters
+172.18.0.6	6e28028cf5f9
+172.19.0.5	6e28028cf5f9

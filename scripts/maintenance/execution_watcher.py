@@ -6,6 +6,7 @@ Usage:
   python scripts/maintenance/execution_watcher.py --token TOKEN --n8n http://localhost:5678 --since 60
 
 """
+
 import argparse
 import time
 from datetime import datetime, timedelta
@@ -13,7 +14,7 @@ from datetime import datetime, timedelta
 import requests
 
 
-def list_failed_executions(base_url, token, since_minutes=60):
+def list_failed_executions(base_url, token, _since_minutes=60):
     url = f"{base_url.rstrip('/')}/rest/executions"
     params = {"filter": "failed", "limit": 100}
     # optional: filter by updatedAfter or createdAt if API supports
@@ -49,6 +50,7 @@ def main():
                     print(f" - execution id={ex_id} workflow={workflow_id} status={status} startedAt={started_at}")
                 if args.alert_cmd:
                     import subprocess
+
                     try:
                         subprocess.run(args.alert_cmd, shell=True, check=False)
                     except Exception as e:

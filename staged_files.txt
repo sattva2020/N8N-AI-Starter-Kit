@@ -1,0 +1,34 @@
+", e)\357\200\212PY\357\200\212"
+", e)\357\200\212try\357\200\272\357\200\212    print(nhttp"
+", e)\357\200\212try\357\200\272\357\200\212    s=socket.create_connection((172.18.0.7,11434),timeout=3)\357\200\212    print(tcp"
+", s.getsockname())\357\200\212    s.close()\357\200\212except Exception as e\357\200\272\357\200\212    print(tcp"
+", socket.getaddrinfo(ollama,11434))\357\200\212try\357\200\272\357\200\212    s=socket.create_connection((ollama,11434),timeout=3)\357\200\212    print(tcp"
+TROUBLESHOOTING.md
+compose/ollama-compose.yml
+compose/optional-services.yml
+config/ollama-models.txt
+config/prometheus/prometheus.yml
+data/credentials-bulk.json
+docs/credentials.md
+docs/credentials_bulk.md
+docs/ollama_models.md
+env.schema
+error
+request
+scripts/init-ollama-models.sh
+scripts/remote-run-start.sh
+scripts/remote_diag.sh
+scripts/remote_faiss_smoke.py
+scripts/remote_lancedb_diag.sh
+scripts/remote_run_with_strace.sh
+scripts/remote_so_inspect.sh
+scripts/remote_test_step_debug.py
+scripts/run_graphrag_remote.sh
+scripts/safe_copy.ps1
+scripts/safe_copy.sh
+scripts/setup.sh
+scripts/setup_remote_conda.sh
+scripts/switch-to-openai.sh
+scripts/utils/check-ollama-models.sh
+scripts/utils/check-ollama.sh
+{{json

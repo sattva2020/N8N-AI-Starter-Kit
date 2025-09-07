@@ -11,9 +11,10 @@ from asyncpg import Pool
 
 logger = structlog.get_logger(__name__)
 
+
 class PostgresClient:
     """Async PostgreSQL client for N8N database"""
-    
+
     def __init__(self, config):
         self.config = config
         self.pool: Pool | None = None
@@ -26,7 +27,7 @@ class PostgresClient:
                 f"postgresql://{self.config.postgres_user}:{self.config.postgres_password}"
                 f"@{self.config.postgres_host}:{self.config.postgres_port}/{self.config.postgres_database}"
             )
-            
+
             self.pool = await asyncpg.create_pool(
                 connection_string,
                 min_size=1,
@@ -34,18 +35,18 @@ class PostgresClient:
                 command_timeout=60,
                 server_settings={
                     'application_name': 'n8n-etl-processor',
-                }
+                },
             )
-            
+
             # Test connection
             async with self.pool.acquire() as conn:
                 await conn.fetchval("SELECT 1")
-            
+
             self._initialized = True
-            logger.info("PostgreSQL client initialized",
-                       host=self.config.postgres_host,
-                       database=self.config.postgres_database)
-            
+            logger.info(
+                "PostgreSQL client initialized", host=self.config.postgres_host, database=self.config.postgres_database
+            )
+
         except Exception as e:
             logger.error("Failed to initialize PostgreSQL client", error=str(e))
             raise
@@ -54,9 +55,9 @@ class PostgresClient:
         """Get recent workflow executions"""
         if not self._initialized:
             raise RuntimeError("PostgreSQL client not initialized")
-        
+
         query = """
-            SELECT 
+            SELECT
                 e.id,
                 e."workflowId",
                 e.status,
@@ -72,11 +73,11 @@ class PostgresClient:
             ORDER BY e."startedAt" DESC
             LIMIT 1000
         """
-        
+
         try:
             async with self.pool.acquire() as conn:
                 rows = await conn.fetch(query, since)
-                
+
                 executions = []
                 for row in rows:
                     execution = {
@@ -88,41 +89,41 @@ class PostgresClient:
                         'mode': row['mode'],
                         'startedAt': row['startedAt'],
                         'finishedAt': row['finishedAt'],
-                        'data': row['data'] or {}
+                        'data': row['data'] or {},
                     }
                     executions.append(execution)
-                
+
                 logger.info(f"Retrieved {len(executions)} recent executions", since=since)
                 return executions
-                
+
         except Exception as e:
             logger.error("Failed to get recent executions", error=str(e))
             raise
 
     async def get_workflow_metrics(self, date: datetime) -> list[dict[str, Any]]:
         """Get workflow metrics for a specific date"""
-        query = """
-            SELECT 
-                e."workflowId",
-                w.name as workflow_name,
-                COUNT(*) as total_executions,
-                COUNT(CASE WHEN e.status = 'success' THEN 1 END) as successful_executions,
-                COUNT(CASE WHEN e.status = 'error' THEN 1 END) as failed_executions,
-                AVG(EXTRACT(EPOCH FROM (e."finishedAt" - e."startedAt")) * 1000) as avg_duration_ms,
-                MAX(EXTRACT(EPOCH FROM (e."finishedAt" - e."startedAt")) * 1000) as max_duration_ms,
-                MIN(EXTRACT(EPOCH FROM (e."finishedAt" - e."startedAt")) * 1000) as min_duration_ms,
-                MAX(e."finishedAt") as last_execution
-            FROM execution_entity e
-            LEFT JOIN workflow_entity w ON e."workflowId" = w.id
-            WHERE DATE(e."startedAt") = $1
-            AND e."finishedAt" IS NOT NULL
-            GROUP BY e."workflowId", w.name
-        """
-        
+        query = (
+            "SELECT \n"
+            "    e.\"workflowId\",\n"
+            "    w.name as workflow_name,\n"
+            "    COUNT(*) as total_executions,\n"
+            "    COUNT(CASE WHEN e.status = 'success' THEN 1 END) as successful_executions,\n"
+            "    COUNT(CASE WHEN e.status = 'error' THEN 1 END) as failed_executions,\n"
+            "    AVG(EXTRACT(EPOCH FROM (e.\"finishedAt\" - e.\"startedAt\")) * 1000) as avg_duration_ms,\n"
+            "    MAX(EXTRACT(EPOCH FROM (e.\"finishedAt\" - e.\"startedAt\")) * 1000) as max_duration_ms,\n"
+            "    MIN(EXTRACT(EPOCH FROM (e.\"finishedAt\" - e.\"startedAt\")) * 1000) as min_duration_ms,\n"
+            "    MAX(e.\"finishedAt\") as last_execution\n"
+            "FROM execution_entity e\n"
+            "LEFT JOIN workflow_entity w ON e.\"workflowId\" = w.id\n"
+            "WHERE DATE(e.\"startedAt\") = $1\n"
+            "AND e.\"finishedAt\" IS NOT NULL\n"
+            "GROUP BY e.\"workflowId\", w.name\n"
+        )
+
         try:
             async with self.pool.acquire() as conn:
                 rows = await conn.fetch(query, date.date())
-                
+
                 metrics = []
                 for row in rows:
                     metric = {
@@ -136,13 +137,13 @@ class PostgresClient:
                         'min_duration_ms': int(row['min_duration_ms'] or 0),
                         'last_execution': row['last_execution'],
                         'date': date.date(),
-                        'created_at': datetime.utcnow()
+                        'created_at': datetime.utcnow(),
                     }
                     metrics.append(metric)
-                
+
                 logger.info(f"Retrieved workflow metrics for {date.date()}", workflows=len(metrics))
                 return metrics
-                
+
         except Exception as e:
             logger.error("Failed to get workflow metrics", error=str(e))
             raise
@@ -150,7 +151,7 @@ class PostgresClient:
     async def get_node_performance(self, since: datetime) -> list[dict[str, Any]]:
         """Get node performance data"""
         query = """
-            SELECT 
+            SELECT
                 e.id as execution_id,
                 e."workflowId",
                 e.data
@@ -161,43 +162,62 @@ class PostgresClient:
             ORDER BY e."startedAt" DESC
             LIMIT 500
         """
-        
+
         try:
             async with self.pool.acquire() as conn:
                 rows = await conn.fetch(query, since)
-                
+
                 node_performance = []
                 for row in rows:
                     execution_id = row['execution_id']
                     workflow_id = row['workflowId']
                     data = row['data'] or {}
-                    
+
                     # Extract node performance from execution data
                     if 'resultData' in data and 'runData' in data['resultData']:
                         run_data = data['resultData']['runData']
-                        
+
                         for node_name, node_data in run_data.items():
                             if isinstance(node_data, list) and node_data:
                                 for run in node_data:
                                     if 'startTime' in run and 'executionTime' in run:
+                                        # Extract some intermediate values to keep line lengths short
+                                        node_type = (
+                                            run.get('source', [{}])[0].get('type', 'unknown')
+                                            if run.get('source')
+                                            else 'unknown'
+                                        )
+                                        duration_ms = run.get('executionTime', 0)
+                                        input_items = (
+                                            len(run.get('data', {}).get('main', [[]])[0]) if run.get('data') else 0
+                                        )
+                                        output_items = (
+                                            len(run.get('data', {}).get('main', [[]])[0]) if run.get('data') else 0
+                                        )
+                                        executed_at = (
+                                            datetime.fromtimestamp(run['startTime'] / 1000)
+                                            if run.get('startTime')
+                                            else datetime.utcnow()
+                                        )
+
                                         performance = {
                                             'execution_id': execution_id,
                                             'workflow_id': workflow_id,
                                             'node_name': node_name,
-                                            'node_type': run.get('source', [{}])[0].get('type', 'unknown') if run.get('source') else 'unknown',
-                                            'duration_ms': run.get('executionTime', 0),
-                                            'input_items': len(run.get('data', {}).get('main', [[]])[0]) if run.get('data') else 0,
-                                            'output_items': len(run.get('data', {}).get('main', [[]])[0]) if run.get('data') else 0,
+                                            'node_type': node_type,
+                                            'duration_ms': duration_ms,
+                                            'input_items': input_items,
+                                            'output_items': output_items,
                                             'status': 'success' if not run.get('error') else 'error',
                                             'error_message': str(run.get('error', ''))[:500],
-                                            'executed_at': datetime.fromtimestamp(run['startTime'] / 1000) if run.get('startTime') else datetime.utcnow(),
-                                            'created_at': datetime.utcnow()
+                                            'executed_at': executed_at,
+                                            'created_at': datetime.utcnow(),
                                         }
                                         node_performance.append(performance)
-                
+
                 logger.info("Retrieved node performance data", nodes=len(node_performance))
                 return node_performance
-                
+
         except Exception as e:
             logger.error("Failed to get node performance", error=str(e))
             raise
@@ -205,7 +225,7 @@ class PostgresClient:
     async def get_error_analysis(self, since: datetime) -> list[dict[str, Any]]:
         """Get error analysis data"""
         query = """
-            SELECT 
+            SELECT
                 e.id,
                 e."workflowId",
                 w.name as workflow_name,
@@ -218,11 +238,11 @@ class PostgresClient:
             ORDER BY e."startedAt" DESC
             LIMIT 500
         """
-        
+
         try:
             async with self.pool.acquire() as conn:
                 rows = await conn.fetch(query, since)
-                
+
                 errors = []
                 for row in rows:
                     execution_id = row['id']
@@ -230,20 +250,20 @@ class PostgresClient:
                     workflow_name = row['workflow_name'] or 'Unknown'
                     occurred_at = row['startedAt']
                     data = row['data'] or {}
-                    
+
                     # Extract error information
                     error_message = "Unknown error"
                     error_details = ""
                     node_name = "Unknown"
                     error_type = "execution_error"
-                    
+
                     if 'resultData' in data and 'error' in data['resultData']:
                         error_info = data['resultData']['error']
                         error_message = str(error_info.get('message', 'Unknown error'))[:500]
                         error_details = str(error_info)[:1000]
                         node_name = error_info.get('node', {}).get('name', 'Unknown')
                         error_type = error_info.get('name', 'execution_error')
-                    
+
                     error_analysis = {
                         'id': f"{execution_id}_{node_name}",
                         'execution_id': execution_id,
@@ -255,13 +275,13 @@ class PostgresClient:
                         'error_details': error_details,
                         'occurred_at': occurred_at,
                         'resolved': False,
-                        'created_at': datetime.utcnow()
+                        'created_at': datetime.utcnow(),
                     }
                     errors.append(error_analysis)
-                
+
                 logger.info("Retrieved error analysis data", errors=len(errors))
                 return errors
-                
+
         except Exception as e:
             logger.error("Failed to get error analysis", error=str(e))
             raise
@@ -269,7 +289,7 @@ class PostgresClient:
     async def get_workflows_info(self) -> list[dict[str, Any]]:
         """Get workflow information"""
         query = """
-            SELECT 
+            SELECT
                 id,
                 name,
                 active,
@@ -280,11 +300,11 @@ class PostgresClient:
             FROM workflow_entity
             ORDER BY "updatedAt" DESC
         """
-        
+
         try:
             async with self.pool.acquire() as conn:
                 rows = await conn.fetch(query)
-                
+
                 workflows = []
                 for row in rows:
                     workflow = {
@@ -294,13 +314,13 @@ class PostgresClient:
                         'created_at': row['createdAt'],
                         'updated_at': row['updatedAt'],
                         'node_count': len(row['nodes']) if row['nodes'] else 0,
-                        'connection_count': len(row['connections']) if row['connections'] else 0
+                        'connection_count': len(row['connections']) if row['connections'] else 0,
                     }
                     workflows.append(workflow)
-                
+
                 logger.info("Retrieved workflows info", workflows=len(workflows))
                 return workflows
-                
+
         except Exception as e:
             logger.error("Failed to get workflows info", error=str(e))
             raise

@@ -3,11 +3,14 @@
 # Строки, начинающиеся с символа #, являются комментариями и игнорируются
 
 # Рекомендуемые производительные модели
-phi4:14b
-# bge-m3:latest
+    qwen2.5:7b-q4_K_M
+    mistral-nemo:latest
+#    bge-m3:latest
 
 # Дополнительные модели (раскомментируйте нужные)
+# phi4:14b
 # gemma:2b
 # mistral:7b
 # llama3:70b
 # codellama:34b
+# llama3.2:latest:q4_k_m

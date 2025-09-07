@@ -39,7 +39,7 @@ structlog.configure(
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
         structlog.processors.UnicodeDecoder(),
-        structlog.processors.JSONRenderer()
+        structlog.processors.JSONRenderer(),
     ],
     context_class=dict,
     logger_factory=structlog.stdlib.LoggerFactory(),
@@ -55,47 +55,56 @@ REQUEST_DURATION = Histogram('analytics_api_request_duration_seconds', 'Request 
 CACHE_HITS = Counter('analytics_api_cache_hits_total', 'Cache hits', ['type'])
 CACHE_MISSES = Counter('analytics_api_cache_misses_total', 'Cache misses', ['type'])
 
+
 class DateRange(BaseModel):
     """Модель для диапазона дат"""
+
     start_date: date
     end_date: date
 
+
 class TimeRange(BaseModel):
     """Модель для временного диапазона"""
+
     start_time: datetime
     end_time: datetime
 
+
 class PaginationParams(BaseModel):
     """Параметры пагинации"""
+
     offset: int = Field(default=0, ge=0)
     limit: int = Field(default=100, ge=1, le=1000)
+
 
 # Global services
 config = APIConfig()
 clickhouse_service = ClickHouseService(config)
 cache_service = CacheService(config)
 
+
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """Lifecycle manager for the application"""
     # Startup
     logger.info("Starting Analytics API")
     await clickhouse_service.initialize()
     await cache_service.initialize()
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down Analytics API")
     await clickhouse_service.close()
     await cache_service.close()
+
 
 # FastAPI app
 app = FastAPI(
     title="N8N Analytics API",
     description="API для доступа к аналитическим данным N8N AI Starter Kit",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -106,6 +115,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Dependency для проверки API ключей (если нужно)
 async def verify_api_key(api_key: str | None = Query(None)):
     """Проверка API ключа"""
@@ -113,38 +123,48 @@ async def verify_api_key(api_key: str | None = Query(None)):
         raise HTTPException(status_code=401, detail="API key required")
     return api_key
 
+
+# Module-level singletons to avoid calling Query/Depends in function defaults (fixes ruff B008)
+QUERY_REQUIRED = Query(...)
+QUERY_OPTIONAL = Query(None)
+QUERY_LIMIT_DEFAULT = Query(10, ge=1, le=50)
+QUERY_SUMMARY = Query("summary", description="Тип отчета: summary, detailed, trends")
+PAGINATION_DEPENDS = Depends()
+VERIFY_API_KEY_DEP = Depends(verify_api_key)
+
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
     try:
         # Проверяем подключение к ClickHouse
         await clickhouse_service.health_check()
-        
+
         return {
             "status": "healthy",
             "timestamp": datetime.utcnow(),
-            "services": {
-                "clickhouse": "healthy",
-                "cache": "healthy" if cache_service.is_connected() else "unhealthy"
-            }
+            "services": {"clickhouse": "healthy", "cache": "healthy" if cache_service.is_connected() else "unhealthy"},
         }
     except Exception as e:
         logger.error("Health check failed", error=str(e))
-        raise HTTPException(status_code=503, detail="Service unhealthy")
+        raise HTTPException(status_code=503, detail="Service unhealthy") from e
+
 
 @app.get("/metrics")
 async def get_metrics():
     """Prometheus metrics endpoint"""
     return generate_latest()
 
+
 # Workflow Analytics Endpoints
+
 
 @app.get("/api/v1/workflows/analytics", response_model=WorkflowAnalytics)
 async def get_workflow_analytics(
-    start_date: date = Query(..., description="Дата начала"),
-    end_date: date = Query(..., description="Дата окончания"),
-    workflow_id: str | None = Query(None, description="ID воркфлоу"),
-    api_key: str = Depends(verify_api_key)
+    start_date: date = QUERY_REQUIRED,
+    end_date: date = QUERY_REQUIRED,
+    workflow_id: str | None = QUERY_OPTIONAL,
+    _api_key: str = VERIFY_API_KEY_DEP,
 ):
     """Получить аналитику по воркфлоу"""
     with REQUEST_DURATION.labels(endpoint='workflows_analytics').time():
@@ -152,311 +172,314 @@ async def get_workflow_analytics(
             # Проверяем кэш
             cache_key = f"workflow_analytics:{start_date}:{end_date}:{workflow_id or 'all'}"
             cached_result = await cache_service.get(cache_key)
-            
+
             if cached_result:
                 CACHE_HITS.labels(type='workflow_analytics').inc()
                 API_REQUESTS.labels(endpoint='workflows_analytics', method='GET', status='200').inc()
                 return JSONResponse(content=cached_result)
-            
+
             CACHE_MISSES.labels(type='workflow_analytics').inc()
-            
+
             # Получаем данные из ClickHouse
-            analytics = await clickhouse_service.get_workflow_analytics(
-                start_date, end_date, workflow_id
-            )
-            
+            analytics = await clickhouse_service.get_workflow_analytics(start_date, end_date, workflow_id)
+
             # Кэшируем результат на 15 минут
             await cache_service.set(cache_key, analytics.dict(), ttl=900)
-            
+
             API_REQUESTS.labels(endpoint='workflows_analytics', method='GET', status='200').inc()
             return analytics
-            
+
         except Exception as e:
             logger.error("Failed to get workflow analytics", error=str(e))
             API_REQUESTS.labels(endpoint='workflows_analytics', method='GET', status='500').inc()
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
+
 
 @app.get("/api/v1/workflows/top-performers")
 async def get_top_performing_workflows(
-    start_date: date = Query(...),
-    end_date: date = Query(...),
-    limit: int = Query(10, ge=1, le=50),
-    api_key: str = Depends(verify_api_key)
+    start_date: date = QUERY_REQUIRED,
+    end_date: date = QUERY_REQUIRED,
+    limit: int = QUERY_LIMIT_DEFAULT,
+    _api_key: str = VERIFY_API_KEY_DEP,
 ):
     """Получить топ самых производительных воркфлоу"""
     with REQUEST_DURATION.labels(endpoint='top_workflows').time():
         try:
             cache_key = f"top_workflows:{start_date}:{end_date}:{limit}"
             cached_result = await cache_service.get(cache_key)
-            
+
             if cached_result:
                 CACHE_HITS.labels(type='top_workflows').inc()
                 return JSONResponse(content=cached_result)
-            
+
             CACHE_MISSES.labels(type='top_workflows').inc()
-            
-            top_workflows = await clickhouse_service.get_top_performing_workflows(
-                start_date, end_date, limit
-            )
-            
+
+            top_workflows = await clickhouse_service.get_top_performing_workflows(start_date, end_date, limit)
+
             await cache_service.set(cache_key, top_workflows, ttl=1800)  # 30 минут
             API_REQUESTS.labels(endpoint='top_workflows', method='GET', status='200').inc()
-            
+
             return top_workflows
-            
+
         except Exception as e:
             logger.error("Failed to get top workflows", error=str(e))
             API_REQUESTS.labels(endpoint='top_workflows', method='GET', status='500').inc()
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
+
 
 # User Activity Endpoints
 
+
 @app.get("/api/v1/users/activity", response_model=UserActivity)
 async def get_user_activity(
-    start_date: date = Query(...),
-    end_date: date = Query(...),
-    user_id: str | None = Query(None),
-    pagination: PaginationParams = Depends(),
-    api_key: str = Depends(verify_api_key)
+    start_date: date = QUERY_REQUIRED,
+    end_date: date = QUERY_REQUIRED,
+    user_id: str | None = QUERY_OPTIONAL,
+    pagination: PaginationParams = PAGINATION_DEPENDS,
+    _api_key: str = VERIFY_API_KEY_DEP,
 ):
     """Получить активность пользователей"""
     with REQUEST_DURATION.labels(endpoint='user_activity').time():
         try:
-            cache_key = f"user_activity:{start_date}:{end_date}:{user_id or 'all'}:{pagination.offset}:{pagination.limit}"
+            cache_key = (
+                f"user_activity:{start_date}:{end_date}:{user_id or 'all'}:{pagination.offset}:{pagination.limit}"
+            )
             cached_result = await cache_service.get(cache_key)
-            
+
             if cached_result:
                 CACHE_HITS.labels(type='user_activity').inc()
                 return JSONResponse(content=cached_result)
-            
+
             CACHE_MISSES.labels(type='user_activity').inc()
-            
+
             activity = await clickhouse_service.get_user_activity(
                 start_date, end_date, user_id, pagination.offset, pagination.limit
             )
-            
+
             await cache_service.set(cache_key, activity.dict(), ttl=600)  # 10 минут
             API_REQUESTS.labels(endpoint='user_activity', method='GET', status='200').inc()
-            
+
             return activity
-            
+
         except Exception as e:
             logger.error("Failed to get user activity", error=str(e))
             API_REQUESTS.labels(endpoint='user_activity', method='GET', status='500').inc()
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
+
 
 # System Metrics Endpoints
 
+
 @app.get("/api/v1/system/metrics", response_model=SystemMetrics)
 async def get_system_metrics(
-    start_time: datetime = Query(...),
-    end_time: datetime = Query(...),
-    metric_type: str | None = Query(None, description="Тип метрики"),
-    api_key: str = Depends(verify_api_key)
+    start_time: datetime = QUERY_REQUIRED,
+    end_time: datetime = QUERY_REQUIRED,
+    metric_type: str | None = QUERY_OPTIONAL,
+    _api_key: str = VERIFY_API_KEY_DEP,
 ):
     """Получить системные метрики"""
     with REQUEST_DURATION.labels(endpoint='system_metrics').time():
         try:
             cache_key = f"system_metrics:{start_time}:{end_time}:{metric_type or 'all'}"
             cached_result = await cache_service.get(cache_key)
-            
+
             if cached_result:
                 CACHE_HITS.labels(type='system_metrics').inc()
                 return JSONResponse(content=cached_result)
-            
+
             CACHE_MISSES.labels(type='system_metrics').inc()
-            
-            metrics = await clickhouse_service.get_system_metrics(
-                start_time, end_time, metric_type
-            )
-            
+
+            metrics = await clickhouse_service.get_system_metrics(start_time, end_time, metric_type)
+
             await cache_service.set(cache_key, metrics.dict(), ttl=300)  # 5 минут
             API_REQUESTS.labels(endpoint='system_metrics', method='GET', status='200').inc()
-            
+
             return metrics
-            
+
         except Exception as e:
             logger.error("Failed to get system metrics", error=str(e))
             API_REQUESTS.labels(endpoint='system_metrics', method='GET', status='500').inc()
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
+
 
 # Document Analytics Endpoints
 
+
 @app.get("/api/v1/documents/analytics", response_model=DocumentAnalytics)
 async def get_document_analytics(
-    start_date: date = Query(...),
-    end_date: date = Query(...),
-    document_type: str | None = Query(None),
-    api_key: str = Depends(verify_api_key)
+    start_date: date = QUERY_REQUIRED,
+    end_date: date = QUERY_REQUIRED,
+    document_type: str | None = QUERY_OPTIONAL,
+    _api_key: str = VERIFY_API_KEY_DEP,
 ):
     """Получить аналитику по документам"""
     with REQUEST_DURATION.labels(endpoint='document_analytics').time():
         try:
             cache_key = f"document_analytics:{start_date}:{end_date}:{document_type or 'all'}"
             cached_result = await cache_service.get(cache_key)
-            
+
             if cached_result:
                 CACHE_HITS.labels(type='document_analytics').inc()
                 return JSONResponse(content=cached_result)
-            
+
             CACHE_MISSES.labels(type='document_analytics').inc()
-            
-            analytics = await clickhouse_service.get_document_analytics(
-                start_date, end_date, document_type
-            )
-            
+
+            analytics = await clickhouse_service.get_document_analytics(start_date, end_date, document_type)
+
             await cache_service.set(cache_key, analytics.dict(), ttl=900)  # 15 минут
             API_REQUESTS.labels(endpoint='document_analytics', method='GET', status='200').inc()
-            
+
             return analytics
-            
+
         except Exception as e:
             logger.error("Failed to get document analytics", error=str(e))
             API_REQUESTS.labels(endpoint='document_analytics', method='GET', status='500').inc()
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
+
 
 # API Usage Statistics
 
+
 @app.get("/api/v1/api/usage", response_model=APIUsageStats)
 async def get_api_usage_stats(
-    start_date: date = Query(...),
-    end_date: date = Query(...),
-    endpoint: str | None = Query(None),
-    api_key: str = Depends(verify_api_key)
+    start_date: date = QUERY_REQUIRED,
+    end_date: date = QUERY_REQUIRED,
+    endpoint: str | None = QUERY_OPTIONAL,
+    _api_key: str = VERIFY_API_KEY_DEP,
 ):
     """Получить статистику использования API"""
     with REQUEST_DURATION.labels(endpoint='api_usage').time():
         try:
             cache_key = f"api_usage:{start_date}:{end_date}:{endpoint or 'all'}"
             cached_result = await cache_service.get(cache_key)
-            
+
             if cached_result:
                 CACHE_HITS.labels(type='api_usage').inc()
                 return JSONResponse(content=cached_result)
-            
+
             CACHE_MISSES.labels(type='api_usage').inc()
-            
-            usage_stats = await clickhouse_service.get_api_usage_stats(
-                start_date, end_date, endpoint
-            )
-            
+
+            usage_stats = await clickhouse_service.get_api_usage_stats(start_date, end_date, endpoint)
+
             await cache_service.set(cache_key, usage_stats.dict(), ttl=1200)  # 20 минут
             API_REQUESTS.labels(endpoint='api_usage', method='GET', status='200').inc()
-            
+
             return usage_stats
-            
+
         except Exception as e:
             logger.error("Failed to get API usage stats", error=str(e))
             API_REQUESTS.labels(endpoint='api_usage', method='GET', status='500').inc()
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
+
 
 # Error Analysis
 
+
 @app.get("/api/v1/errors/analysis", response_model=ErrorAnalysis)
 async def get_error_analysis(
-    start_date: date = Query(...),
-    end_date: date = Query(...),
-    error_type: str | None = Query(None),
-    workflow_id: str | None = Query(None),
-    api_key: str = Depends(verify_api_key)
+    start_date: date = QUERY_REQUIRED,
+    end_date: date = QUERY_REQUIRED,
+    error_type: str | None = QUERY_OPTIONAL,
+    workflow_id: str | None = QUERY_OPTIONAL,
+    _api_key: str = VERIFY_API_KEY_DEP,
 ):
     """Получить анализ ошибок"""
     with REQUEST_DURATION.labels(endpoint='error_analysis').time():
         try:
             cache_key = f"error_analysis:{start_date}:{end_date}:{error_type or 'all'}:{workflow_id or 'all'}"
             cached_result = await cache_service.get(cache_key)
-            
+
             if cached_result:
                 CACHE_HITS.labels(type='error_analysis').inc()
                 return JSONResponse(content=cached_result)
-            
+
             CACHE_MISSES.labels(type='error_analysis').inc()
-            
-            error_analysis = await clickhouse_service.get_error_analysis(
-                start_date, end_date, error_type, workflow_id
-            )
-            
+
+            error_analysis = await clickhouse_service.get_error_analysis(start_date, end_date, error_type, workflow_id)
+
             await cache_service.set(cache_key, error_analysis.dict(), ttl=600)  # 10 минут
             API_REQUESTS.labels(endpoint='error_analysis', method='GET', status='200').inc()
-            
+
             return error_analysis
-            
+
         except Exception as e:
             logger.error("Failed to get error analysis", error=str(e))
             API_REQUESTS.labels(endpoint='error_analysis', method='GET', status='500').inc()
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
+
 
 # Performance Reports
 
+
 @app.get("/api/v1/performance/report", response_model=PerformanceReport)
 async def get_performance_report(
-    start_date: date = Query(...),
-    end_date: date = Query(...),
-    report_type: str = Query("summary", description="Тип отчета: summary, detailed, trends"),
-    api_key: str = Depends(verify_api_key)
+    start_date: date = QUERY_REQUIRED,
+    end_date: date = QUERY_REQUIRED,
+    report_type: str = QUERY_SUMMARY,
+    _api_key: str = VERIFY_API_KEY_DEP,
 ):
     """Получить отчет о производительности"""
     with REQUEST_DURATION.labels(endpoint='performance_report').time():
         try:
             cache_key = f"performance_report:{start_date}:{end_date}:{report_type}"
             cached_result = await cache_service.get(cache_key)
-            
+
             if cached_result:
                 CACHE_HITS.labels(type='performance_report').inc()
                 return JSONResponse(content=cached_result)
-            
+
             CACHE_MISSES.labels(type='performance_report').inc()
-            
-            report = await clickhouse_service.get_performance_report(
-                start_date, end_date, report_type
-            )
-            
+
+            report = await clickhouse_service.get_performance_report(start_date, end_date, report_type)
+
             await cache_service.set(cache_key, report.dict(), ttl=1800)  # 30 минут
             API_REQUESTS.labels(endpoint='performance_report', method='GET', status='200').inc()
-            
+
             return report
-            
+
         except Exception as e:
             logger.error("Failed to get performance report", error=str(e))
             API_REQUESTS.labels(endpoint='performance_report', method='GET', status='500').inc()
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
+
 
 # Real-time endpoints
 
+
 @app.get("/api/v1/realtime/dashboard")
-async def get_realtime_dashboard(api_key: str = Depends(verify_api_key)):
+async def get_realtime_dashboard(_api_key: str = VERIFY_API_KEY_DEP):
     """Получить данные для real-time дашборда"""
     try:
         # Получаем данные за последний час
         end_time = datetime.utcnow()
         start_time = end_time - timedelta(hours=1)
-        
-        dashboard_data = await clickhouse_service.get_realtime_dashboard_data(
-            start_time, end_time
-        )
-        
+
+        dashboard_data = await clickhouse_service.get_realtime_dashboard_data(start_time, end_time)
+
         API_REQUESTS.labels(endpoint='realtime_dashboard', method='GET', status='200').inc()
         return dashboard_data
-        
+
     except Exception as e:
         logger.error("Failed to get realtime dashboard", error=str(e))
         API_REQUESTS.labels(endpoint='realtime_dashboard', method='GET', status='500').inc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
-def signal_handler(signum, frame):
+
+def signal_handler(signum, _frame):
     """Handle shutdown signals"""
     logger.info(f"Received signal {signum}, shutting down...")
     sys.exit(0)
+
 
 if __name__ == "__main__":
     # Set up signal handlers
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
-    
+
     # Run the FastAPI app
     uvicorn.run(
         app,
         host="0.0.0.0",
         port=8080,
-        log_config=None  # Use structlog
+        log_config=None,  # Use structlog
     )

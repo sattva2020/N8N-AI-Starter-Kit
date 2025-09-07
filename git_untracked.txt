@@ -1,0 +1,5 @@
+git_branch.txt
+git_head.txt
+git_status.txt
+git_untracked.txt
+staged_files.txt

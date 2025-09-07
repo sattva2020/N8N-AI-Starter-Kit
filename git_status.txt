@@ -1,0 +1,43 @@
+## test/v1.2-03-09-2025...origin/test/v1.2-03-09-2025
+A  ", e)\357\200\212PY\357\200\212"
+A  ", e)\357\200\212try\357\200\272\357\200\212    print(nhttp"
+A  ", e)\357\200\212try\357\200\272\357\200\212    s=socket.create_connection((172.18.0.7,11434),timeout=3)\357\200\212    print(tcp"
+A  ", s.getsockname())\357\200\212    s.close()\357\200\212except Exception as e\357\200\272\357\200\212    print(tcp"
+A  ", socket.getaddrinfo(ollama,11434))\357\200\212try\357\200\272\357\200\212    s=socket.create_connection((ollama,11434),timeout=3)\357\200\212    print(tcp"
+M  TROUBLESHOOTING.md
+M  compose/ollama-compose.yml
+M  compose/optional-services.yml
+M  config/ollama-models.txt
+M  config/prometheus/prometheus.yml
+M  data/credentials-bulk.json
+M  docs/credentials.md
+M  docs/credentials_bulk.md
+M  docs/ollama_models.md
+M  env.schema
+A  error
+ M pytest.ini
+A  request
+M  scripts/init-ollama-models.sh
+A  scripts/remote-run-start.sh
+A  scripts/remote_diag.sh
+A  scripts/remote_faiss_smoke.py
+A  scripts/remote_lancedb_diag.sh
+A  scripts/remote_run_with_strace.sh
+A  scripts/remote_so_inspect.sh
+A  scripts/remote_test_step_debug.py
+A  scripts/run_graphrag_remote.sh
+A  scripts/safe_copy.ps1
+A  scripts/safe_copy.sh
+M  scripts/setup.sh
+A  scripts/setup_remote_conda.sh
+A  scripts/switch-to-openai.sh
+M  scripts/utils/check-ollama-models.sh
+M  scripts/utils/check-ollama.sh
+ M services/analytics-api/main.py
+ M services/etl-processor/etl/n8n_api_client.py
+ M services/web-interface/app.py
+A  {{json
+?? git_branch.txt
+?? git_head.txt
+?? git_status.txt
+?? staged_files.txt

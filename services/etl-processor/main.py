@@ -6,7 +6,7 @@ N8N Analytics ETL Processor
 import asyncio
 import signal
 import sys
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from datetime import datetime, timedelta
 
 import schedule
@@ -38,7 +38,7 @@ structlog.configure(
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
         structlog.processors.UnicodeDecoder(),
-        structlog.processors.JSONRenderer()
+        structlog.processors.JSONRenderer(),
     ],
     context_class=dict,
     logger_factory=structlog.stdlib.LoggerFactory(),
@@ -53,37 +53,32 @@ JOBS_COUNTER = Counter('etl_jobs_total', 'Total number of ETL jobs processed', [
 JOB_DURATION = Histogram('etl_job_duration_seconds', 'Time spent processing ETL jobs', ['job_type'])
 RECORDS_PROCESSED = Counter('etl_records_processed_total', 'Total number of records processed', ['table'])
 
+
 class ETLStatus(BaseModel):
     """ETL status response model"""
+
     status: str
     last_run: datetime | None
     next_run: datetime | None
     processed_records: dict[str, int]
     errors: list[str]
 
+
 class ETLProcessor:
     """Main ETL processor class"""
-    
+
     def __init__(self):
         self.config = ETLConfig()
         self.clickhouse_client = ClickHouseClient(self.config)
         self.postgres_client = PostgresClient(self.config)
         self.n8n_api_client = N8NAPIClient(self.config)
-        
+
         # Processors
-        self.workflow_execution_processor = WorkflowExecutionProcessor(
-            self.postgres_client, self.clickhouse_client
-        )
-        self.workflow_metrics_processor = WorkflowMetricsProcessor(
-            self.postgres_client, self.clickhouse_client
-        )
-        self.node_performance_processor = NodePerformanceProcessor(
-            self.postgres_client, self.clickhouse_client
-        )
-        self.error_analysis_processor = ErrorAnalysisProcessor(
-            self.postgres_client, self.clickhouse_client
-        )
-        
+        self.workflow_execution_processor = WorkflowExecutionProcessor(self.postgres_client, self.clickhouse_client)
+        self.workflow_metrics_processor = WorkflowMetricsProcessor(self.postgres_client, self.clickhouse_client)
+        self.node_performance_processor = NodePerformanceProcessor(self.postgres_client, self.clickhouse_client)
+        self.error_analysis_processor = ErrorAnalysisProcessor(self.postgres_client, self.clickhouse_client)
+
         self.last_run = None
         self.next_run = None
         self.processed_records = {}
@@ -94,20 +89,20 @@ class ETLProcessor:
         """Initialize ETL processor"""
         try:
             logger.info("Initializing ETL processor")
-            
+
             # Initialize clients
             await self.clickhouse_client.initialize()
             await self.postgres_client.initialize()
             await self.n8n_api_client.initialize()
-            
+
             # Create ClickHouse tables
             await self.create_clickhouse_tables()
-            
+
             # Schedule jobs
             self.schedule_jobs()
-            
+
             logger.info("ETL processor initialized successfully")
-            
+
         except Exception as e:
             logger.error("Failed to initialize ETL processor", error=str(e))
             raise
@@ -135,7 +130,6 @@ class ETLProcessor:
                 ORDER BY (workflow_id, started_at)
                 TTL toDateTime(started_at) + INTERVAL 1 YEAR
             ''',
-            
             'workflow_metrics': '''
                 CREATE TABLE IF NOT EXISTS workflow_metrics (
                     workflow_id String,
@@ -154,7 +148,6 @@ class ETLProcessor:
                 ORDER BY (workflow_id, date)
                 TTL date + INTERVAL 2 YEAR
             ''',
-            
             'node_performance': '''
                 CREATE TABLE IF NOT EXISTS node_performance (
                     execution_id String,
@@ -175,7 +168,6 @@ class ETLProcessor:
                 ORDER BY (workflow_id, executed_at, node_name)
                 TTL toDateTime(executed_at) + INTERVAL 6 MONTH
             ''',
-            
             'error_analysis': '''
                 CREATE TABLE IF NOT EXISTS error_analysis (
                     id String,
@@ -195,9 +187,9 @@ class ETLProcessor:
                 PARTITION BY toYYYYMM(occurred_at)
                 ORDER BY (error_type, occurred_at)
                 TTL toDateTime(occurred_at) + INTERVAL 1 YEAR
-            '''
+            ''',
         }
-        
+
         for table_name, ddl in tables.items():
             try:
                 await self.clickhouse_client.execute(ddl)
@@ -208,46 +200,62 @@ class ETLProcessor:
 
     def schedule_jobs(self):
         """Schedule ETL jobs"""
+
         # Every 5 minutes - recent executions
-        schedule.every(5).minutes.do(self.run_recent_executions_job)
-        
+        def _recent():
+            asyncio.create_task(self.run_recent_executions_job())
+
+        schedule.every(5).minutes.do(_recent)
+
         # Every 30 minutes - workflow metrics
-        schedule.every(30).minutes.do(self.run_workflow_metrics_job)
-        
+        def _metrics():
+            asyncio.create_task(self.run_workflow_metrics_job())
+
+        schedule.every(30).minutes.do(_metrics)
+
         # Every hour - node performance analysis
-        schedule.every().hour.do(self.run_node_performance_job)
-        
+        def _node_perf():
+            asyncio.create_task(self.run_node_performance_job())
+
+        schedule.every().hour.do(_node_perf)
+
         # Every 6 hours - error analysis
-        schedule.every(6).hours.do(self.run_error_analysis_job)
-        
+        def _error_analysis():
+            asyncio.create_task(self.run_error_analysis_job())
+
+        schedule.every(6).hours.do(_error_analysis)
+
         # Daily - full sync
-        schedule.every().day.at("02:00").do(self.run_full_sync_job)
+        def _full_sync():
+            asyncio.create_task(self.run_full_sync_job())
+
+        schedule.every().day.at("02:00").do(_full_sync)
 
     async def run_recent_executions_job(self):
         """Process recent workflow executions"""
         if self.is_running:
             logger.warning("ETL job already running, skipping")
             return
-            
+
         self.is_running = True
         job_type = "recent_executions"
-        
+
         try:
             with JOB_DURATION.labels(job_type=job_type).time():
                 logger.info("Starting recent executions job")
-                
+
                 # Process executions from last 10 minutes
                 since = datetime.utcnow() - timedelta(minutes=10)
                 records = await self.workflow_execution_processor.process_recent_executions(since)
-                
+
                 RECORDS_PROCESSED.labels(table='workflow_executions').inc(records)
                 JOBS_COUNTER.labels(job_type=job_type, status='success').inc()
-                
+
                 self.processed_records['workflow_executions'] = records
                 self.last_run = datetime.utcnow()
-                
+
                 logger.info("Recent executions job completed", records_processed=records)
-                
+
         except Exception as e:
             JOBS_COUNTER.labels(job_type=job_type, status='error').inc()
             error_msg = f"Recent executions job failed: {str(e)}"
@@ -260,23 +268,23 @@ class ETLProcessor:
         """Process workflow metrics"""
         if self.is_running:
             return
-            
+
         self.is_running = True
         job_type = "workflow_metrics"
-        
+
         try:
             with JOB_DURATION.labels(job_type=job_type).time():
                 logger.info("Starting workflow metrics job")
-                
+
                 records = await self.workflow_metrics_processor.process_daily_metrics()
-                
+
                 RECORDS_PROCESSED.labels(table='workflow_metrics').inc(records)
                 JOBS_COUNTER.labels(job_type=job_type, status='success').inc()
-                
+
                 self.processed_records['workflow_metrics'] = records
-                
+
                 logger.info("Workflow metrics job completed", records_processed=records)
-                
+
         except Exception as e:
             JOBS_COUNTER.labels(job_type=job_type, status='error').inc()
             error_msg = f"Workflow metrics job failed: {str(e)}"
@@ -289,24 +297,24 @@ class ETLProcessor:
         """Process node performance data"""
         if self.is_running:
             return
-            
+
         self.is_running = True
         job_type = "node_performance"
-        
+
         try:
             with JOB_DURATION.labels(job_type=job_type).time():
                 logger.info("Starting node performance job")
-                
+
                 since = datetime.utcnow() - timedelta(hours=2)
                 records = await self.node_performance_processor.process_node_performance(since)
-                
+
                 RECORDS_PROCESSED.labels(table='node_performance').inc(records)
                 JOBS_COUNTER.labels(job_type=job_type, status='success').inc()
-                
+
                 self.processed_records['node_performance'] = records
-                
+
                 logger.info("Node performance job completed", records_processed=records)
-                
+
         except Exception as e:
             JOBS_COUNTER.labels(job_type=job_type, status='error').inc()
             error_msg = f"Node performance job failed: {str(e)}"
@@ -319,24 +327,24 @@ class ETLProcessor:
         """Process error analysis"""
         if self.is_running:
             return
-            
+
         self.is_running = True
         job_type = "error_analysis"
-        
+
         try:
             with JOB_DURATION.labels(job_type=job_type).time():
                 logger.info("Starting error analysis job")
-                
+
                 since = datetime.utcnow() - timedelta(hours=8)
                 records = await self.error_analysis_processor.process_errors(since)
-                
+
                 RECORDS_PROCESSED.labels(table='error_analysis').inc(records)
                 JOBS_COUNTER.labels(job_type=job_type, status='success').inc()
-                
+
                 self.processed_records['error_analysis'] = records
-                
+
                 logger.info("Error analysis job completed", records_processed=records)
-                
+
         except Exception as e:
             JOBS_COUNTER.labels(job_type=job_type, status='error').inc()
             error_msg = f"Error analysis job failed: {str(e)}"
@@ -349,27 +357,27 @@ class ETLProcessor:
         """Run full data synchronization"""
         if self.is_running:
             return
-            
+
         self.is_running = True
         job_type = "full_sync"
-        
+
         try:
             with JOB_DURATION.labels(job_type=job_type).time():
                 logger.info("Starting full sync job")
-                
+
                 # Run all processors for the last 24 hours
                 since = datetime.utcnow() - timedelta(days=1)
-                
+
                 total_records = 0
                 total_records += await self.workflow_execution_processor.process_recent_executions(since)
                 total_records += await self.workflow_metrics_processor.process_daily_metrics()
                 total_records += await self.node_performance_processor.process_node_performance(since)
                 total_records += await self.error_analysis_processor.process_errors(since)
-                
+
                 JOBS_COUNTER.labels(job_type=job_type, status='success').inc()
-                
+
                 logger.info("Full sync job completed", total_records=total_records)
-                
+
         except Exception as e:
             JOBS_COUNTER.labels(job_type=job_type, status='error').inc()
             error_msg = f"Full sync job failed: {str(e)}"
@@ -385,13 +393,13 @@ class ETLProcessor:
         if schedule.jobs:
             next_job = min(schedule.jobs, key=lambda job: job.next_run)
             next_run = next_job.next_run
-        
+
         return ETLStatus(
             status="running" if self.is_running else "idle",
             last_run=self.last_run,
             next_run=next_run,
             processed_records=self.processed_records,
-            errors=self.errors[-10:]  # Last 10 errors
+            errors=self.errors[-10:],  # Last 10 errors
         )
 
     async def cleanup(self):
@@ -401,17 +409,20 @@ class ETLProcessor:
         await self.postgres_client.close()
         await self.n8n_api_client.close()
 
+
 async def run_scheduler():
     """Run scheduled jobs"""
     while True:
         schedule.run_pending()
         await asyncio.sleep(30)
 
+
 # Global variables for background tasks
 scheduler_task = None
 
+
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """Application lifespan manager"""
     global scheduler_task
     # Startup
@@ -421,11 +432,11 @@ async def lifespan(app: FastAPI):
     # Shutdown
     if scheduler_task:
         scheduler_task.cancel()
-        try:
+        # suppress CancelledError raised when cancelling the task
+        with suppress(asyncio.CancelledError):
             await scheduler_task
-        except asyncio.CancelledError:
-            pass
     await etl_processor.cleanup()
+
 
 # Global ETL processor instance
 etl_processor = ETLProcessor()
@@ -435,7 +446,7 @@ app = FastAPI(
     title="N8N Analytics ETL Processor",
     description="ETL processor for N8N workflow analytics",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -446,57 +457,63 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "timestamp": datetime.utcnow()}
+
 
 @app.get("/status", response_model=ETLStatus)
 async def get_status():
     """Get ETL processor status"""
     return etl_processor.get_status()
 
+
 @app.post("/trigger/{job_type}")
 async def trigger_job(job_type: str):
     """Manually trigger ETL job"""
     if etl_processor.is_running:
         raise HTTPException(status_code=409, detail="ETL job already running")
-    
+
     job_methods = {
         "recent_executions": etl_processor.run_recent_executions_job,
         "workflow_metrics": etl_processor.run_workflow_metrics_job,
         "node_performance": etl_processor.run_node_performance_job,
         "error_analysis": etl_processor.run_error_analysis_job,
-        "full_sync": etl_processor.run_full_sync_job
+        "full_sync": etl_processor.run_full_sync_job,
     }
-    
+
     if job_type not in job_methods:
         raise HTTPException(status_code=400, detail=f"Unknown job type: {job_type}")
-    
+
     # Run job in background
     asyncio.create_task(job_methods[job_type]())
-    
+
     return {"message": f"Job {job_type} triggered", "timestamp": datetime.utcnow()}
+
 
 @app.get("/metrics")
 async def get_metrics():
     """Prometheus metrics endpoint"""
     return generate_latest()
 
-def signal_handler(signum, frame):
+
+def signal_handler(signum, _frame):
     """Handle shutdown signals"""
     logger.info(f"Received signal {signum}, shutting down...")
     sys.exit(0)
+
 
 if __name__ == "__main__":
     # Set up signal handlers
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
-    
+
     # Run the FastAPI app
     uvicorn.run(
         app,
         host="0.0.0.0",
         port=8080,
-        log_config=None  # Use structlog
+        log_config=None,  # Use structlog
     )

@@ -214,7 +214,7 @@
 
 1. Убедитесь, что используете правильные имена хостов (имена сервисов Docker) вместо localhost:
 
-   - Для Ollama используйте `ollama:11434`
+   - Для Ollama используйте `${LLM_BINDING_HOST:-http://ollama:11434}` (или задайте `LLM_BINDING_HOST` / `EMBEDDING_BINDING_HOST` в `.env`)
    - Для Postgres используйте `postgres:5432`
    - Для Qdrant используйте `qdrant:6333`
 

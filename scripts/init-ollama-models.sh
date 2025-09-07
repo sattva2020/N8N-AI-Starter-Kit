@@ -3,7 +3,7 @@
 
 # Ждем запуска Ollama
 echo "⏳ Ожидание запуска Ollama API..."
-until curl -s -f "http://ollama:11434/api/version" > /dev/null; do
+until curl -s -f "${LLM_BINDING_HOST:-http://ollama:11434}/api/version" > /dev/null; do
   echo "Ollama еще не готов, повторная проверка через 5 секунд..."
   sleep 5
 done
@@ -12,9 +12,9 @@ echo "✅ Ollama API доступен, начинаю загрузку моде�
 # Чтение и загрузка моделей из файла
 cat /app/config/ollama-models.txt | grep -v "^#" | sed '/^\s*$/d' | while read -r MODEL; do
   echo "🔄 Проверка/загрузка модели $MODEL..."
-  if ! curl -s "http://ollama:11434/api/tags" | grep -q "\"name\":\"$MODEL\""; then
+  if ! curl -s "${LLM_BINDING_HOST:-http://ollama:11434}/api/tags" | grep -q "\"name\":\"$MODEL\""; then
     echo "📥 Загрузка модели $MODEL..."
-    curl -s -X POST "http://ollama:11434/api/pull" -d "{\"model\":\"$MODEL\"}"
+  curl -s -X POST "${LLM_BINDING_HOST:-http://ollama:11434}/api/pull" -d "{\"model\":\"$MODEL\"}"
     echo "✅ Загрузка модели $MODEL завершена"
   else
     echo "✅ Модель $MODEL уже загружена"
