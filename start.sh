@@ -64,6 +64,76 @@ fi
 
 echo -e "${BLUE}=== Интеллектуальный запуск N8N AI Starter Kit ===${NC}"
 
+# Start logging to both a private internal file and a public log file in
+# parallel. The public directory is selected in this order:
+# 1) $START_LOG_DIR (if set)
+# 2) /var/log/n8n-ai-starter-kit (if writable)
+# 3) ./logs (fallback)
+# Set SKIP_START_LOG=true to disable logging.
+if [ "${SKIP_START_LOG:-}" != "true" ]; then
+    mkdir -p .internal >/dev/null 2>&1 || true
+    LOG_TS=$(date +%Y%m%d%H%M%S 2>/dev/null || echo "$(date +%s)")
+    INTERNAL_LOG=".internal/start.${LOG_TS}.log"
+    : > "$INTERNAL_LOG" 2>/dev/null || true
+    chmod 600 "$INTERNAL_LOG" 2>/dev/null || true
+
+    # Determine public log directory
+    if [ -n "${START_LOG_DIR:-}" ]; then
+        PUBLIC_DIR="${START_LOG_DIR}"
+    elif [ -w "/var/log" ] && [ -d "/var/log" ]; then
+        PUBLIC_DIR="/var/log/n8n-ai-starter-kit"
+    else
+        PUBLIC_DIR="./logs"
+    fi
+    mkdir -p "$PUBLIC_DIR" >/dev/null 2>&1 || true
+    PUBLIC_LOG="${PUBLIC_DIR}/start.${LOG_TS}.log"
+    : > "$PUBLIC_LOG" 2>/dev/null || true
+    chmod 644 "$PUBLIC_LOG" 2>/dev/null || true
+
+    echo -e "${CYAN}Запись лога запуска: приватный=${INTERNAL_LOG} публичный=${PUBLIC_LOG}${NC}"
+    # Write a header with runtime metadata into both logs so operators can
+    # quickly identify the run. Also echo it to the terminal so the operator
+    # sees the same header before the rest of the output streams through tee.
+    if command -v git >/dev/null 2>&1 && [ -d .git ]; then
+        GIT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+        GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+    else
+        GIT_COMMIT="n/a"
+        GIT_BRANCH="n/a"
+    fi
+    USER_NAME=$(id -un 2>/dev/null || echo "${USER:-unknown}")
+    HOSTNAME=$(hostname 2>/dev/null || echo "unknown")
+    START_ISO=$(date --iso-8601=seconds 2>/dev/null || date +"%Y-%m-%dT%H:%M:%S%z")
+    REPO_PATH=$(pwd 2>/dev/null || echo "unknown")
+
+    # Full header (private/internal) — contains sensitive repo info and commit
+    FULL_HEADER="==== N8N AI Starter Kit RUN ===="
+    FULL_HEADER="$FULL_HEADER\nstart_time=${START_ISO}"
+    FULL_HEADER="$FULL_HEADER\nuser=${USER_NAME}"
+    FULL_HEADER="$FULL_HEADER\nhost=${HOSTNAME}"
+    FULL_HEADER="$FULL_HEADER\ngit_branch=${GIT_BRANCH}"
+    FULL_HEADER="$FULL_HEADER\ngit_commit=${GIT_COMMIT}"
+    FULL_HEADER="$FULL_HEADER\nrepo_path=${REPO_PATH}"
+    FULL_HEADER="$FULL_HEADER\n===============================\n"
+
+    # Limited header (public/terminal) — intentionally omits git_commit and repo_path
+    LIMITED_HEADER="==== N8N AI Starter Kit RUN ===="
+    LIMITED_HEADER="$LIMITED_HEADER\nstart_time=${START_ISO}"
+    LIMITED_HEADER="$LIMITED_HEADER\nuser=${USER_NAME}"
+    LIMITED_HEADER="$LIMITED_HEADER\nhost=${HOSTNAME}"
+    LIMITED_HEADER="$LIMITED_HEADER\ngit_branch=${GIT_BRANCH}"
+    LIMITED_HEADER="$LIMITED_HEADER\n===============================\n"
+
+    # Append full header to internal log and limited header to public log; show limited header to terminal
+    printf "%b\n" "$FULL_HEADER" >> "$INTERNAL_LOG" 2>/dev/null || true
+    printf "%b\n" "$LIMITED_HEADER" >> "$PUBLIC_LOG" 2>/dev/null || true
+    echo -e "$LIMITED_HEADER"
+
+    # Redirect stdout/stderr through tee to both files while preserving stdin
+    # so interactive prompts still work. tee appends to both files.
+    exec > >(tee -a "$INTERNAL_LOG" "$PUBLIC_LOG") 2>&1
+fi
+
 # Flag set to 1 when ./scripts/setup.sh created or updated .env during this run.
 # This prevents re-prompting the user later in the script when .env was just generated.
 ENV_CREATED_BY_SETUP=0
@@ -408,7 +478,7 @@ generate_password() {
     echo "$(date +%s)_$(whoami)_$(hostname)" | sha256sum | cut -c1-$length
 }
 
-# Merge old .env into new .env: preserve any key=value lines that existed in
+    # Merge old .env into new .env: preserve any key/value lines that existed in
 # the old file but are missing (or empty) in the newly generated file.
 merge_env_files() {
     local oldfile="$1"
@@ -432,16 +502,16 @@ merge_env_files() {
         while IFS= read -r line; do
             # only consider lines like KEY=VALUE (ignore comments/blank)
             if [[ "$line" =~ ^([A-Za-z0-9_]+)=(.*) ]]; then
-                key="${BASH_REMATCH[1]}"
-                # if key not present in newfile (exact key=) then append the old line
-                if ! grep -q -E "^${key}=" "$newfile" 2>/dev/null; then
+                env_var_name="${BASH_REMATCH[1]}"
+                # if env_var_name not present in newfile then append the old line
+                if ! grep -q -E "^${env_var_name}=" "$newfile" 2>/dev/null; then
                     echo "$line" >> "$tmpnew"
                 else
                     # if present but value empty in newfile, replace with old value
-                    val=$(grep -E "^${key}=" "$newfile" | tail -n1 | cut -d'=' -f2-)
+                    val=$(grep -E "^${env_var_name}=" "$newfile" | tail -n1 | cut -d'=' -f2-)
                     if [ -z "$val" ]; then
-                        # remove existing empty line(s) for key in tmpnew and append full old line
-                        sed -i.bak "/^${key}=/d" "$tmpnew" 2>/dev/null || true
+                        # remove existing empty line(s) for this name in tmpnew and append full old line
+                        sed -i.bak "/^${env_var_name}=/d" "$tmpnew" 2>/dev/null || true
                         echo "$line" >> "$tmpnew"
                     fi
                 fi
@@ -1127,22 +1197,24 @@ pull_required_images() {
     # automated compose pull attempt and use manual extraction instead. If set to
     # "true" or unset, attempt compose pull and fall back on error.
     if [ "${PREFERRED_COMPOSE_PULL:-}" != "false" ]; then
-    pull_cmd="COMPOSE_PROFILES=\"$PROFILE\" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} pull"
+        # If operator explicitly requests verbose pre-pull, enable --verbose flag
+        PULL_VERBOSE_FLAG=""
+        if [ "${COMPOSE_PULL_VERBOSE:-}" = "true" ]; then
+            PULL_VERBOSE_FLAG="--verbose"
+        fi
+
+        pull_cmd="COMPOSE_PROFILES=\"$PROFILE\" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} ${PULL_VERBOSE_FLAG} pull"
         echo -e "${CYAN}Попытка: ${pull_cmd}${NC}"
         # Execute and capture both output and real exit code
-        tmp_pull_out=$(mktemp 2>/dev/null || echo "/tmp/pull.$$.$RANDOM.out")
-    if COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} pull >"$tmp_pull_out" 2>&1; then
-            pull_rc=0
-        else
-            pull_rc=$?
-        fi
-        pull_output=$(cat "$tmp_pull_out" 2>/dev/null || true)
-        rm -f "$tmp_pull_out" 2>/dev/null || true
-
-        # Show the raw output to the operator for transparency
-        if [ -n "$pull_output" ]; then
-            echo "$pull_output"
-        fi
+    tmp_pull_out=$(mktemp 2>/dev/null || echo "/tmp/pull.$$.$RANDOM.out")
+    # Stream pull output live to terminal (and thus through the global tee into logs)
+    # while also saving a local copy for post-parse analysis.
+    echo -e "${CYAN}Выполняю: ${pull_cmd}${NC}"
+    COMPOSE_PROFILES="$PROFILE" $DOCKER_COMPOSE_CMD ${ENV_FILE_ARG} ${COMPOSE_FILES_ARGS} ${PULL_VERBOSE_FLAG} pull 2>&1 | tee "$tmp_pull_out"
+    # Capture the exit code of the compose pull command (first element of the pipeline)
+    pull_rc=${PIPESTATUS[0]:-0}
+    pull_output=$(cat "$tmp_pull_out" 2>/dev/null || true)
+    rm -f "$tmp_pull_out" 2>/dev/null || true
 
         # Parse the output for known failure patterns regardless of exit code
         FAILED_PULLS=()
