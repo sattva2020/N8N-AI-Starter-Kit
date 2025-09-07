@@ -28,8 +28,9 @@ storage-master
 
 # Данные контейнеров (только локальные)
 volumes/
-# allow specific sample credentials file to be tracked (keep general data/ ignored)
-!/data/credentials-bulk.json
+# keep data/credentials as internal-only; do not track credentials dumps
+# (previously allowed /data/credentials-bulk.json for examples, now moved to .internal/)
+.internal/
 
 # Тестовые файлы
 # Разрешаем каталог tests и CI workflow для тестов
@@ -179,3 +180,7 @@ ollama_data/
 /data/
 /compose/data/
 /n8n/# rStar2 config template - safe to commit (contains placeholders only)
+
+.venv/
+
+tests/smoke/logs/
